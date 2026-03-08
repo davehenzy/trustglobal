@@ -23,6 +23,7 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="npm/bootstrap-icons%401.11.0/font/bootstrap-icons.css">
 <link rel="stylesheet" href="assets/css/style.css">
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 </head>
 
 <body>
@@ -71,11 +72,10 @@
     </nav>
         <x-home.page-header :$pagetitle="" :$pagedescription=""></x-home.page-header>
     <!-- About Section -->
-    <section class="career-section py-5 bg-light position-relative">
+    <section class="career-section py-5 bg-light position-relative" data-aos="fade-up">
         <div class="container">
             <div class="row justify-content-center mb-5">
                 <div class="col-lg-8 text-center">
-                    <img src="assets/images/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=120&q=80" alt="Join Our Team" class="mb-4 rounded" style="max-width:120px;">
                     <h2 class="mb-3 fw-bold text-primary">Join Our Team</h2>
                     <p class="lead text-secondary">We are always looking for talented and passionate individuals to join our growing team. If you are interested in building your career with us, please send your CV to <a href="mailto:support@trustsglobal.com" class="text-decoration-underline text-primary">support@trustsglobal.com</a>.</p>
                 </div>
@@ -213,6 +213,15 @@
 
     <!-- Bootstrap JS -->
     <script src="npm/bootstrap%405.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- AOS JS -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
+        });
+    </script>
 </body>
 
 </html>

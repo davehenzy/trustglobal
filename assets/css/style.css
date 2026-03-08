@@ -126,10 +126,16 @@ body {
     box-shadow: 0 20px 40px rgba(0, 45, 98, 0.12); /* Enhanced shadow */
 }
 
+.feature-card:hover .feature-icon {
+    transform: scale(1.15) translateY(-5px);
+}
+
 .feature-icon {
-    font-size: 2.5rem;
-    margin-bottom: 20px;
+    font-size: 4rem;
+    margin-bottom: 25px;
     color: var(--primary);
+    transition: transform 0.3s ease;
+    display: inline-block;
 }
 
 .testimonial {
@@ -808,18 +814,19 @@ body {
     }
 }
 
-/* Apply animation classes */
-.feature-card, .service-card, .testimonial-card, .security-item, .value-card, .team-member, .timeline-panel {
+/* AOS handles animations now - disabling old static CSS animations */
+/* .feature-card, .service-card, .testimonial-card, .security-item, .value-card, .team-member, .timeline-panel {
     animation: fadeInUp 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
-    opacity: 0; /* Initial state before animation */
-}
+    opacity: 0; 
+} */
 
-/* Staggered animation delays for rows */
-.row > div:nth-child(1) .feature-card, .row > div:nth-child(1) .service-card, .row > div:nth-child(1) .security-item, .row > div:nth-child(1) .value-card, .row > div:nth-child(1) .team-member, .timeline > li:nth-child(1) .timeline-panel { animation-delay: 0.1s; }
+/* Staggered animation delays handled by AOS duration/offset */
+/* .row > div:nth-child(1) .feature-card, .row > div:nth-child(1) .service-card, .row > div:nth-child(1) .security-item, .row > div:nth-child(1) .value-card, .row > div:nth-child(1) .team-member, .timeline > li:nth-child(1) .timeline-panel { animation-delay: 0.1s; }
 .row > div:nth-child(2) .feature-card, .row > div:nth-child(2) .service-card, .row > div:nth-child(2) .security-item, .row > div:nth-child(2) .value-card, .row > div:nth-child(2) .team-member, .timeline > li:nth-child(2) .timeline-panel { animation-delay: 0.2s; }
 .row > div:nth-child(3) .feature-card, .row > div:nth-child(3) .service-card, .row > div:nth-child(3) .security-item, .row > div:nth-child(3) .value-card, .row > div:nth-child(3) .team-member, .timeline > li:nth-child(3) .timeline-panel { animation-delay: 0.3s; }
-.row > div:nth-child(4) .feature-card, .row > div:nth-child(4) .service-card, .row > div:nth-child(4) .security-item, .row > div:nth-child(4) .value-card, .row > div:nth-child(4) .team-member, .timeline > li:nth-child(4) .timeline-panel { animation-delay: 0.4s; }\n.timeline > li:nth-child(5) .timeline-panel { animation-delay: 0.5s; }
-.timeline > li:nth-child(6) .timeline-panel { animation-delay: 0.6s; }
+.row > div:nth-child(4) .feature-card, .row > div:nth-child(4) .service-card, .row > div:nth-child(4) .security-item, .row > div:nth-child(4) .value-card, .row > div:nth-child(4) .team-member, .timeline > li:nth-child(4) .timeline-panel { animation-delay: 0.4s; }
+.timeline > li:nth-child(5) .timeline-panel { animation-delay: 0.5s; }
+.timeline > li:nth-child(6) .timeline-panel { animation-delay: 0.6s; } */
 
 /* Custom utility classes overriding Bootstrap */
 .bg-primary { background-color: var(--primary) !important; }
