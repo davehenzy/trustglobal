@@ -188,25 +188,25 @@
         <div class="row text-center">
             <div class="col-md-3 col-6 mb-4 mb-md-0">
                 <div class="stat-item">
-                    <h2>2M+</h2>
+                    <h2><span class="counter" data-target="2">0</span>M+</h2>
                     <p>Happy Customers</p>
                 </div>
             </div>
             <div class="col-md-3 col-6 mb-4 mb-md-0">
                 <div class="stat-item">
-                    <h2>500+</h2>
+                    <h2><span class="counter" data-target="500">0</span>+</h2>
                     <p>Branches</p>
                 </div>
             </div>
             <div class="col-md-3 col-6">
                 <div class="stat-item">
-                    <h2>50+</h2>
+                    <h2><span class="counter" data-target="50">0</span>+</h2>
                     <p>Countries</p>
                 </div>
             </div>
             <div class="col-md-3 col-6">
                 <div class="stat-item">
-                    <h2>99.9%</h2>
+                    <h2><span class="counter" data-target="99.9">0</span>%</h2>
                     <p>Uptime</p>
                 </div>
             </div>
@@ -454,12 +454,50 @@
     <script src="npm/bootstrap%405.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- AOS JS -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/countup.js/2.8.0/countUp.umd.js"></script>
     <script>
         AOS.init({
             duration: 800,
             once: true,
             offset: 100
         });
+
+        // Initialize CountUp.js
+        const startCounters = () => {
+            const counters = document.querySelectorAll('.counter');
+            counters.forEach(counter => {
+                const target = parseFloat(counter.getAttribute('data-target'));
+                const hasDecimals = target % 1 !== 0;
+                const decimals = hasDecimals ? 1 : 0;
+                
+                // Use countUp global object exported by UMD script
+                const counterAnim = new countUp.CountUp(counter, target, {
+                    decimalPlaces: decimals,
+                    duration: 2.5,
+                    useEasing: true,
+                    useGrouping: true,
+                });
+                
+                if (!counterAnim.error) {
+                    counterAnim.start();
+                } else {
+                    console.error(counterAnim.error);
+                }
+            });
+        };
+
+        // Use Intersection Observer to trigger counter when in view
+        const observer = new IntersectionObserver((entries) => {
+            if(entries[0].isIntersecting) {
+                startCounters();
+                observer.disconnect(); // counter runs only once
+            }
+        });
+        
+        const statsSection = document.querySelector('.stats');
+        if(statsSection) {
+            observer.observe(statsSection);
+        }
     </script>
 </body>
 
