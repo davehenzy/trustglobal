@@ -1,18 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+
 :root {
-    --primary: #0052cc;
-    --primary-dark: #003d99;
+    --primary: #002d62;
+    --primary-dark: #001f44;
     --secondary: #6c757d;
-    --light: #f8f9fa;
-    --dark: #212529;
+    --light: #ffffff;
+    --dark: #101010;
     --success: #28a745;
     --info: #17a2b8;
     --warning: #ffc107;
-    --danger: #dc3545;
+    --danger: #E21936;
+    
+    --font-primary: 'Lato', sans-serif;
+    --font-secondary: 'Plus Jakarta Sans', sans-serif;
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #333;
+    font-family: var(--font-primary);
+    color: var(--dark);
 }
 
 .navbar {
@@ -49,7 +54,7 @@ body {
     background-color: var(--primary-dark);
     border-color: var(--primary-dark);
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 82, 204, 0.4);
+    box-shadow: 0 8px 25px rgba(0, 45, 98, 0.4);
 }
 
 .btn-outline-primary {
@@ -65,12 +70,12 @@ body {
     background-color: var(--primary);
     color: white;
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 82, 204, 0.4);
+    box-shadow: 0 8px 25px rgba(0, 45, 98, 0.4);
 }
 
 
 .hero {
-    background: linear-gradient(135deg, #0052cc 0%, #00a3e0 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     color: white;
     padding: 100px 0;
     position: relative;
@@ -118,7 +123,7 @@ body {
 
 .feature-card:hover {
     transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0, 82, 204, 0.12); /* Enhanced shadow */
+    box-shadow: 0 20px 40px rgba(0, 45, 98, 0.12); /* Enhanced shadow */
 }
 
 .feature-icon {
@@ -149,7 +154,7 @@ body {
 }
 
 .stats {
-    background: linear-gradient(135deg, #0052cc 0%, #00a3e0 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     color: white;
     padding: 80px 0;
 }
@@ -248,7 +253,7 @@ body {
 
 .service-card:hover {
     transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0, 82, 204, 0.12); /* Enhanced shadow */
+    box-shadow: 0 20px 40px rgba(0, 45, 98, 0.12); /* Enhanced shadow */
 }
 
 .service-card .card-img-top {
@@ -295,7 +300,7 @@ body {
     font-size: 1.5rem;
     color: var(--primary);
     margin-right: 15px;
-    background-color: rgba(0, 82, 204, 0.1);
+    background-color: rgba(0, 45, 98, 0.1);
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -359,7 +364,7 @@ body {
 
 .security-item:hover {
     transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0, 82, 204, 0.12); /* Enhanced shadow */
+    box-shadow: 0 20px 40px rgba(0, 45, 98, 0.12); /* Enhanced shadow */
 }
 
 .security-item h4 {
@@ -373,7 +378,7 @@ body {
 }
 
 .page-header {
-    background: linear-gradient(135deg, #0052cc 0%, #00a3e0 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     color: white;
     padding: 80px 0;
     position: relative;
@@ -654,7 +659,7 @@ body {
     display: inline-block;
     width: 36px;
     height: 36px;
-    background-color: rgba(0, 82, 204, 0.1);
+    background-color: rgba(0, 45, 98, 0.1);
     border-radius: 50%;
     text-align: center;
     line-height: 36px;
@@ -681,14 +686,14 @@ body {
 
 .value-card:hover {
     transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0, 82, 204, 0.12); /* Enhanced shadow */
+    box-shadow: 0 20px 40px rgba(0, 45, 98, 0.12); /* Enhanced shadow */
 }
 
 .value-icon {
     font-size: 2.5rem;
     margin-bottom: 20px;
     color: var(--primary);
-    background-color: rgba(0, 82, 204, 0.1);
+    background-color: rgba(0, 45, 98, 0.1);
     width: 80px;
     height: 80px;
     border-radius: 50%;
@@ -716,14 +721,14 @@ body {
 
 .contact-info-card:hover {
     transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0, 82, 204, 0.12); /* Enhanced shadow */
+    box-shadow: 0 20px 40px rgba(0, 45, 98, 0.12); /* Enhanced shadow */
 }
 
 .contact-icon {
     font-size: 2rem;
     color: var(--primary);
     margin-bottom: 20px;
-    background-color: rgba(0, 82, 204, 0.1);
+    background-color: rgba(0, 45, 98, 0.1);
     width: 60px;
     height: 60px;
     border-radius: 50%;
@@ -744,14 +749,14 @@ body {
 
 .support-option:hover {
     transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0, 82, 204, 0.12); /* Enhanced shadow */
+    box-shadow: 0 20px 40px rgba(0, 45, 98, 0.12); /* Enhanced shadow */
 }
 
 .support-icon {
     font-size: 2.5rem;
     color: var(--primary);
     margin-bottom: 20px;
-    background-color: rgba(0, 82, 204, 0.1);
+    background-color: rgba(0, 45, 98, 0.1);
     width: 80px;
     height: 80px;
     border-radius: 50%;
@@ -816,3 +821,11 @@ body {
 .row > div:nth-child(4) .feature-card, .row > div:nth-child(4) .service-card, .row > div:nth-child(4) .security-item, .row > div:nth-child(4) .value-card, .row > div:nth-child(4) .team-member, .timeline > li:nth-child(4) .timeline-panel { animation-delay: 0.4s; }\n.timeline > li:nth-child(5) .timeline-panel { animation-delay: 0.5s; }
 .timeline > li:nth-child(6) .timeline-panel { animation-delay: 0.6s; }
 
+/* Custom utility classes overriding Bootstrap */
+.bg-primary { background-color: var(--primary) !important; }
+.text-primary { color: var(--primary) !important; }
+.btn-primary { background-color: var(--primary) !important; border-color: var(--primary) !important; color: white !important; }
+.btn-primary:hover { background-color: var(--primary-dark) !important; border-color: var(--primary-dark) !important; color: white !important; }
+.bg-secondary { background-color: var(--secondary) !important; }
+.text-secondary { color: var(--secondary) !important; }
+h1, h2, h3, h4, h5, h6, .navbar-brand { font-family: var(--font-secondary) !important; font-weight: 700; }
