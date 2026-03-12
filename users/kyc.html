@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KYC Verification - SwiftCapital</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .verification-card {
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+        }
+        
+        .verification-card-header {
+            padding: 25px 30px;
+            background: #fff;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .verification-header-icon {
+            width: 40px;
+            height: 40px;
+            background: #eff6ff;
+            color: #3b82f6;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        
+        .verification-header-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .verification-body {
+            padding: 35px 30px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 25px;
+        }
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--text-dark);
+        }
+        .breadcrumb-text {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        .breadcrumb-text a {
+            color: var(--text-muted);
+            text-decoration: none;
+        }
+        .breadcrumb-text a:hover {
+            color: var(--primary-color);
+        }
+
+        .upload-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .upload-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f8fafc;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .upload-tab i {
+            font-size: 1.5rem;
+        }
+        .upload-tab.active {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            color: #2563eb;
+        }
+
+        .checklist {
+            margin-bottom: 25px;
+            padding-left: 0;
+            list-style: none;
+        }
+        .checklist li {
+            font-size: 0.85rem;
+            color: #475569;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        .checklist li i {
+            color: #3b82f6;
+            margin-right: 10px;
+        }
+
+        .upload-zone-wrapper {
+            margin-bottom: 25px;
+        }
+        .upload-zone-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #1e293b;
+        }
+        .upload-zone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 30px 20px;
+            text-align: center;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .upload-zone:hover {
+            border-color: #94a3b8;
+            background: #f1f5f9;
+        }
+        .upload-zone i {
+            font-size: 2rem;
+            color: #94a3b8;
+            margin-bottom: 10px;
+        }
+        .upload-zone p {
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #1e293b;
+        }
+        .upload-zone small {
+            color: #64748b;
+            font-size: 0.75rem;
+        }
+
+        .btn-submit-kyc {
+            width: 100%;
+            background: #3b82f6;
+            color: #fff;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+        .btn-submit-kyc:hover {
+            background: #2563eb;
+        }
+
+        .help-footer-card {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .help-footer-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .help-footer-icon {
+            width: 48px;
+            height: 48px;
+            background: #eff6ff;
+            color: #3b82f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+        }
+
+        .help-footer-text h6 {
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #1e293b;
+        }
+
+        .help-footer-text p {
+            margin-bottom: 0;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .btn-support-outline {
+            border: 1px solid #3b82f6;
+            color: #3b82f6;
+            background: transparent;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .btn-support-outline:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <!-- Sidebar content identical to others -->
+        <div class="brand-section">
+            <div class="brand-logo">
+                <i class="fa-solid fa-chart-simple text-primary me-2"></i>
+                <span class="swift">Swift</span><span class="capital">Capital</span>
+            </div>
+            <div class="brand-tagline">Banking At It's Best</div>
+        </div>
+
+        <div class="user-profile-widget">
+            <div class="avatar-circle">KC</div>
+            <div class="user-name">Kante Calm</div>
+            <div class="user-id">ID: 0537658047</div>
+            <button class="btn btn-kyc active" onclick="location.href='kyc.html'"><i class="fa-solid fa-circle-exclamation"></i> Verify KYC</button>
+            <div class="user-actions">
+                <a href="settings.html" class="btn btn-outline"><i class="fa-solid fa-user"></i> Profile</a>
+                <a href="#" class="btn btn-primary-soft"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
+            </div>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-category">Main Menu</div>
+            <a href="index.html" class="nav-item-link"><i class="fa-solid fa-house"></i> Dashboard</a>
+            <a href="transactions.html" class="nav-item-link"><i class="fa-solid fa-chart-line"></i> Transactions</a>
+            <a href="cards.html" class="nav-item-link"><i class="fa-solid fa-credit-card"></i> Cards</a>
+
+            <div class="nav-category">Transfers</div>
+            <a href="local.html" class="nav-item-link"><i class="fa-solid fa-paper-plane"></i> Local Transfer</a>
+            <a href="international.html" class="nav-item-link"><i class="fa-solid fa-globe"></i> International Wire</a>
+            <a href="deposit.html" class="nav-item-link"><i class="fa-solid fa-download"></i> Deposit</a>
+
+            <div class="nav-category">Services</div>
+            <a href="loan.html" class="nav-item-link"><i class="fa-solid fa-boxes-stacked"></i> Loan Request</a>
+            <a href="irs.html" class="nav-item-link"><i class="fa-solid fa-file-invoice-dollar"></i> IRS Tax Refund</a>
+            <a href="loan-history.html" class="nav-item-link"><i class="fa-solid fa-clock-rotate-left"></i> Loan History</a>
+
+            <div class="nav-category">Account</div>
+            <a href="security.html" class="nav-item-link"><i class="fa-solid fa-gear"></i> Settings</a>
+            <a href="support.html" class="nav-item-link"><i class="fa-solid fa-circle-question"></i> Support Ticket</a>
+        </div>
+
+        <div class="sidebar-footer">
+            <span><i class="fa-solid fa-shield-halved me-1"></i> Secure Banking</span>
+            <span class="version">v1.2.0</span>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Navbar -->
+        <nav class="top-navbar">
+            <div class="nav-date">
+                <i class="fa-solid fa-calendar"></i>
+                <span id="currentDate">Sunday, February 15, 2026</span>
+            </div>
+            
+            <div class="nav-actions">
+                <div class="balance-badge">
+                    <i class="fa-solid fa-wallet"></i> $0
+                </div>
+                <button class="btn-icon-only">
+                    <i class="fa-solid fa-bell"></i>
+                </button>
+                <div class="nav-avatar">KC</div>
+            </div>
+        </nav>
+
+        <!-- Page Content -->
+        <div class="page-container">
+            <div class="page-header-centered">
+                <div class="header-icon-circle">
+                    <i class="fa-solid fa-id-card"></i>
+                </div>
+                <h1 class="page-title-centered">KYC Verification</h1>
+                <p class="page-subtitle-centered">Complete your Know Your Customer (KYC) profile to unlock full account capabilities and ensure regulatory compliance.</p>
+            </div>
+
+                    <div class="verification-card">
+
+                        <div class="verification-card-header">
+                            <div class="verification-header-icon">
+                                <i class="fa-solid fa-id-card"></i>
+                            </div>
+                            <div class="verification-header-title">Complete Your Profile</div>
+                        </div>
+
+                        <div class="verification-body">
+                            <form action="index.html">
+                                <!-- Personal Information -->
+                                <div class="section-header">
+                                    <div class="section-header-title">
+                                        <i class="fa-solid fa-user"></i> Personal Information
+                                    </div>
+                                    <p class="section-header-desc">Legal name as it appears on your ID</p>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Full Name <span class="req">*</span></label>
+                                        <div class="custom-input-group">
+                                            <i class="fa-solid fa-user left-icon"></i>
+                                            <input type="text" placeholder="John Doe">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Date of Birth <span class="req">*</span></label>
+                                        <div class="custom-input-group">
+                                            <i class="fa-solid fa-calendar left-icon"></i>
+                                            <input type="date">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Employment Information -->
+                                <div class="section-header mt-4">
+                                    <div class="section-header-title">
+                                        <i class="fa-solid fa-briefcase"></i> Employment Information
+                                    </div>
+                                    <p class="section-header-desc">Required for regulatory compliance</p>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">SSN / National ID Number <span class="req">*</span></label>
+                                        <div class="custom-input-group">
+                                            <i class="fa-solid fa-shield-halved left-icon"></i>
+                                            <input type="text" placeholder="XXX-XX-XXXX">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Account Type <span class="req">*</span></label>
+                                        <div class="custom-input-group">
+                                            <i class="fa-solid fa-building-columns left-icon"></i>
+                                            <select>
+                                                <option>Savings Account</option>
+                                                <option>Checking Account</option>
+                                                <option>Business Account</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Type of Employment <span class="req">*</span></label>
+                                        <div class="custom-input-group">
+                                            <i class="fa-solid fa-file-invoice left-icon"></i>
+                                            <select>
+                                                <option>Employed</option>
+                                                <option>Self-Employed</option>
+                                                <option>Unemployed</option>
+                                                <option>Retired</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Annual Income Range <span class="req">*</span></label>
+                                        <div class="custom-input-group">
+                                            <i class="fa-solid fa-dollar-sign left-icon"></i>
+                                            <select>
+                                                <option>$0 - $50,000</option>
+                                                <option>$50,000 - $100,000</option>
+                                                <option>$100,000+</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Your Address -->
+                                <div class="section-header mt-4">
+                                    <div class="section-header-title">
+                                        <i class="fa-solid fa-location-dot"></i> Your Address
+                                    </div>
+                                    <p class="section-header-desc">Current residential address</p>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label class="form-label">Home Address <span class="req">*</span></label>
+                                        <div class="custom-input-group">
+                                            <i class="fa-solid fa-house left-icon"></i>
+                                            <input type="text" placeholder="123 Main St, Apt 4">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">City <span class="req">*</span></label>
+                                        <div class="custom-input-group no-icon">
+                                            <input type="text" placeholder="New York">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">State / Province <span class="req">*</span></label>
+                                        <div class="custom-input-group no-icon">
+                                            <input type="text" placeholder="NY">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Zip / Postal Code <span class="req">*</span></label>
+                                        <div class="custom-input-group no-icon">
+                                            <input type="text" placeholder="10001">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Country <span class="req">*</span></label>
+                                        <div class="custom-input-group">
+                                            <i class="fa-solid fa-globe left-icon"></i>
+                                            <select><option>United States</option><option>Nigeria</option></select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Next of Kin -->
+                                <div class="section-header mt-4">
+                                    <div class="section-header-title">
+                                        <i class="fa-solid fa-user-group"></i> Registered Next of Kin
+                                    </div>
+                                    <p class="section-header-desc">Information about your beneficiary</p>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Beneficiary Legal Name <span class="req">*</span></label>
+                                        <div class="custom-input-group">
+                                            <i class="fa-solid fa-user left-icon"></i>
+                                            <input type="text" placeholder="Full Name">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Relationship <span class="req">*</span></label>
+                                        <div class="custom-input-group">
+                                            <i class="fa-solid fa-heart left-icon"></i>
+                                            <input type="text" placeholder="e.g. Spouse, Parent">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Document Upload -->
+                                <div class="section-header mt-4">
+                                    <div class="section-header-title">
+                                        <i class="fa-solid fa-file-invoice"></i> Document Upload
+                                    </div>
+                                    <p class="section-header-desc">Upload clear photos of your documents</p>
+                                </div>
+
+                                <div class="upload-tabs">
+                                    <div class="upload-tab active">
+                                        <i class="fa-solid fa-passport"></i> Intl Passport
+                                    </div>
+                                    <div class="upload-tab">
+                                        <i class="fa-solid fa-id-card"></i> National ID
+                                    </div>
+                                    <div class="upload-tab">
+                                        <i class="fa-solid fa-address-card"></i> Driver's License
+                                    </div>
+                                </div>
+
+                                <ul class="checklist mt-3">
+                                    <li><i class="fa-solid fa-circle-check"></i> Ensure documents have not expired</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Photo must be clear and readable</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Files should be under 2MB</li>
+                                </ul>
+
+                                <div class="upload-zone-wrapper mt-4">
+                                    <div class="row g-3">
+                                        <div class="col-md-6" id="frontUploadWrapper">
+                                            <div class="upload-zone-title">Upload Front Side <span class="req">*</span></div>
+                                            <div class="upload-zone" onclick="document.getElementById('frontInput').click()">
+                                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                                <p>Front Side</p>
+                                                <small>Click to upload or drag</small>
+                                                <input type="file" id="frontInput" hidden accept="image/*">
+                                                <div id="frontName" class="text-xs text-primary mt-2 fw-bold"></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6" id="backUploadWrapper">
+                                            <div class="upload-zone-title">Upload Back Side <span class="req">*</span></div>
+                                            <div class="upload-zone" onclick="document.getElementById('backInput').click()">
+                                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                                <p>Back Side</p>
+                                                <small>Click to upload or drag</small>
+                                                <input type="file" id="backInput" hidden accept="image/*">
+                                                <div id="backName" class="text-xs text-primary mt-2 fw-bold"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid mt-5">
+                                    <button type="submit" class="btn-submit-kyc">
+                                        Submit Verification <i class="fa-solid fa-arrow-right ms-2"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="help-footer-card">
+                        <div class="help-footer-info">
+                            <div class="help-footer-icon">
+                                <i class="fa-solid fa-life-ring"></i>
+                            </div>
+                            <div class="help-footer-text">
+                                <h6>Need help with verification?</h6>
+                                <p>Our support team is available 24/7 to assist you with the process.</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-support-outline" onclick="location.href='support.html'"><i class="fa-solid fa-message me-2"></i> Contact Support</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer mt-auto">
+            <div class="brand">
+                <span class="text-primary fw-bold" style="letter-spacing: -0.5px;">Swift</span><span class="text-dark fw-bold" style="letter-spacing: -0.5px;">Capital</span> © 2026 SwiftCapital. All rights reserved.
+            </div>
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Contact Support</a>
+            </div>
+        </footer>
+    </main>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateNodes = document.querySelectorAll('#currentDate');
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const formattedDate = now.toLocaleDateString('en-US', options);
+            dateNodes.forEach(node => node.textContent = formattedDate);
+            
+            const tabs = document.querySelectorAll('.upload-tab');
+            const backWrapper = document.getElementById('backUploadWrapper');
+            const frontWrapper = document.getElementById('frontUploadWrapper');
+
+            function updateUI(activeTab) {
+                const docType = activeTab.innerText.trim();
+                if (docType === 'Intl Passport') {
+                    backWrapper.style.display = 'none';
+                    frontWrapper.className = 'col-12';
+                    frontWrapper.querySelector('.upload-zone-title').innerText = 'Upload Passport Data Page *';
+                } else {
+                    backWrapper.style.display = 'block';
+                    frontWrapper.className = 'col-md-6';
+                    frontWrapper.querySelector('.upload-zone-title').innerText = 'Upload Front Side *';
+                }
+            }
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    updateUI(tab);
+                });
+            });
+
+            // Initial UI update
+            updateUI(document.querySelector('.upload-tab.active'));
+
+            // File display logic
+            ['front', 'back'].forEach(side => {
+                const input = document.getElementById(side + 'Input');
+                const nameDisplay = document.getElementById(side + 'Name');
+                input.addEventListener('change', function() {
+                    if (this.files && this.files[0]) {
+                        nameDisplay.textContent = 'Selected: ' + this.files[0].name;
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

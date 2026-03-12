@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Transfer - SwiftCapital</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+    <style>
+
+
+        /* Hero Header */
+        .transfer-hero {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            border-radius: 16px 16px 0 0;
+            padding: 40px 30px;
+            color: #fff;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Wave decorative border at bottom */
+        .transfer-hero::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background-image: radial-gradient(circle at 10px 0, transparent 10px, #fff 11px);
+            background-size: 20px 20px;
+            background-repeat: repeat-x;
+        }
+        .transfer-hero-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin: 0 auto 15px;
+        }
+        .transfer-hero h4 {
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .transfer-hero p {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            margin-bottom: 0;
+        }
+
+        /* Form Areas */
+        .transfer-body {
+            background: #fff;
+            padding: 30px 40px;
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-radius: 0 0 16px 16px;
+        }
+        
+        .balance-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+        .balance-box .left {
+            display: flex;
+            align-items: center;
+        }
+        .balance-icon {
+            width: 40px;
+            height: 40px;
+            background: #eff6ff;
+            color: #3b82f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-right: 15px;
+        }
+        .balance-box h6 {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 2px;
+        }
+        .balance-box h4 {
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0;
+        }
+        .badge-available {
+            background: #dcfce7;
+            color: #16a34a;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .section-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            color: var(--text-dark);
+        }
+        .section-title .icon-bg {
+            width: 32px;
+            height: 32px;
+            background: #eff6ff;
+            color: #3b82f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 0.9rem;
+        }
+
+        .amount-input-group {
+            position: relative;
+            margin-bottom: 15px;
+        }
+        .amount-input-group .currency-symbol {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+        .amount-input-group .decimal {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .amount-input {
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px 60px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            transition: all 0.2s;
+            outline: none;
+        }
+        .amount-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        .quick-amount-btn {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            color: var(--text-dark);
+            font-weight: 500;
+            font-size: 0.85rem;
+            padding: 6px 15px;
+            border-radius: 6px;
+            margin-right: 8px;
+            transition: all 0.2s;
+        }
+        .quick-amount-btn:hover, .quick-amount-btn.active {
+            background: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+        }
+
+        .form-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .custom-input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .custom-input-group i.left-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+        .custom-input-group input, .custom-input-group select, .custom-input-group textarea {
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 15px 12px 40px;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+            outline: none;
+            transition: all 0.2s;
+            background: #fff;
+        }
+        .custom-input-group input:focus, .custom-input-group select:focus, .custom-input-group textarea:focus {
+            border-color: var(--primary-color);
+        }
+        /* Specific rules for textarea to not have left padding */
+        .custom-input-group.no-icon textarea {
+            padding-left: 15px;
+        }
+        .custom-input-group i.right-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        .form-control-static-bg {
+            background-color: #eff6ff !important;
+            border-color: #bfdbfe !important;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+        }
+        .btn-preview {
+            flex: 1;
+            background: #93c5fd; /* light blue representing disabled/preview state */
+            color: #fff;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .btn-back {
+            flex: 1;
+            background: #fff;
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .btn-back:hover {
+            background: #f8fafc;
+        }
+
+        .secure-alert {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: flex-start;
+            margin-top: 20px;
+        }
+        .secure-alert i {
+            color: #0ea5e9;
+            font-size: 1.2rem;
+            margin-right: 15px;
+            margin-top: 2px;
+        }
+        .secure-alert h6 {
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        .secure-alert p {
+            margin-bottom: 0;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand-section">
+            <div class="brand-logo">
+                <i class="fa-solid fa-chart-simple text-primary me-2"></i>
+                <span class="swift">Swift</span><span class="capital">Capital</span>
+            </div>
+            <div class="brand-tagline">Banking At It's Best</div>
+        </div>
+
+        <div class="user-profile-widget">
+            <div class="avatar-circle">KC</div>
+            <div class="user-name">Kante Calm</div>
+            <div class="user-id">ID: 0537658047</div>
+            <button class="btn btn-kyc" onclick="location.href='verification.html'"><i class="fa-solid fa-circle-exclamation"></i> Verify KYC</button>
+            <div class="user-actions">
+                <a href="settings.html" class="btn btn-outline"><i class="fa-solid fa-user"></i> Profile</a>
+                <a href="#" class="btn btn-primary-soft"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
+            </div>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-category">Main Menu</div>
+            <a href="index.html" class="nav-item-link"><i class="fa-solid fa-house"></i> Dashboard</a>
+            <a href="transactions.html" class="nav-item-link"><i class="fa-solid fa-chart-line"></i> Transactions</a>
+            <a href="cards.html" class="nav-item-link"><i class="fa-solid fa-credit-card"></i> Cards</a>
+
+            <div class="nav-category">Transfers</div>
+            <a href="local.html" class="nav-item-link active"><i class="fa-solid fa-paper-plane"></i> Local Transfer</a>
+            <a href="international.html" class="nav-item-link"><i class="fa-solid fa-globe"></i> International Wire</a>
+            <a href="deposit.html" class="nav-item-link"><i class="fa-solid fa-download"></i> Deposit</a>
+
+            <div class="nav-category">Services</div>
+            <a href="loan.html" class="nav-item-link"><i class="fa-solid fa-boxes-stacked"></i> Loan Request</a>
+            <a href="irs.html" class="nav-item-link"><i class="fa-solid fa-file-invoice-dollar"></i> IRS Tax Refund</a>
+            <a href="loan-history.html" class="nav-item-link"><i class="fa-solid fa-clock-rotate-left"></i> Loan History</a>
+
+            <div class="nav-category">Account</div>
+            <a href="security.html" class="nav-item-link"><i class="fa-solid fa-gear"></i> Settings</a>
+            <a href="support.html" class="nav-item-link"><i class="fa-solid fa-circle-question"></i> Support Ticket</a>
+        </div>
+
+        <div class="sidebar-footer">
+            <span><i class="fa-solid fa-shield-halved me-1"></i> Secure Banking</span>
+            <span class="version">v1.2.0</span>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Navbar -->
+        <nav class="top-navbar">
+            <div class="nav-date">
+                <i class="fa-solid fa-calendar"></i>
+                <span id="currentDate">Sunday, February 15, 2026</span>
+            </div>
+            
+            <div class="nav-actions">
+                <div class="balance-badge">
+                    <i class="fa-solid fa-wallet"></i> $0
+                </div>
+                <button class="btn-icon-only">
+                    <i class="fa-solid fa-bell"></i>
+                </button>
+                <div class="nav-avatar">KC</div>
+            </div>
+        </nav>
+
+        <!-- Page Content -->
+        <div class="page-container">
+            
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Local Transfer</h1>
+                    <div class="breadcrumb-text">
+                        <a href="index.html">Dashboard</a> <i class="fa-solid fa-chevron-right mx-2" style="font-size: 0.7rem;"></i> Local Transfer
+                    </div>
+                </div>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    
+                    <div class="transfer-hero shadow-sm">
+                        <div class="transfer-hero-icon"><i class="fa-solid fa-paper-plane"></i></div>
+                        <h4>Local Bank Transfer</h4>
+                        <p>Send money to any local bank account securely</p>
+                    </div>
+
+                    <div class="transfer-body shadow-sm">
+                        
+                        <div class="balance-box">
+                            <div class="left">
+                                <div class="balance-icon"><i class="fa-solid fa-wallet"></i></div>
+                                <div>
+                                    <h6>Available Balance</h6>
+                                    <h4>$0.00</h4>
+                                </div>
+                            </div>
+                            <div class="badge-available">Available</div>
+                        </div>
+
+                        <label class="form-label mb-2">Transfer Amount</label>
+                        <div class="amount-input-group">
+                            <span class="currency-symbol">$</span>
+                            <input type="number" class="amount-input" placeholder="0.00" id="transferAmount">
+                            <span class="decimal">.00</span>
+                        </div>
+                        <div class="d-flex mb-5">
+                            <button type="button" class="quick-amount-btn" onclick="setAmount(100)">$100</button>
+                            <button type="button" class="quick-amount-btn" onclick="setAmount(500)">$500</button>
+                            <button type="button" class="quick-amount-btn" onclick="setAmount(1000)">$1000</button>
+                            <button type="button" class="quick-amount-btn">All</button>
+                        </div>
+
+                        <div class="section-title">
+                            <div class="icon-bg"><i class="fa-solid fa-user"></i></div> Beneficiary Details
+                        </div>
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-6">
+                                <label class="form-label">Beneficiary Account Name</label>
+                                <div class="custom-input-group">
+                                    <i class="fa-solid fa-user left-icon"></i>
+                                    <input type="text" class="form-control-static-bg" value="Kante213" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Beneficiary Account Number</label>
+                                <div class="custom-input-group">
+                                    <i class="fa-solid fa-hashtag left-icon"></i>
+                                    <input type="text" placeholder="Enter account number">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Bank Name</label>
+                                <div class="custom-input-group">
+                                    <i class="fa-solid fa-building-columns left-icon"></i>
+                                    <input type="text" placeholder="Enter bank name">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Transfer Type</label>
+                                <div class="custom-input-group">
+                                    <i class="fa-solid fa-credit-card left-icon"></i>
+                                    <select>
+                                        <option>Online Banking</option>
+                                        <option>Wire Transfer</option>
+                                        <option>ACH</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-title">
+                            <div class="icon-bg"><i class="fa-solid fa-circle-info"></i></div> Additional Information
+                        </div>
+                        <div class="row g-4">
+                            <div class="col-12">
+                                <label class="form-label">Description/Memo</label>
+                                <div class="custom-input-group no-icon">
+                                    <textarea rows="3" placeholder="Enter transaction description or purpose of payment"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Transaction PIN</label>
+                                <div class="custom-input-group">
+                                    <i class="fa-solid fa-lock left-icon"></i>
+                                    <input type="password" value="123456" id="txPin">
+                                    <i class="fa-solid fa-eye right-icon" onclick="togglePin()"></i>
+                                </div>
+                                <small class="text-muted" style="font-size: 0.75rem;">This is your transaction PIN, not your login password</small>
+                            </div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <button type="button" class="btn-preview"><i class="fa-solid fa-eye me-2"></i> Preview Transfer</button>
+                            <button type="button" class="btn-back" onclick="location.href='index.html'"><i class="fa-solid fa-arrow-left me-2"></i> Back to Dashboard</button>
+                        </div>
+                    </div>
+
+                    <div class="secure-alert">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <div>
+                            <h6>Secure Transaction</h6>
+                            <p>All transfers are encrypted and processed securely. Your financial information is never stored on our servers.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer mt-auto">
+            <div class="brand">
+                <span class="text-primary fw-bold" style="letter-spacing: -0.5px;">Swift</span><span class="text-dark fw-bold" style="letter-spacing: -0.5px;">Capital</span> © 2026 SwiftCapital. All rights reserved.
+            </div>
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Contact Support</a>
+            </div>
+        </footer>
+    </main>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateNodes = document.querySelectorAll('#currentDate');
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const formattedDate = now.toLocaleDateString('en-US', options);
+            dateNodes.forEach(node => node.textContent = formattedDate);
+        });
+
+        function setAmount(val) {
+            document.getElementById('transferAmount').value = val;
+        }
+
+        function togglePin() {
+            const input = document.getElementById('txPin');
+            const icon = event.currentTarget;
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
+</body>
+</html>
