@@ -742,11 +742,13 @@ body {
 .custom-input-group textarea:focus {
   border-color: var(--primary-color);
   background-color: #fff;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12), 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15), 0 4px 12px rgba(59, 130, 246, 0.08);
+  transform: translateY(-1px);
 }
 
 .custom-input-group input:focus + i.left-icon,
-.custom-input-group select:focus + i.left-icon {
+.custom-input-group select:focus + i.left-icon,
+.custom-input-group textarea:focus + i.left-icon {
   color: var(--primary-color);
 }
 

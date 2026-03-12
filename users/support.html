@@ -23,7 +23,7 @@
         .support-icon-header {
             width: 80px;
             height: 80px;
-            background-color: #38bdf8; /* Cyan-blue color */
+            background-color: #0ea5e9;
             color: #fff;
             border-radius: 50%;
             display: flex;
@@ -31,34 +31,17 @@
             justify-content: center;
             font-size: 2.2rem;
             margin: 0 auto 30px;
-            box-shadow: 0 8px 16px rgba(56, 189, 248, 0.2);
+            box-shadow: 0 8px 16px rgba(14, 165, 233, 0.2);
         }
 
-        .support-form-section-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-dark);
-            margin-bottom: 20px;
+        .support-info-alert {
+            background-color: #f0f9ff;
+            border-radius: 12px;
+            padding: 20px;
             display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .support-form-section-title i {
-            color: #38bdf8;
-            font-size: 1rem;
-        }
-
-        .input-hint {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-top: 5px;
-            display: block;
-        }
-
-        .support-input-group {
-            position: relative;
-            margin-bottom: 25px;
+            gap: 15px;
+            margin-bottom: 30px;
+            border: 1px solid #e0f2fe;
         }
 
         .support-input-group i.left-icon {
@@ -224,17 +207,15 @@
 
         <!-- Page Content -->
         <div class="page-container">
-            
             <div class="row justify-content-center">
                 <div class="col-lg-8 col-xl-7">
                     
-                    <div class="page-header mb-4">
-                        <div>
-                            <h1 class="page-title">Support Center</h1>
-                            <div class="breadcrumb-text">
-                                <a href="index.html">Dashboard</a> <i class="fa-solid fa-chevron-right mx-2" style="font-size: 0.7rem;"></i> Support
-                            </div>
+                    <div class="page-header-centered">
+                        <div class="header-icon-circle" style="background: #0ea5e9;">
+                            <i class="fa-solid fa-circle-question"></i>
                         </div>
+                        <h1 class="page-title-centered">Support Center</h1>
+                        <p class="page-subtitle-centered">We're here to help. Tell us about your issue and we'll find a solution as quickly as possible.</p>
                     </div>
 
                     <div class="support-form-card">
@@ -248,49 +229,54 @@
                             <i class="fa-solid fa-comment-dots"></i>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="form-label fw-bold" style="font-size: 0.85rem;">Ticket Title</label>
-                            <div class="support-input-group">
-                                <i class="fa-solid fa-bookmark left-icon"></i>
-                                <input type="text" placeholder="Briefly describe your issue">
+
+                        <form action="index.html">
+                        <div class="row g-4">
+                            <div class="col-12">
+                                <label class="form-label">Subject <span class="req">*</span></label>
+                                <div class="custom-input-group">
+                                    <input type="text" placeholder="What can we help you with?" required>
+                                    <i class="fa-solid fa-pen-to-square left-icon"></i>
+                                </div>
                             </div>
-                            <span class="input-hint">Be specific to help us understand your issue</span>
+
+                            <div class="col-12">
+                                <label class="form-label">Priority Level <span class="req">*</span></label>
+                                <div class="custom-input-group">
+                                    <select required>
+                                        <option value="" disabled selected>Select Priority</option>
+                                        <option>Low Priority</option>
+                                        <option>Medium Priority</option>
+                                        <option>High Priority</option>
+                                        <option>Urgent</option>
+                                    </select>
+                                    <i class="fa-solid fa-flag left-icon"></i>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label">Describe Your Issue <span class="req">*</span></label>
+                                <div class="custom-input-group">
+                                    <textarea rows="6" placeholder="Please provide all relevant details..." required></textarea>
+                                    <i class="fa-solid fa-comment-dots left-icon" style="top: 25px;"></i>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="form-label fw-bold" style="font-size: 0.85rem;">Priority Level</label>
-                            <div class="support-input-group">
-                                <i class="fa-solid fa-flag left-icon"></i>
-                                <select>
-                                    <option>Low Priority</option>
-                                    <option>Medium Priority</option>
-                                    <option>High Priority</option>
-                                    <option>Urgent</option>
-                                </select>
-                            </div>
-                            <span class="input-hint">Select based on urgency of your request</span>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label fw-bold" style="font-size: 0.85rem;">Describe Your Issue</label>
-                            <div class="support-input-group">
-                                <i class="fa-solid fa-comment-alt left-icon textarea-icon"></i>
-                                <textarea rows="6" placeholder="Please provide all relevant details about your issue so we can help you better"></textarea>
-                            </div>
-                            <span class="input-hint">Include any relevant details that might help us resolve your issue</span>
-                        </div>
-
-                        <div class="support-info-alert">
+                        <div class="support-info-alert mt-5">
                             <i class="fa-solid fa-circle-info"></i>
                             <div class="support-info-alert-content">
                                 <h6>Support Information</h6>
-                                <p>Our support team typically responds within 24 hours. For urgent matters, please select "High Priority" and we'll do our best to assist you sooner.</p>
+                                <p>Our support team typically responds within 24 hours. For urgent matters, please select "High Priority".</p>
                             </div>
                         </div>
 
-                        <button type="submit" class="btn-submit-ticket">
-                            <i class="fa-solid fa-paper-plane"></i> Submit Ticket
-                        </button>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold">
+                                <i class="fa-solid fa-paper-plane me-2"></i> Submit Ticket
+                            </button>
+                        </div>
+                        </form>
 
                     </div>
 
