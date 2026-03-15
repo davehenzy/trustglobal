@@ -1,4 +1,23 @@
-<?php require_once '../includes/user-check.php'; ?>
+<?php
+require_once '../includes/db.php';
+require_once '../includes/user-check.php';
+
+$user_id = $_SESSION['user_id'];
+
+// Stats
+$active_cards  = $pdo->prepare("SELECT COUNT(*) FROM card_applications WHERE user_id = ? AND status = 'Approved'");
+$active_cards->execute([$user_id]);
+$active_count = $active_cards->fetchColumn();
+
+$pending_cards = $pdo->prepare("SELECT COUNT(*) FROM card_applications WHERE user_id = ? AND status = 'Pending'");
+$pending_cards->execute([$user_id]);
+$pending_count = $pending_cards->fetchColumn();
+
+// All user cards
+$stmt_cards = $pdo->prepare("SELECT * FROM card_applications WHERE user_id = ? ORDER BY created_at DESC");
+$stmt_cards->execute([$user_id]);
+$my_cards = $stmt_cards->fetchAll();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -385,7 +404,7 @@ include '../includes/user-sidebar.php';
                         <div class="stat-icon-box" style="background: #eff6ff; color: #3b82f6;"><i class="fa-solid fa-credit-card"></i></div>
                         <div class="stat-info">
                             <h6>Active Cards</h6>
-                            <h4>0</h4>
+                            <h4><?php echo $active_count; ?></h4>
                         </div>
                     </div>
                 </div>
@@ -394,16 +413,16 @@ include '../includes/user-sidebar.php';
                         <div class="stat-icon-box" style="background: #fff7ed; color: #f97316;"><i class="fa-solid fa-hourglass-clock"></i></div>
                         <div class="stat-info">
                             <h6>Pending Approval</h6>
-                            <h4>0</h4>
+                            <h4><?php echo $pending_count; ?></h4>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="stat-card-premium">
-                        <div class="stat-icon-box" style="background: #f0fdf4; color: #10b981;"><i class="fa-solid fa-wallet"></i></div>
+                        <div class="stat-icon-box" style="background: #f0fdf4; color: #10b981;"><i class="fa-solid fa-layer-group"></i></div>
                         <div class="stat-info">
-                            <h6>Aggregate Balance</h6>
-                            <h4>$0.00</h4>
+                            <h6>Total Applications</h6>
+                            <h4><?php echo count($my_cards); ?></h4>
                         </div>
                     </div>
                 </div>
@@ -476,22 +495,70 @@ include '../includes/user-sidebar.php';
                 </div>
             </div>
 
-            <!-- Your Cards Section -->
             <div class="card border-0 shadow-sm mb-5" style="border-radius: 24px;">
                 <div class="card-body p-5">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4 class="fw-800 m-0">My Active Cards</h4>
-                        <button class="btn btn-primary-soft btn-sm" onclick="location.href='card-apply.php'">
+                        <h4 class="fw-800 m-0">My Cards</h4>
+                        <a href="card-apply.php" class="btn btn-primary-soft btn-sm">
                             <i class="fa-solid fa-plus-circle me-1"></i> New Application
-                        </button>
+                        </a>
                     </div>
-                    
+
+                    <?php if (empty($my_cards)): ?>
                     <div class="empty-state-premium">
-                        <div class="empty-icon-premium"><i class="fa-solid fa-credit-card-blank"></i></div>
-                        <h5 class="fw-800">No Cards Found</h5>
-                        <p class="text-muted mb-4 mx-auto" style="max-width: 400px;">You haven't initialized any virtual card accounts yet. Start your application to access secure digital payments.</p>
-                        <button class="btn btn-primary-premium px-5" onclick="location.href='card-apply.php'">Apply for Your First Card</button>
+                        <div class="empty-icon-premium"><i class="fa-solid fa-credit-card"></i></div>
+                        <h5 class="fw-800">No Cards Yet</h5>
+                        <p class="text-muted mb-4 mx-auto" style="max-width: 400px;">You haven't applied for a virtual card yet. Start your application to access secure digital payments.</p>
+                        <a href="card-apply.php" class="btn btn-primary-premium px-5">Apply for Your First Card</a>
                     </div>
+                    <?php else: ?>
+                    <div class="row g-4">
+                        <?php foreach ($my_cards as $card):
+                            $netIcons = ['visa'=>'fa-cc-visa visa-c','mastercard'=>'fa-cc-mastercard mc-c','amex'=>'fa-cc-amex amex-c'];
+                            $netIcon  = $netIcons[$card['card_type']] ?? 'fa-credit-card';
+                            $is_approved = $card['status'] === 'Approved';
+                            $card_num = $is_approved && $card['card_number'] ? $card['card_number'] : '•••• •••• •••• ????';
+                            $gradients = ['standard'=>'135deg,#3b82f6,#2563eb','gold'=>'135deg,#d97706,#92400e','platinum'=>'135deg,#475569,#1e293b','black'=>'135deg,#1e293b,#000'];
+                            $grad = $gradients[$card['card_tier']] ?? $gradients['standard'];
+                        ?>
+                        <div class="col-md-6">
+                            <!-- Card Visual -->
+                            <div style="background:linear-gradient(<?php echo $grad; ?>);border-radius:20px;padding:26px;color:#fff;box-shadow:0 20px 45px rgba(0,0,0,.25);position:relative;overflow:hidden;margin-bottom:14px;">
+                                <div style="position:absolute;top:-50px;right:-50px;width:150px;height:150px;background:radial-gradient(circle,rgba(255,255,255,.12) 0%,transparent 70%);border-radius:50%;"></div>
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <span style="font-weight:800;letter-spacing:1px;font-size:.9rem;">Swift Capital</span>
+                                    <div style="width:40px;height:30px;background:linear-gradient(135deg,#ffd700,#b8860b);border-radius:6px;"></div>
+                                </div>
+                                <div style="font-size:1.2rem;letter-spacing:4px;font-weight:700;margin-bottom:20px;"><?php echo htmlspecialchars($card_num); ?></div>
+                                <div class="d-flex justify-content-between align-items-end">
+                                    <div>
+                                        <div style="font-size:.5rem;text-transform:uppercase;opacity:.6;letter-spacing:1px;margin-bottom:4px;">Card Holder</div>
+                                        <div style="font-size:.85rem;font-weight:600;"><?php echo htmlspecialchars(strtoupper($card['cardholder_name'])); ?></div>
+                                    </div>
+                                    <div>
+                                        <?php if ($is_approved && $card['expiry_date']): ?>
+                                        <div style="font-size:.5rem;text-transform:uppercase;opacity:.6;letter-spacing:1px;margin-bottom:4px;">Expires</div>
+                                        <div style="font-size:.85rem;font-weight:600;"><?php echo $card['expiry_date']; ?></div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <i class="fa-brands <?php echo $netIcon; ?>" style="font-size:2.2rem;"></i>
+                                </div>
+                            </div>
+                            <!-- Card Detail Row -->
+                            <div class="d-flex justify-content-between align-items-center px-1">
+                                <div>
+                                    <div class="fw-800" style="font-size:.85rem;"><?php echo ucfirst($card['card_type']); ?> <?php echo ucfirst($card['card_tier']); ?></div>
+                                    <div class="text-muted" style="font-size:.75rem;"><?php echo $card['currency']; ?> · $<?php echo number_format($card['daily_limit'],0); ?>/day</div>
+                                </div>
+                                <?php
+                                $sc = ['Pending'=>'status-pending','Approved'=>'status-active','Rejected'=>'status-blocked','Cancelled'=>'status-blocked'];
+                                ?>
+                                <span class="status-badge <?php echo $sc[$card['status']] ?? 'status-pending'; ?>"><?php echo $card['status']; ?></span>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
 

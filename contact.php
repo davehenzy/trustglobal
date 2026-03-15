@@ -12,11 +12,24 @@ function getSetting($key, $default = '') {
 }
 
 // Handle form submission
-$sent = false;
-$error = '';
+$sent = isset($_GET['sent']) && $_GET['sent'] == 1;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // In a real app you'd send an email or store in DB
-    $sent = true;
+    $first_name = trim($_POST['first_name'] ?? '');
+    $last_name  = trim($_POST['last_name']  ?? '');
+    $email      = trim($_POST['email']      ?? '');
+    $phone      = trim($_POST['phone']      ?? '');
+    $subject    = trim($_POST['subject']    ?? '');
+    $message    = trim($_POST['message']    ?? '');
+
+    if ($first_name && $last_name && $email && $subject && $message) {
+        $stmt = $pdo->prepare("
+            INSERT INTO contact_messages (first_name, last_name, email, phone, subject, message)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ");
+        $stmt->execute([$first_name, $last_name, $email, $phone, $subject, $message]);
+    }
+    header('Location: contact.php?sent=1#contact-form');
+    exit;
 }
 ?>
 <!DOCTYPE html>

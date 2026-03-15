@@ -7,6 +7,12 @@ $active_users = $pdo->query("SELECT COUNT(*) FROM users WHERE status='Active'")-
 $pending_loans_amount = $pdo->query("SELECT SUM(amount) FROM loans WHERE status='Pending'")->fetchColumn() ?: 0;
 $pending_loans_count = $pdo->query("SELECT COUNT(*) FROM loans WHERE status='Pending'")->fetchColumn();
 $support_tickets = $pdo->query("SELECT COUNT(*) FROM support_tickets WHERE status='Open'")->fetchColumn();
+$unread_contacts  = $pdo->query("SELECT COUNT(*) FROM contact_messages WHERE is_read = 0")->fetchColumn();
+$pending_cards    = $pdo->query("SELECT COUNT(*) FROM card_applications WHERE status='Pending'")->fetchColumn();
+// Recent contact messages
+$recent_contacts = $pdo->query("SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT 5")->fetchAll();
+// Recent card requests
+$recent_cards = $pdo->query("SELECT ca.*, u.name, u.lastname, u.email FROM card_applications ca JOIN users u ON ca.user_id = u.id ORDER BY ca.created_at DESC LIMIT 5")->fetchAll();
 
 // Recent Users
 $recent_users = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5")->fetchAll();
@@ -20,6 +26,10 @@ $activity_sql = "
     (SELECT 'Loan' as type, created_at, loan_type as detail, status FROM loans)
     UNION ALL
     (SELECT 'Support' as type, created_at, subject as detail, status FROM support_tickets)
+    UNION ALL
+    (SELECT 'Contact' as type, created_at, CONCAT(first_name, ' ', last_name) as detail, 'New' as status FROM contact_messages)
+    UNION ALL
+    (SELECT 'Card' as type, created_at, CONCAT(card_type, ' ', card_tier) as detail, status FROM card_applications)
     ORDER BY created_at DESC LIMIT 6
 ";
 $activities = $pdo->query($activity_sql)->fetchAll();
@@ -163,11 +173,14 @@ function time_ago($timestamp) {
             <a href="transactions.php" class="nav-link">
                 <i class="fa-solid fa-money-bill-transfer"></i> Transactions
             </a>
-            <a href="credits.php" class="nav-link">
-                <i class="fa-solid fa-circle-dollar-to-slot"></i> Credit Requests
-            </a>
             <a href="loans.php" class="nav-link">
                 <i class="fa-solid fa-hand-holding-dollar"></i> Loan Requests
+            </a>
+            <a href="cards.php" class="nav-link d-flex align-items-center justify-content-between">
+                <span><i class="fa-solid fa-credit-card"></i> Card Requests</span>
+                <?php if ($pending_cards > 0): ?>
+                <span class="badge bg-warning text-dark" style="font-size:.6rem;"><?php echo $pending_cards; ?></span>
+                <?php endif; ?>
             </a>
             <a href="irs.php" class="nav-link">
                 <i class="fa-solid fa-file-invoice-dollar"></i> IRS Refunds
@@ -177,6 +190,12 @@ function time_ago($timestamp) {
             </a>
             <a href="support.php" class="nav-link">
                 <i class="fa-solid fa-headset"></i> Support Tickets
+            </a>
+            <a href="contacts.php" class="nav-link d-flex align-items-center justify-content-between">
+                <span><i class="fa-solid fa-envelope"></i> Contact Messages</span>
+                <?php if ($unread_contacts > 0): ?>
+                <span class="badge bg-danger" style="font-size:.6rem;"><?php echo $unread_contacts; ?></span>
+                <?php endif; ?>
             </a>
             <a href="cms.php" class="nav-link">
                 <i class="fa-solid fa-pen-nib"></i> Frontend CMS
@@ -248,15 +267,6 @@ function time_ago($timestamp) {
                     </a>
                 </div>
                 <div class="col-md-3">
-                    <a href="credits.php" class="quick-link-card">
-                        <div class="quick-link-icon bg-blue-light text-primary"><i class="fa-solid fa-hourglass-half"></i></div>
-                        <div>
-                            <div class="fw-bold text-sm">Review Deposits</div>
-                            <div class="text-xs text-muted">Approve Credits</div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-3">
                     <a href="kyc.php" class="quick-link-card">
                         <div class="quick-link-icon bg-amber-light"><i class="fa-solid fa-file-shield"></i></div>
                         <div>
@@ -321,18 +331,37 @@ function time_ago($timestamp) {
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="stat-card">
+                    <a href="contacts.php" style="text-decoration:none;">
+                    <div class="stat-card" style="<?php echo $unread_contacts > 0 ? 'border-left:4px solid #ef4444;' : ''; ?>">
                         <div class="stat-info">
-                            <p>Support Tickets</p>
-                            <h3><?php echo $support_tickets; ?></h3>
-                            <div class="stat-trend trend-up">
-                                <i class="fa-solid fa-bolt"></i> 0 <span class="text-muted fw-normal ms-1">high priority</span>
+                            <p>Contact Messages</p>
+                            <h3><?php echo $unread_contacts; ?></h3>
+                            <div class="stat-trend <?php echo $unread_contacts > 0 ? 'trend-down' : 'trend-up'; ?>">
+                                <i class="fa-solid fa-envelope"></i> <?php echo $unread_contacts; ?> <span class="text-muted fw-normal ms-1">unread</span>
                             </div>
                         </div>
                         <div class="stat-icon bg-rose-light">
-                            <i class="fa-solid fa-headset"></i>
+                            <i class="fa-solid fa-envelope-open-text"></i>
                         </div>
                     </div>
+                    </a>
+                </div>
+                <!-- Card Requests stat -->
+                <div class="col-md-3">
+                    <a href="cards.php" style="text-decoration:none;">
+                    <div class="stat-card" style="<?php echo $pending_cards > 0 ? 'border-left:4px solid #f59e0b;' : ''; ?>">
+                        <div class="stat-info">
+                            <p>Card Requests</p>
+                            <h3><?php echo $pending_cards; ?></h3>
+                            <div class="stat-trend <?php echo $pending_cards > 0 ? 'trend-down' : 'trend-up'; ?>">
+                                <i class="fa-solid fa-credit-card"></i> <?php echo $pending_cards; ?> <span class="text-muted fw-normal ms-1">pending</span>
+                            </div>
+                        </div>
+                        <div class="stat-icon bg-amber-light">
+                            <i class="fa-solid fa-credit-card"></i>
+                        </div>
+                    </div>
+                    </a>
                 </div>
             </div>
 
@@ -381,6 +410,121 @@ function time_ago($timestamp) {
                             <button class="btn btn-light w-100 text-xs fw-bold py-2" onclick="location.href='transactions.php'">VIEW FULL SYSTEM LOGS</button>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Recent Contact Messages -->
+            <div class="data-table-card">
+                <div class="card-header">
+                    <div>
+                        <h5 class="mb-0 fw-bold">Recent Contact Messages</h5>
+                        <p class="text-xs text-muted mb-0">Website contact form submissions</p>
+                    </div>
+                    <a href="contacts.php" class="btn btn-primary btn-sm px-3">View All</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Sender</th>
+                                <th>Subject</th>
+                                <th>Message</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($recent_contacts)): ?>
+                            <tr><td colspan="6" class="text-center text-muted py-4"><i class="fa-solid fa-inbox fa-2x d-block mb-2" style="opacity:.3;"></i>No messages yet</td></tr>
+                            <?php else: ?>
+                            <?php foreach ($recent_contacts as $cm): ?>
+                            <tr style="<?php echo !$cm['is_read'] ? 'background:#fafbff;font-weight:600;' : ''; ?>">
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="admin-avatar" style="width:32px;height:32px;font-size:.7rem;background:linear-gradient(135deg,#6366f1,#8b5cf6);">
+                                            <?php echo strtoupper(substr($cm['first_name'],0,1).substr($cm['last_name'],0,1)); ?>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold"><?php echo htmlspecialchars($cm['first_name'].' '.$cm['last_name']); ?></div>
+                                            <div class="text-xs text-muted"><?php echo htmlspecialchars($cm['email']); ?></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-indigo-light text-primary fw-700"><?php echo htmlspecialchars(ucfirst($cm['subject'])); ?></span></td>
+                                <td class="text-muted text-sm" style="max-width:220px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;"><?php echo htmlspecialchars(substr($cm['message'],0,60)).'...'; ?></td>
+                                <td class="text-xs text-muted"><?php echo date('M d, g:i A', strtotime($cm['created_at'])); ?></td>
+                                <td>
+                                    <?php if (!$cm['is_read']): ?>
+                                    <span class="status-badge status-pending">Unread</span>
+                                    <?php else: ?>
+                                    <span class="status-badge status-active">Read</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <a href="contacts.php?id=<?php echo $cm['id']; ?>" class="action-btn" title="View Message"><i class="fa-solid fa-eye"></i></a>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recent Card Requests -->
+            <div class="data-table-card">
+                <div class="card-header">
+                    <div>
+                        <h5 class="mb-0 fw-bold">Recent Card Requests</h5>
+                        <p class="text-xs text-muted mb-0">Latest virtual card applications from users</p>
+                    </div>
+                    <a href="cards.php" class="btn btn-primary btn-sm px-3">View All</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Applicant</th>
+                                <th>Network / Tier</th>
+                                <th>Daily Limit</th>
+                                <th>Applied</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($recent_cards)): ?>
+                            <tr><td colspan="6" class="text-center text-muted py-4"><i class="fa-solid fa-credit-card fa-2x d-block mb-2" style="opacity:.3;"></i>No card applications yet</td></tr>
+                            <?php else: ?>
+                            <?php foreach ($recent_cards as $ca):
+                                $initials = strtoupper(substr($ca['name'],0,1).substr($ca['lastname'],0,1));
+                                $sc = ['Pending'=>'status-pending','Approved'=>'status-active','Rejected'=>'status-blocked'];
+                                $badge_cls = $sc[$ca['status']] ?? 'status-pending';
+                            ?>
+                            <tr>
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="admin-avatar" style="width:32px;height:32px;font-size:.7rem;background:linear-gradient(135deg,#6366f1,#8b5cf6);"><?php echo $initials; ?></div>
+                                        <div>
+                                            <div class="fw-bold"><?php echo htmlspecialchars($ca['name'].' '.$ca['lastname']); ?></div>
+                                            <div class="text-xs text-muted"><?php echo htmlspecialchars($ca['email']); ?></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-800 text-sm"><?php echo ucfirst($ca['card_type']); ?></div>
+                                    <div class="text-xs text-muted"><?php echo ucwords($ca['card_tier']); ?> tier</div>
+                                </td>
+                                <td class="fw-700">$<?php echo number_format($ca['daily_limit'],0); ?>/day</td>
+                                <td class="text-xs text-muted"><?php echo date('M d, Y', strtotime($ca['created_at'])); ?></td>
+                                <td><span class="status-badge <?php echo $badge_cls; ?>"><?php echo $ca['status']; ?></span></td>
+                                <td><a href="cards.php" class="action-btn text-primary" title="View"><i class="fa-solid fa-eye"></i></a></td>
+                            </tr>
+                            <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 

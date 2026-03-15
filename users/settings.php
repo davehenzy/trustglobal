@@ -1,4 +1,15 @@
-<?php require_once '../includes/user-check.php'; ?>
+<?php
+require_once '../includes/db.php';
+require_once '../includes/user-check.php';
+
+$user_id = $_SESSION['user_id'];
+$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+$stmt->execute([$user_id]);
+$user = $stmt->fetch();
+
+$kyc_status = $user['kyc_status'] ?? 'Unverified';
+$initials = strtoupper(substr($user['name'] ?? 'U', 0, 1) . substr($user['lastname'] ?? 'S', 0, 1));
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -393,13 +404,34 @@ include '../includes/user-sidebar.php';
                     <div class="profile-card">
                         <div class="profile-header">
                             <div class="profile-avatar-large">
-                                KA
+                                <?php echo $initials; ?>
                                 <div class="avatar-camera-btn">
                                     <i class="fa-solid fa-camera"></i>
                                 </div>
                             </div>
-                            <h4 class="profile-name">Kante Calm</h4>
-                            <div class="profile-acc">Account #0537658047</div>
+                            <h4 class="profile-name"><?php echo htmlspecialchars($user['name'] . ' ' . $user['lastname']); ?></h4>
+                            <div class="profile-acc">Account #<?php echo htmlspecialchars($user['account_number']); ?></div>
+
+                            <!-- KYC Badge -->
+                            <div class="mt-2">
+                            <?php if ($kyc_status === 'Verified'): ?>
+                                <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(16,185,129,0.2);color:#d1fae5;border:1px solid rgba(16,185,129,0.4);border-radius:50px;padding:4px 14px;font-size:.75rem;font-weight:700;">
+                                    <i class="fa-solid fa-circle-check"></i> KYC Verified
+                                </span>
+                            <?php elseif ($kyc_status === 'Pending'): ?>
+                                <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(245,158,11,0.2);color:#fef3c7;border:1px solid rgba(245,158,11,0.4);border-radius:50px;padding:4px 14px;font-size:.75rem;font-weight:700;">
+                                    <i class="fa-solid fa-clock"></i> KYC Pending Review
+                                </span>
+                            <?php elseif ($kyc_status === 'Rejected'): ?>
+                                <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,0.2);color:#fee2e2;border:1px solid rgba(239,68,68,0.4);border-radius:50px;padding:4px 14px;font-size:.75rem;font-weight:700;">
+                                    <i class="fa-solid fa-circle-xmark"></i> KYC Rejected
+                                </span>
+                            <?php else: ?>
+                                <a href="kyc.php" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.8);border:1px solid rgba(255,255,255,0.3);border-radius:50px;padding:4px 14px;font-size:.75rem;font-weight:700;text-decoration:none;">
+                                    <i class="fa-solid fa-id-card"></i> Verify Identity
+                                </a>
+                            <?php endif; ?>
+                            </div>
                         </div>
                         
                         <div class="settings-menu">
@@ -438,7 +470,7 @@ include '../includes/user-sidebar.php';
                                         <label class="custom-form-label">First Name</label>
                                         <div class="custom-input-wrapper">
                                             <i class="fa-solid fa-user icon-left"></i>
-                                            <input type="text" class="custom-form-control" value="Kante" readonly>
+                                            <input type="text" class="custom-form-control" value="<?php echo htmlspecialchars($user['name']); ?>" readonly>
                                         </div>
                                     </div>
                                 </div>
@@ -447,7 +479,7 @@ include '../includes/user-sidebar.php';
                                         <label class="custom-form-label">Last Name</label>
                                         <div class="custom-input-wrapper">
                                             <i class="fa-solid fa-user icon-left"></i>
-                                            <input type="text" class="custom-form-control" value="Calm" readonly>
+                                            <input type="text" class="custom-form-control" value="<?php echo htmlspecialchars($user['lastname']); ?>" readonly>
                                         </div>
                                     </div>
                                 </div>
@@ -457,7 +489,7 @@ include '../includes/user-sidebar.php';
                                 <label class="custom-form-label">Account Number</label>
                                 <div class="custom-input-wrapper">
                                     <i class="fa-solid fa-hashtag icon-left"></i>
-                                    <input type="text" class="custom-form-control fw-bold" value="0537658047" readonly>
+                                    <input type="text" class="custom-form-control fw-bold" value="<?php echo htmlspecialchars($user['account_number']); ?>" readonly>
                                     <i class="fa-solid fa-copy icon-right"></i>
                                 </div>
                                 <span class="field-helper">This is your unique account identifier</span>
@@ -467,15 +499,7 @@ include '../includes/user-sidebar.php';
                                 <label class="custom-form-label">Email Address</label>
                                 <div class="custom-input-wrapper">
                                     <i class="fa-solid fa-envelope icon-left"></i>
-                                    <input type="email" class="custom-form-control" value="dreamerzvisual@gmail.com" readonly>
-                                </div>
-                            </div>
-
-                            <div class="custom-form-group">
-                                <label class="custom-form-label">Date of Birth</label>
-                                <div class="custom-input-wrapper">
-                                    <i class="fa-solid fa-calendar icon-left"></i>
-                                    <input type="text" class="custom-form-control" placeholder="mm/dd/yyyy" readonly>
+                                    <input type="email" class="custom-form-control" value="<?php echo htmlspecialchars($user['email']); ?>" readonly>
                                 </div>
                             </div>
 
@@ -483,15 +507,51 @@ include '../includes/user-sidebar.php';
                                 <label class="custom-form-label">Phone Number</label>
                                 <div class="custom-input-wrapper">
                                     <i class="fa-solid fa-phone icon-left"></i>
-                                    <input type="tel" class="custom-form-control" value="+2347037086038" readonly>
+                                    <input type="tel" class="custom-form-control" value="<?php echo htmlspecialchars($user['phone'] ?? '—'); ?>" readonly>
                                 </div>
                             </div>
 
                             <div class="custom-form-group">
-                                <label class="custom-form-label">Address</label>
+                                <label class="custom-form-label">Account Type</label>
                                 <div class="custom-input-wrapper">
-                                    <i class="fa-solid fa-location-dot textarea-icon-left"></i>
-                                    <textarea class="custom-form-control" rows="3" style="padding-left: 40px;" readonly></textarea>
+                                    <i class="fa-solid fa-briefcase icon-left"></i>
+                                    <input type="text" class="custom-form-control" value="<?php echo htmlspecialchars(ucfirst($user['account_type'] ?? 'Personal')); ?>" readonly>
+                                </div>
+                            </div>
+
+                            <!-- KYC Status Row -->
+                            <div class="custom-form-group">
+                                <label class="custom-form-label">Identity Verification (KYC)</label>
+                                <div class="d-flex align-items-center gap-3 p-3 rounded-3 border" style="background:#f8fafc;">
+                                    <?php if ($kyc_status === 'Verified'): ?>
+                                        <div style="width:40px;height:40px;border-radius:12px;background:rgba(16,185,129,0.12);display:flex;align-items:center;justify-content:center;color:#10b981;font-size:1.3rem;"><i class="fa-solid fa-circle-check"></i></div>
+                                        <div>
+                                            <div class="fw-700" style="color:#065f46;">KYC Verified</div>
+                                            <div class="text-muted" style="font-size:.8rem;">Your identity has been successfully verified.</div>
+                                        </div>
+                                        <span class="ms-auto badge" style="background:rgba(16,185,129,0.15);color:#10b981;border-radius:50px;padding:6px 14px;font-size:.75rem;font-weight:700;">✓ APPROVED</span>
+                                    <?php elseif ($kyc_status === 'Pending'): ?>
+                                        <div style="width:40px;height:40px;border-radius:12px;background:rgba(245,158,11,0.12);display:flex;align-items:center;justify-content:center;color:#f59e0b;font-size:1.3rem;"><i class="fa-solid fa-clock"></i></div>
+                                        <div>
+                                            <div class="fw-700" style="color:#92400e;">Under Review</div>
+                                            <div class="text-muted" style="font-size:.8rem;">Your documents are being reviewed by our compliance team.</div>
+                                        </div>
+                                        <span class="ms-auto badge" style="background:rgba(245,158,11,0.15);color:#f59e0b;border-radius:50px;padding:6px 14px;font-size:.75rem;font-weight:700;">PENDING</span>
+                                    <?php elseif ($kyc_status === 'Rejected'): ?>
+                                        <div style="width:40px;height:40px;border-radius:12px;background:rgba(239,68,68,0.12);display:flex;align-items:center;justify-content:center;color:#ef4444;font-size:1.3rem;"><i class="fa-solid fa-circle-xmark"></i></div>
+                                        <div>
+                                            <div class="fw-700" style="color:#991b1b;">KYC Rejected</div>
+                                            <div class="text-muted" style="font-size:.8rem;">Your documents were rejected. Please resubmit.</div>
+                                        </div>
+                                        <a href="kyc.php" class="ms-auto btn btn-sm btn-danger" style="border-radius:50px;">Resubmit</a>
+                                    <?php else: ?>
+                                        <div style="width:40px;height:40px;border-radius:12px;background:rgba(99,102,241,0.12);display:flex;align-items:center;justify-content:center;color:#6366f1;font-size:1.3rem;"><i class="fa-solid fa-id-card"></i></div>
+                                        <div>
+                                            <div class="fw-700">Not Verified</div>
+                                            <div class="text-muted" style="font-size:.8rem;">Complete identity verification to unlock full account features.</div>
+                                        </div>
+                                        <a href="kyc.php" class="ms-auto btn btn-sm btn-primary" style="border-radius:50px;">Verify Now</a>
+                                    <?php endif; ?>
                                 </div>
                             </div>
 

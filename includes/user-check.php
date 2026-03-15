@@ -24,10 +24,13 @@ if (!isset($_SESSION['balance']) || !isset($_SESSION['name'])) {
     }
 }
 
-// Keep balance refreshed
-$stmt_bal = $pdo->prepare("SELECT balance FROM users WHERE id = ?");
+// Keep balance + kyc_status refreshed on every request
+$stmt_bal = $pdo->prepare("SELECT balance, kyc_status, phone FROM users WHERE id = ?");
 $stmt_bal->execute([$_SESSION['user_id']]);
-$_SESSION['balance'] = $stmt_bal->fetchColumn();
+$_fresh = $stmt_bal->fetch();
+$_SESSION['balance']     = $_fresh['balance'];
+$_SESSION['kyc_status']  = $_fresh['kyc_status'];
+$_SESSION['phone']       = $_fresh['phone'];
 
 // PIN Verification Check for regular users
 $current_script = basename($_SERVER['PHP_SELF']);
