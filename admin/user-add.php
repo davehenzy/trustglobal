@@ -1,4 +1,4 @@
-<?php 
+﻿<?php 
 require_once '../includes/admin-check.php'; 
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -209,7 +209,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         <!-- Footer -->
         <footer class="mt-auto py-5 px-4 border-top bg-white text-center text-muted" style="font-size: 0.85rem;">
-            SwiftCapital Admin © 2026. Internal System Only.
+            SwiftCapital Admin Â© 2026. Internal System Only.
         </footer>
     </div>
 

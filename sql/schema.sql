@@ -139,4 +139,11 @@ CREATE TABLE `settings` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`name`, `lastname`, `username`, `email`, `password`, `pin`, `phone`, `country`, `account_number`, `balance`, `status`, `role`) VALUES
+('Admin', 'Master', 'admin', 'admin@swiftcapital.com', '$2y$10$vI8qOdf8G.3S7/3.mX5R/.q5R.s.W.O/Y/P8pA.O.Y.s.W.O/Y/', '1234', '1234567890', 'UK', '1000000001', 0.00, 'Active', 'Admin');
+
 COMMIT;

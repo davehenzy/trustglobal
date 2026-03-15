@@ -1,4 +1,4 @@
-﻿<?php require_once '../includes/admin-check.php'; ?>
+<?php require_once '../includes/admin-check.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -164,10 +164,10 @@
                 </div>
                 
                 <div class="admin-profile ms-2">
-                    <div class="admin-avatar">AD</div>
+                    <div class="admin-avatar"><?php echo strtoupper(substr($_SESSION["user_name"] ?? "A", 0, 1)); ?></div>
                     <div class="d-none d-md-block">
-                        <div class="fw-bold text-sm lh-1">Admin Master</div>
-                        <div class="text-xs text-muted">Super Administrator</div>
+                        <div class="fw-bold text-sm lh-1"><?php echo $_SESSION["user_name"] ?? "Admin"; ?></div>
+                        <div class="text-xs text-muted"><?php echo $_SESSION["role"] ?? "Administrator"; ?></div>
                     </div>
                     <i class="fa-solid fa-chevron-down text-muted text-xs ms-1"></i>
                 </div>

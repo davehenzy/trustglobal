@@ -72,10 +72,10 @@
                 </div>
                 
                 <div class="admin-profile">
-                    <div class="admin-avatar">AD</div>
+                    <div class="admin-avatar"><?php echo strtoupper(substr($_SESSION["user_name"] ?? "A", 0, 1)); ?></div>
                     <div class="d-none d-md-block">
-                        <div class="fw-bold text-sm">Admin Master</div>
-                        <div class="text-xs text-muted">Super Administrator</div>
+                        <div class="fw-bold text-sm"><?php echo $_SESSION["user_name"] ?? "Admin"; ?></div>
+                        <div class="text-xs text-muted"><?php echo $_SESSION["role"] ?? "Administrator"; ?></div>
                     </div>
                 </div>
             </div>
@@ -190,7 +190,7 @@
 
         <!-- Footer -->
         <footer class="mt-auto py-3 px-4 border-top bg-white text-center text-muted" style="font-size: 0.85rem;">
-            SwiftCapital Admin © 2026. Internal System Only.
+            SwiftCapital Admin Â© 2026. Internal System Only.
         </footer>
     </div>
 
