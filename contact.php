@@ -1,4 +1,17 @@
-﻿<!DOCTYPE html>
+<?php 
+require_once 'includes/db.php'; 
+
+// Fetch all settings
+$stmt = $pdo->query("SELECT setting_key, setting_value FROM settings");
+$settings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+
+// Helper function
+function getSetting($key, $default = '') {
+    global $settings;
+    return $settings[$key] ?? $default;
+}
+?>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -70,7 +83,12 @@
             </div>
         </div>
     </nav>
-        <x-home.page-header :$pagetitle="" :$pagedescription=""></x-home.page-header>
+    <section class="py-5 bg-dark text-white text-center">
+        <div class="container py-5">
+            <h1 class="fw-800 display-4">Contact Us</h1>
+            <p class="lead text-white-50">We are here to help you 24/7. Get in touch with our team.</p>
+        </div>
+    </section>
     <!-- Contact Form Section -->
     <section class="py-5" data-aos="fade-up">
         <div class="container">

@@ -1,4 +1,4 @@
-﻿<?php require_once '../includes/user-check.php'; ?>
+<?php require_once '../includes/user-check.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -42,60 +42,35 @@
 </head>
 <body>
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="brand-section">
-            <div class="brand-logo">
-                <i class="fa-solid fa-chart-simple text-primary me-2"></i>
-                <span class="swift">Swift</span><span class="capital">Capital</span>
-            </div>
-            <div class="brand-tagline">Banking At Its Best</div>
-        </div>
-
-        <div class="user-profile-widget">
-            <div class="avatar-circle">KC</div>
-            <div class="user-name">Kante Calm</div>
-            <div class="user-id">ID: 0537658047</div>
-            <button class="btn btn-kyc" onclick="location.href='verification.php'"><i class="fa-solid fa-circle-exclamation"></i> Verify KYC</button>
-            <div class="user-actions">
-                <a href="settings.php" class="btn btn-outline"><i class="fa-solid fa-user"></i> Profile</a>
-                <a href="#" class="btn btn-primary-soft"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
-            </div>
-        </div>
-
-        <div class="nav-section">
-            <div class="nav-category">Main Menu</div>
-            <a href="index.php" class="nav-item-link"><i class="fa-solid fa-house"></i> Dashboard</a>
-            <a href="transactions.php" class="nav-item-link"><i class="fa-solid fa-chart-line"></i> Transactions</a>
-            <a href="cards.php" class="nav-item-link"><i class="fa-solid fa-credit-card"></i> Cards</a>
-
-            <div class="nav-category">Transfers</div>
-            <a href="local.php" class="nav-item-link"><i class="fa-solid fa-paper-plane"></i> Local Transfer</a>
-            <a href="international.php" class="nav-item-link"><i class="fa-solid fa-globe"></i> International Wire</a>
-            <a href="deposit.php" class="nav-item-link"><i class="fa-solid fa-download"></i> Deposit</a>
-
-            <div class="nav-category">Services</div>
-            <a href="loan.php" class="nav-item-link"><i class="fa-solid fa-boxes-stacked"></i> Loan Request</a>
-            <a href="irs.php" class="nav-item-link"><i class="fa-solid fa-file-invoice-dollar"></i> IRS Tax Refund</a>
-            <a href="loan-history.php" class="nav-item-link active"><i class="fa-solid fa-clock-rotate-left"></i> Loan History</a>
-
-            <div class="nav-category">Account</div>
-            <a href="security.php" class="nav-item-link"><i class="fa-solid fa-gear"></i> Settings</a>
-            <a href="support.php" class="nav-item-link"><i class="fa-solid fa-circle-question"></i> Support Ticket</a>
-        </div>
-
-        <div class="sidebar-footer">
-            <span><i class="fa-solid fa-shield-halved me-1"></i> Secure Banking</span>
-            <span class="version">v1.2.0</span>
-        </div>
-    </aside>
+<?php 
+$page = 'loan-history';
+include '../includes/user-sidebar.php'; 
+?>
 
     <!-- Main Content -->
     <main class="main-content">
+        <!-- Top Navbar -->
+        <?php include '../includes/user-navbar.php'; ?>
+
+        <?php 
+        $user_id = $_SESSION['user_id'];
+        $stmt = $pdo->prepare("SELECT * FROM loans WHERE user_id = ? ORDER BY created_at DESC");
+        $stmt->execute([$user_id]);
+        $loans = $stmt->fetchAll();
+        ?>
+
         <!-- Page Content -->
         <div class="page-container">
             <div class="row justify-content-center">
                 <div class="col-lg-10 col-xl-9">
+
+                    <?php if (isset($_SESSION['success_msg'])): ?>
+                        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert" style="border-radius: 12px; border: none; background: #ecfdf5; color: #065f46;">
+                            <i class="fa-solid fa-circle-check me-2"></i> <?php echo $_SESSION['success_msg']; unset($_SESSION['success_msg']); ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    <?php endif; ?>
+
                     <div class="page-header-centered">
                         <div class="header-icon-circle">
                             <i class="fa-solid fa-clock-rotate-left"></i>
@@ -132,52 +107,42 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td>Feb 15, 2026</td>
-                                            <td><span class="fw-semibold text-primary">#LN-78241</span></td>
-                                            <td>Business Loan</td>
-                                            <td><span class="fw-bold">$12,000.00</span></td>
-                                            <td>24 Mo</td>
-                                            <td><span class="status-badge status-pending">Pending Review</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Jan 10, 2026</td>
-                                            <td><span class="fw-semibold text-primary">#LN-65412</span></td>
-                                            <td>Automobile Loan</td>
-                                            <td><span class="fw-bold">$8,500.00</span></td>
-                                            <td>12 Mo</td>
-                                            <td><span class="status-badge status-approved">Approved</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Nov 22, 2025</td>
-                                            <td><span class="fw-semibold text-primary">#LN-52109</span></td>
-                                            <td>Personal Loan</td>
-                                            <td><span class="fw-bold">$5,000.00</span></td>
-                                            <td>12 Mo</td>
-                                            <td><span class="status-badge status-completed">Completed</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Sep 05, 2025</td>
-                                            <td><span class="fw-semibold text-primary">#LN-49821</span></td>
-                                            <td>Business Loan</td>
-                                            <td><span class="fw-bold">$25,000.00</span></td>
-                                            <td>48 Mo</td>
-                                            <td><span class="status-badge status-rejected">Rejected</span></td>
-                                        </tr>
+                                        <?php if (empty($loans)): ?>
+                                            <tr>
+                                                <td colspan="6" class="text-center py-5">
+                                                    <i class="fa-solid fa-folder-open text-muted fs-1 mb-3 d-block"></i>
+                                                    <p class="text-muted mb-0">You haven't applied for any loans yet.</p>
+                                                    <a href="loan-application.php" class="btn btn-primary btn-sm mt-3">Apply Now</a>
+                                                </td>
+                                            </tr>
+                                        <?php else: ?>
+                                            <?php foreach ($loans as $loan): ?>
+                                                <tr>
+                                                    <td><?php echo date('M d, Y', strtotime($loan['created_at'])); ?></td>
+                                                    <td><span class="fw-semibold text-primary">#LN-<?php echo str_pad($loan['id'], 5, '0', STR_PAD_LEFT); ?></span></td>
+                                                    <td><?php echo htmlspecialchars($loan['loan_type']); ?></td>
+                                                    <td><span class="fw-bold">$<?php echo number_format($loan['amount'], 2); ?></span></td>
+                                                    <td><?php echo $loan['term_months']; ?> Mo</td>
+                                                    <td>
+                                                        <?php 
+                                                        $status = $loan['status'];
+                                                        $cls = 'status-pending';
+                                                        if($status == 'Approved' || $status == 'Disbursed') $cls = 'status-approved';
+                                                        if($status == 'Rejected') $cls = 'status-rejected';
+                                                        if($status == 'Completed') $cls = 'status-completed';
+                                                        ?>
+                                                        <span class="status-badge <?php echo $cls; ?>"><?php echo $status; ?></span>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                         <div class="card-footer bg-white border-top p-4">
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="text-muted fs-7">Showing 1-4 of 4 results</span>
-                                <nav aria-label="Page navigation">
-                                    <ul class="pagination pagination-sm mb-0">
-                                        <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
-                                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                        <li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
-                                    </ul>
-                                </nav>
+                                <span class="text-muted fs-7">Showing <?php echo count($loans); ?> results</span>
                             </div>
                         </div>
                     </div>

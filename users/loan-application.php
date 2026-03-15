@@ -1,4 +1,4 @@
-﻿<?php require_once '../includes/user-check.php'; ?>
+<?php require_once '../includes/user-check.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,56 +14,16 @@
 </head>
 <body>
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="brand-section">
-            <div class="brand-logo">
-                <i class="fa-solid fa-chart-simple text-primary me-2"></i>
-                <span class="swift">Swift</span><span class="capital">Capital</span>
-            </div>
-            <div class="brand-tagline">Banking At Its Best</div>
-        </div>
-
-        <div class="user-profile-widget">
-            <div class="avatar-circle">KC</div>
-            <div class="user-name">Kante Calm</div>
-            <div class="user-id">ID: 0537658047</div>
-            <button class="btn btn-kyc" onclick="location.href='verification.php'"><i class="fa-solid fa-circle-exclamation"></i> Verify KYC</button>
-            <div class="user-actions">
-                <a href="settings.php" class="btn btn-outline"><i class="fa-solid fa-user"></i> Profile</a>
-                <a href="#" class="btn btn-primary-soft"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
-            </div>
-        </div>
-
-        <div class="nav-section">
-            <div class="nav-category">Main Menu</div>
-            <a href="index.php" class="nav-item-link"><i class="fa-solid fa-house"></i> Dashboard</a>
-            <a href="transactions.php" class="nav-item-link"><i class="fa-solid fa-chart-line"></i> Transactions</a>
-            <a href="cards.php" class="nav-item-link"><i class="fa-solid fa-credit-card"></i> Cards</a>
-
-            <div class="nav-category">Transfers</div>
-            <a href="local.php" class="nav-item-link"><i class="fa-solid fa-paper-plane"></i> Local Transfer</a>
-            <a href="international.php" class="nav-item-link"><i class="fa-solid fa-globe"></i> International Wire</a>
-            <a href="deposit.php" class="nav-item-link"><i class="fa-solid fa-download"></i> Deposit</a>
-
-            <div class="nav-category">Services</div>
-            <a href="loan.php" class="nav-item-link active"><i class="fa-solid fa-boxes-stacked"></i> Loan Request</a>
-            <a href="irs.php" class="nav-item-link"><i class="fa-solid fa-file-invoice-dollar"></i> IRS Tax Refund</a>
-            <a href="loan-history.php" class="nav-item-link"><i class="fa-solid fa-clock-rotate-left"></i> Loan History</a>
-
-            <div class="nav-category">Account</div>
-            <a href="security.php" class="nav-item-link"><i class="fa-solid fa-gear"></i> Settings</a>
-            <a href="support.php" class="nav-item-link"><i class="fa-solid fa-circle-question"></i> Support Ticket</a>
-        </div>
-
-        <div class="sidebar-footer">
-            <span><i class="fa-solid fa-shield-halved me-1"></i> Secure Banking</span>
-            <span class="version">v1.2.0</span>
-        </div>
-    </aside>
+<?php 
+$page = 'loan';
+include '../includes/user-sidebar.php'; 
+?>
 
     <!-- Main Content -->
     <main class="main-content">
+        <!-- Top Navbar -->
+        <?php include '../includes/user-navbar.php'; ?>
+
         <!-- Page Content -->
         <div class="page-container">
             <div class="row justify-content-center">
@@ -79,7 +39,7 @@
                     <!-- Application Form -->
                     <div class="card card-premium rounded-top-0 border-0 border-top shadow-sm mb-4">
                         <div class="card-body p-4 p-md-5">
-                            <form action="loan.php">
+                            <form action="process-loan.php" method="POST">
                                 
                                 <!-- Header / Nav inside form -->
                                 <div class="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom">
@@ -102,14 +62,14 @@
                                             <div class="col-md-6">
                                                 <label class="form-label">Loan Amount (USD) <span class="req">*</span></label>
                                                 <div class="custom-input-group">
-                                                    <input type="number" placeholder="Enter loan amount" required>
+                                                    <input type="number" name="amount" placeholder="Enter loan amount" required step="100">
                                                     <i class="fa-solid fa-dollar-sign left-icon"></i>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <label class="form-label">Duration (Months) <span class="req">*</span></label>
                                                 <div class="custom-input-group">
-                                                    <select required>
+                                                    <select name="duration" required>
                                                         <option value="" selected disabled>Select duration</option>
                                                         <option value="6">6 Months</option>
                                                         <option value="12">12 Months</option>
@@ -125,14 +85,14 @@
                                             <div class="col-12">
                                                 <label class="form-label">Credit Facility <span class="req">*</span></label>
                                                 <div class="custom-input-group">
-                                                    <select required>
+                                                    <select name="loan_type" required>
                                                         <option value="" selected disabled>Select Loan/Credit Facility</option>
-                                                        <option value="personal">Personal Home Loans</option>
-                                                        <option value="auto">Automobile Loans</option>
-                                                        <option value="business">Business Loans</option>
-                                                        <option value="mortgage">Joint Mortgage</option>
-                                                        <option value="overdraft">Secured Overdraft</option>
-                                                        <option value="health">Health Finance</option>
+                                                        <option value="Personal Home Loan">Personal Home Loans</option>
+                                                        <option value="Automobile Loan">Automobile Loans</option>
+                                                        <option value="Business Loan">Business Loans</option>
+                                                        <option value="Joint Mortgage">Joint Mortgage</option>
+                                                        <option value="Secured Overdraft">Secured Overdraft</option>
+                                                        <option value="Health Finance">Health Finance</option>
                                                     </select>
                                                     <i class="fa-solid fa-building-columns left-icon"></i>
                                                 </div>
@@ -141,7 +101,7 @@
                                             <div class="col-12">
                                                 <label class="form-label">Purpose of Loan <span class="req">*</span></label>
                                                 <div class="custom-input-group">
-                                                    <textarea rows="4" placeholder="Please describe the purpose of this loan..." required></textarea>
+                                                    <textarea name="purpose" rows="4" placeholder="Please describe the purpose of this loan..." required></textarea>
                                                     <i class="fa-solid fa-message left-icon" style="top: 25px;"></i>
                                                 </div>
                                             </div>
@@ -163,12 +123,12 @@
                                             <div class="col-12">
                                                 <label class="form-label">Monthly Net Income <span class="req">*</span></label>
                                                 <div class="custom-input-group">
-                                                    <select required>
+                                                    <select name="income" required>
                                                         <option value="" selected disabled>Select income range</option>
-                                                        <option value="1">Under $2,000</option>
-                                                        <option value="2">$2,000 - $5,000</option>
-                                                        <option value="3">$5,000 - $10,000</option>
-                                                        <option value="4">Over $10,000</option>
+                                                        <option value="Under $2,000">Under $2,000</option>
+                                                        <option value="$2,000 - $5,000">$2,000 - $5,000</option>
+                                                        <option value="$5,000 - $10,000">$5,000 - $10,000</option>
+                                                        <option value="Over $10,000">Over $10,000</option>
                                                     </select>
                                                     <i class="fa-solid fa-dollar-sign left-icon"></i>
                                                 </div>
@@ -190,7 +150,7 @@
 
                                 <!-- Action Buttons -->
                                 <div class="d-flex flex-column flex-sm-row gap-3 mt-4">
-                                    <button type="submit" class="btn btn-primary btn-lg flex-grow-1 fw-bold px-5">Submit Loan Application</button>
+                                    <button type="submit" name="submit_loan" class="btn btn-primary btn-lg flex-grow-1 fw-bold px-5">Submit Loan Application</button>
                                     <a href="loan.php" class="btn btn-outline-secondary btn-lg flex-shrink-0 fw-bold px-5"><i class="fa-solid fa-xmark me-2"></i> Cancel</a>
                                 </div>
                                 

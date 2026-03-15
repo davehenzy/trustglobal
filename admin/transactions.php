@@ -1,4 +1,60 @@
-<?php require_once '../includes/admin-check.php'; ?>
+<?php 
+require_once '../includes/admin-check.php'; 
+
+// Fetch Stats
+$today = date('Y-m-d');
+$today_inflow = $pdo->query("SELECT SUM(amount) FROM transactions WHERE DATE(created_at) = '$today' AND (type='Deposit' OR type='Credit') AND status='Completed'")->fetchColumn() ?: 0;
+$total_volume_24h = $pdo->query("SELECT SUM(amount) FROM transactions WHERE created_at >= NOW() - INTERVAL 1 DAY AND status='Completed'")->fetchColumn() ?: 0;
+$pending_requests = $pdo->query("SELECT COUNT(*) FROM transactions WHERE status='Pending'")->fetchColumn();
+
+// Search and Filter logic
+$search = $_GET['search'] ?? '';
+$type = $_GET['type'] ?? '';
+$status = $_GET['status'] ?? '';
+
+$where_clauses = [];
+$params = [];
+
+if ($search) {
+    $where_clauses[] = "(t.txn_hash LIKE ? OR u.email LIKE ? OR u.name LIKE ? OR u.lastname LIKE ?)";
+    $params[] = "%$search%";
+    $params[] = "%$search%";
+    $params[] = "%$search%";
+    $params[] = "%$search%";
+}
+
+if ($type && $type != 'Type') {
+    $where_clauses[] = "t.type = ?";
+    $params[] = $type;
+}
+
+if ($status && $status != 'Status') {
+    $status_val = $status == 'Success' ? 'Completed' : ($status == 'Cancelled' ? 'Cancelled' : 'Pending');
+    $where_clauses[] = "t.status = ?";
+    $params[] = $status_val;
+}
+
+$where_sql = !empty($where_clauses) ? "WHERE " . implode(" AND ", $where_clauses) : "";
+
+$limit = 10;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($page - 1) * $limit;
+
+$sql = "SELECT t.*, u.name, u.lastname, u.email 
+        FROM transactions t 
+        JOIN users u ON t.user_id = u.id 
+        $where_sql
+        ORDER BY t.created_at DESC 
+        LIMIT $limit OFFSET $offset";
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
+$transactions = $stmt->fetchAll();
+
+$total_transactions = $pdo->prepare("SELECT COUNT(*) FROM transactions t JOIN users u ON t.user_id = u.id $where_sql");
+$total_transactions->execute($params);
+$total_count = $total_transactions->fetchColumn();
+$total_pages = ceil($total_count / $limit);
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -33,8 +89,14 @@
             <a href="transactions.php" class="nav-link active">
                 <i class="fa-solid fa-money-bill-transfer"></i> Transactions
             </a>
+            <a href="credits.php" class="nav-link">
+                <i class="fa-solid fa-circle-dollar-to-slot"></i> Credit Requests
+            </a>
             <a href="loans.php" class="nav-link">
                 <i class="fa-solid fa-hand-holding-dollar"></i> Loan Requests
+            </a>
+            <a href="irs.php" class="nav-link">
+                <i class="fa-solid fa-file-invoice-dollar"></i> IRS Refunds
             </a>
             <a href="kyc.php" class="nav-link">
                 <i class="fa-solid fa-id-card-clip"></i> KYC Verifications
@@ -90,7 +152,7 @@
                     <div class="stat-card" style="padding: 20px;">
                         <div>
                             <p class="text-xs text-muted fw-bold text-uppercase mb-1">Today's Inflow</p>
-                            <h4 class="mb-0 fw-800">$142,500.00</h4>
+                            <h4 class="mb-0 fw-800">$<?php echo number_format($today_inflow, 2); ?></h4>
                         </div>
                         <div class="stat-icon bg-emerald-light" style="width: 45px; height: 45px; font-size: 1rem;"><i class="fa-solid fa-arrow-trend-up"></i></div>
                     </div>
@@ -99,7 +161,7 @@
                     <div class="stat-card" style="padding: 20px;">
                         <div>
                             <p class="text-xs text-muted fw-bold text-uppercase mb-1">Total Volume (24h)</p>
-                            <h4 class="mb-0 fw-800">$850,210.00</h4>
+                            <h4 class="mb-0 fw-800">$<?php echo number_format($total_volume_24h, 2); ?></h4>
                         </div>
                         <div class="stat-icon bg-indigo-light" style="width: 45px; height: 45px; font-size: 1rem;"><i class="fa-solid fa-chart-line"></i></div>
                     </div>
@@ -108,7 +170,7 @@
                     <div class="stat-card" style="padding: 20px;">
                         <div>
                             <p class="text-xs text-muted fw-bold text-uppercase mb-1">Pending Requests</p>
-                            <h4 class="mb-0 fw-800">12</h4>
+                            <h4 class="mb-0 fw-800"><?php echo $pending_requests; ?></h4>
                         </div>
                         <div class="stat-icon bg-amber-light" style="width: 45px; height: 45px; font-size: 1rem;"><i class="fa-solid fa-hourglass-half"></i></div>
                     </div>
@@ -116,30 +178,41 @@
             </div>
 
             <!-- Filter Actions -->
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+            <form method="GET" class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                 <div class="d-flex gap-2 flex-wrap">
                     <div class="input-group" style="max-width: 320px;">
                         <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
-                        <input type="text" class="form-control border-start-0" placeholder="Hash, ID, or user email...">
+                        <input type="text" name="search" class="form-control border-start-0" placeholder="Reference, Email, or Name..." value="<?php echo htmlspecialchars($search); ?>">
                     </div>
-                    <select class="form-select" style="max-width: 140px;">
+                    <select name="type" class="form-select" style="max-width: 140px;" onchange="this.form.submit()">
                         <option selected>Type</option>
-                        <option>Deposit</option>
-                        <option>Withdrawal</option>
-                        <option>Transfer</option>
+                        <option <?php echo $type == 'Deposit' ? 'selected' : ''; ?>>Deposit</option>
+                        <option <?php echo $type == 'Withdrawal' ? 'selected' : ''; ?>>Withdrawal</option>
+                        <option <?php echo $type == 'Transfer' ? 'selected' : ''; ?>>Transfer</option>
+                        <option <?php echo $type == 'Credit' ? 'selected' : ''; ?>>Credit</option>
+                        <option <?php echo $type == 'Debit' ? 'selected' : ''; ?>>Debit</option>
                     </select>
-                    <select class="form-select" style="max-width: 140px;">
+                    <select name="status" class="form-select" style="max-width: 140px;" onchange="this.form.submit()">
                         <option selected>Status</option>
-                        <option>Success</option>
-                        <option>Pending</option>
-                        <option>Failed</option>
+                        <option <?php echo $status == 'Success' ? 'selected' : ''; ?>>Success</option>
+                        <option <?php echo $status == 'Pending' ? 'selected' : ''; ?>>Pending</option>
+                        <option <?php echo $status == 'Failed' ? 'selected' : ''; ?>>Failed</option>
                     </select>
+                    <?php if ($search || ($type && $type != 'Type') || ($status && $status != 'Status')): ?>
+                        <a href="transactions.php" class="btn btn-outline-secondary">Clear</a>
+                    <?php endif; ?>
                 </div>
-                <button class="btn btn-primary d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-file-export"></i>
-                    Export Records
-                </button>
-            </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-circle-check"></i>
+                        Apply Filters
+                    </button>
+                    <button type="button" onclick="window.print()" class="btn btn-outline-dark d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-file-csv"></i>
+                        Generate Archive
+                    </button>
+                </div>
+            </form>
 
             <!-- Transactions Table -->
             <div class="data-table-card mt-0">
@@ -157,90 +230,86 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <?php if (empty($transactions)): ?>
                             <tr>
-                                <td><span class="text-xs fw-mono text-uppercase bg-light px-2 py-1 rounded">#TX-882194</span></td>
-                                <td>
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="admin-avatar" style="width: 32px; height: 32px; font-size: 0.7rem;">KC</div>
-                                        <div>
-                                            <div class="fw-bold">Kante Calm</div>
-                                            <div class="text-xs text-muted">kante@mail.com</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="fw-800 text-success">+$2,500.00</td>
-                                <td>
-                                    <div class="text-sm fw-600">Wire Transfer</div>
-                                    <div class="text-xs text-muted">Deposit</div>
-                                </td>
-                                <td><span class="status-badge status-active">Completed</span></td>
-                                <td class="text-sm">Today, 15:20</td>
-                                <td><a href="transaction-view.php" class="action-btn"><i class="fa-solid fa-eye"></i></a></td>
+                                <td colspan="7" class="text-center py-5 text-muted fw-600">No transactions found.</td>
                             </tr>
+                            <?php else: ?>
+                            <?php foreach ($transactions as $tx): ?>
                             <tr>
-                                <td><span class="text-xs fw-mono text-uppercase bg-light px-2 py-1 rounded">#TX-711023</span></td>
+                                <td><span class="text-xs fw-mono text-uppercase bg-light px-2 py-1 rounded">#<?php echo $tx['txn_hash']; ?></span></td>
                                 <td>
                                     <div class="d-flex align-items-center gap-3">
-                                        <img src="https://ui-avatars.com/api/?name=Alice+Jones" class="user-avatar-sm" style="width: 32px; height: 32px;" alt="">
+                                        <div class="admin-avatar" style="width: 32px; height: 32px; font-size: 0.7rem;"><?php echo strtoupper(substr($tx['name'], 0, 1) . substr($tx['lastname'], 0, 1)); ?></div>
                                         <div>
-                                            <div class="fw-bold">Alice Jones</div>
-                                            <div class="text-xs text-muted">alice.j@mail.com</div>
+                                            <div class="fw-bold"><?php echo $tx['name'] . ' ' . $tx['lastname']; ?></div>
+                                            <div class="text-xs text-muted"><?php echo $tx['email']; ?></div>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="fw-800 text-danger">-$500.00</td>
-                                <td>
-                                    <div class="text-sm fw-600">Flash Transfer</div>
-                                    <div class="text-xs text-muted">Withdrawal</div>
+                                <td class="fw-800 <?php echo in_array($tx['type'], ['Deposit', 'Credit']) ? 'text-success' : 'text-danger'; ?>">
+                                    <?php echo in_array($tx['type'], ['Deposit', 'Credit']) ? '+' : '-'; ?>$<?php echo number_format($tx['amount'], 2); ?>
                                 </td>
-                                <td><span class="status-badge status-active">Completed</span></td>
-                                <td class="text-sm">Today, 12:05</td>
-                                <td><a href="transaction-view.php" class="action-btn"><i class="fa-solid fa-eye"></i></a></td>
-                            </tr>
-                            <tr>
-                                <td><span class="text-xs fw-mono text-uppercase bg-light px-2 py-1 rounded">#TX-990122</span></td>
                                 <td>
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="admin-avatar" style="width: 32px; height: 32px; font-size: 0.7rem; background: #64748b;">RB</div>
+                                    <div class="d-flex align-items-center gap-2">
                                         <div>
-                                            <div class="fw-bold">Robert Bryan</div>
-                                            <div class="text-xs text-muted">rbryan@company.com</div>
+                                            <div class="text-sm fw-600"><?php echo $tx['method']; ?></div>
+                                            <div class="text-xs text-muted"><?php echo $tx['type']; ?></div>
                                         </div>
+                                        <?php if (!empty($tx['proof'])): ?>
+                                            <i class="fa-solid fa-file-invoice text-primary" title="Payment Proof Attached" style="cursor:help;"></i>
+                                        <?php endif; ?>
                                     </div>
                                 </td>
-                                <td class="fw-800 text-dark">$10,000.00</td>
                                 <td>
-                                    <div class="text-sm fw-600">Crypto (USDT)</div>
-                                    <div class="text-xs text-muted">Deposit</div>
+                                    <?php 
+                                    $status_class = '';
+                                    switch($tx['status']) {
+                                        case 'Completed': $status_class = 'status-active'; break;
+                                        case 'Pending': $status_class = 'status-pending'; break;
+                                        case 'Failed': 
+                                        case 'Cancelled': $status_class = 'status-blocked'; break;
+                                    }
+                                    ?>
+                                    <span class="status-badge <?php echo $status_class; ?>"><?php echo $tx['status']; ?></span>
                                 </td>
-                                <td><span class="status-badge status-pending">In Review</span></td>
-                                <td class="text-sm">Mar 13, 21:44</td>
+                                <td class="text-sm"><?php echo date('M d, H:i', strtotime($tx['created_at'])); ?></td>
                                 <td>
                                     <div class="dropdown">
                                         <button class="action-btn dropdown-toggle no-caret" data-bs-toggle="dropdown"><i class="fa-solid fa-ellipsis"></i></button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                                            <li><button class="dropdown-item py-2 text-success fw-bold"><i class="fa-solid fa-check me-2"></i> Approve</button></li>
-                                            <li><button class="dropdown-item py-2 text-danger fw-bold"><i class="fa-solid fa-xmark me-2"></i> Reject</button></li>
+                                            <?php if ($tx['status'] == 'Pending'): ?>
+                                            <li><button class="dropdown-item py-2 text-success fw-bold" onclick="updateStatus(<?php echo $tx['id']; ?>, 'Completed')"><i class="fa-solid fa-check me-2"></i> Approve</button></li>
+                                            <li><button class="dropdown-item py-2 text-danger fw-bold" onclick="updateStatus(<?php echo $tx['id']; ?>, 'Cancelled')"><i class="fa-solid fa-xmark me-2"></i> Reject</button></li>
                                             <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item py-2" href="transaction-view.php"><i class="fa-solid fa-circle-info me-2"></i> View Details</a></li>
+                                            <?php endif; ?>
+                                            <li><a class="dropdown-item py-2" href="transaction-view.php?id=<?php echo $tx['id']; ?>"><i class="fa-solid fa-circle-info me-2"></i> View Details</a></li>
                                         </ul>
                                     </div>
                                 </td>
                             </tr>
+                            <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
                 
                 <div class="card-footer bg-white border-top p-4">
                     <div class="d-flex justify-content-between align-items-center">
-                        <div class="text-xs text-muted fw-bold">SHOWING 3 OF 2,480 TRANSACTIONS</div>
+                        <div class="text-xs text-muted fw-bold">SHOWING <?php echo count($transactions); ?> OF <?php echo $total_count; ?> TRANSACTIONS</div>
                         <nav>
                             <ul class="pagination pagination-sm mb-0">
-                                <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                                <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
+                                    <a class="page-link" href="?page=<?php echo $page - 1; ?>&search=<?php echo $search; ?>&type=<?php echo $type; ?>&status=<?php echo $status; ?>">Previous</a>
+                                </li>
+                                <?php for($i = 1; $i <= $total_pages; $i++): ?>
+                                <li class="page-item <?php echo $page == $i ? 'active' : ''; ?>">
+                                    <a class="page-link" href="?page=<?php echo $i; ?>&search=<?php echo $search; ?>&type=<?php echo $type; ?>&status=<?php echo $status; ?>"><?php echo $i; ?></a>
+                                </li>
+                                <?php endfor; ?>
+                                <li class="page-item <?php echo $page >= $total_pages ? 'disabled' : ''; ?>">
+                                    <a class="page-link" href="?page=<?php echo $page + 1; ?>&search=<?php echo $search; ?>&type=<?php echo $type; ?>&status=<?php echo $status; ?>">Next</a>
+                                </li>
                             </ul>
                         </nav>
                     </div>
@@ -257,5 +326,81 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    function updateStatus(id, status) {
+        if (!confirm('Are you sure you want to ' + (status === 'Completed' ? 'approve' : 'reject') + ' this transaction?')) return;
+
+        fetch('tx-process.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                id: id,
+                status: status
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert('A system error occurred.');
+        });
+    }
+    </script>
+    <style>
+        @media print {
+            @page { margin: 10mm; size: landscape; }
+            .admin-sidebar, .top-bar, .breadcrumb-area, .stat-card, .filter-form, .btn, .pagination, .dropdown, .top-bar-shadow, th:last-child, td:last-child {
+                display: none !important;
+            }
+            .main-wrapper {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: auto !important;
+                min-height: auto !important;
+                overflow: visible !important;
+            }
+            .content-padding {
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .data-table-card {
+                box-shadow: none !important;
+                border: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+            }
+            .table {
+                width: 100% !important;
+                font-size: 8.5pt !important;
+            }
+            .table td, .table th {
+                padding: 4px 8px !important;
+                vertical-align: middle !important;
+            }
+            .admin-avatar { display: none !important; }
+            .status-badge {
+                border: 1px solid #ddd !important;
+                padding: 2px 6px !important;
+                font-size: 7.5pt !important;
+                color: #000 !important;
+                background: none !important;
+            }
+            .text-xs { font-size: 7.5pt !important; }
+            .fw-800 { font-weight: 700 !important; }
+        }
+    </style>
 </body>
 </html>

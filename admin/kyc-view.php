@@ -1,4 +1,58 @@
-﻿<?php require_once '../includes/admin-check.php'; ?>
+<?php 
+require_once '../includes/db.php';
+require_once '../includes/admin-check.php'; 
+
+$kyc_id = $_GET['id'] ?? null;
+
+if (!$kyc_id) {
+    header("Location: kyc.php");
+    exit;
+}
+
+// Fetch KYC Request
+$stmt = $pdo->prepare("SELECT k.*, u.name, u.lastname, u.email, u.phone FROM kyc_verifications k JOIN users u ON k.user_id = u.id WHERE k.id = ?");
+$stmt->execute([$kyc_id]);
+$kyc = $stmt->fetch();
+
+if (!$kyc) {
+    header("Location: kyc.php");
+    exit;
+}
+
+$success_msg = '';
+$error_msg = '';
+
+// Handle Actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['approve_kyc'])) {
+        try {
+            $pdo->beginTransaction();
+            $pdo->prepare("UPDATE kyc_verifications SET status = 'Verified' WHERE id = ?")->execute([$kyc_id]);
+            $pdo->prepare("UPDATE users SET kyc_status = 'Verified' WHERE id = ?")->execute([$kyc['user_id']]);
+            $pdo->commit();
+            $success_msg = "KYC documents approved successfully.";
+        } catch (Exception $e) { $pdo->rollBack(); $error_msg = $e->getMessage(); }
+    }
+
+    if (isset($_POST['reject_kyc'])) {
+        $reason = $_POST['rejection_reason'] ?? 'Document mismatch or insufficient resolution.';
+        try {
+            $pdo->beginTransaction();
+            $pdo->prepare("UPDATE kyc_verifications SET status = 'Rejected', rejection_reason = ? WHERE id = ?")->execute([$reason, $kyc_id]);
+            $pdo->prepare("UPDATE users SET kyc_status = 'Rejected' WHERE id = ?")->execute([$kyc['user_id']]);
+            $pdo->commit();
+            $success_msg = "KYC documents declined and user notified.";
+        } catch (Exception $e) { $pdo->rollBack(); $error_msg = $e->getMessage(); }
+    }
+
+    // Refresh data
+    $stmt = $pdo->prepare("SELECT k.*, u.name, u.lastname, u.email, u.phone FROM kyc_verifications k JOIN users u ON k.user_id = u.id WHERE k.id = ?");
+    $stmt->execute([$kyc_id]);
+    $kyc = $stmt->fetch();
+}
+
+$initials = strtoupper(substr($kyc['name'], 0, 1) . substr($kyc['lastname'], 0, 1));
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -62,7 +116,7 @@
         <!-- Top Bar -->
         <div class="top-bar">
             <div class="breadcrumb-area">
-                <h4 class="mb-0 fw-800">Identity Audit: Robert Bryan</h4>
+                <h4 class="mb-0 fw-800">Identity Audit: <?php echo htmlspecialchars($kyc['name'] . ' ' . $kyc['lastname']); ?></h4>
             </div>
 
             <div class="user-nav">
@@ -79,8 +133,23 @@
                     <div class="data-table-card p-5 border-0 bg-white" style="border-radius: 24px;">
                         <div class="d-flex justify-content-between align-items-center mb-5">
                             <h5 class="fw-800 mb-0">Legal Identification Documents</h5>
-                            <span class="status-badge status-pending px-3 py-2 fw-800" style="border-radius: 10px;">Awaiting Review</span>
+                            <?php 
+                            $status_class = '';
+                            switch($kyc['status']) {
+                                case 'Verified': $status_class = 'status-active'; break;
+                                case 'Pending': $status_class = 'status-pending'; break;
+                                case 'Rejected': $status_class = 'status-blocked'; break;
+                            }
+                            ?>
+                            <span class="status-badge <?php echo $status_class; ?> px-3 py-2 fw-800" style="border-radius: 10px;"><?php echo $kyc['status'] == 'Verified' ? 'Approved' : ($kyc['status'] == 'Pending' ? 'Awaiting Review' : 'Rejected'); ?></span>
                         </div>
+                        
+                        <?php if($success_msg): ?>
+                            <div class="alert alert-success border-0 rounded-4 mb-4 fw-600"><?php echo $success_msg; ?></div>
+                        <?php endif; ?>
+                        <?php if($error_msg): ?>
+                            <div class="alert alert-danger border-0 rounded-4 mb-4 fw-600"><?php echo $error_msg; ?></div>
+                        <?php endif; ?>
 
                         <!-- Main Doc Display -->
                         <div class="mb-5">
@@ -97,13 +166,25 @@
                             </ul>
                             <div class="tab-content border-0 rounded-4 overflow-hidden shadow-inner bg-light-soft" style="min-height: 450px; display: flex; align-items: center; justify-content: center; background: #f8fafc;">
                                 <div class="tab-pane fade show active w-100 h-100" id="front">
-                                    <img src="https://images.unsplash.com/photo-1544027993-37dbfe43562a?auto=format&fit=crop&w=1200&h=800&q=80" class="img-fluid w-100" style="object-fit: contain; max-height: 550px;" alt="">
+                                    <?php if($kyc['document_front']): ?>
+                                        <img src="../uploads/kyc/<?php echo $kyc['document_front']; ?>" class="img-fluid w-100" style="object-fit: contain; max-height: 550px;" alt="Front">
+                                    <?php else: ?>
+                                        <div class="p-5 text-center text-muted fw-600">No front document uploaded</div>
+                                    <?php endif; ?>
                                 </div>
                                 <div class="tab-pane fade w-100 h-100" id="back">
-                                    <img src="https://images.unsplash.com/photo-1534571739570-5290b230234a?auto=format&fit=crop&w=1200&h=800&q=80" class="img-fluid w-100" style="object-fit: contain; max-height: 550px;" alt="">
+                                    <?php if($kyc['document_back']): ?>
+                                        <img src="../uploads/kyc/<?php echo $kyc['document_back']; ?>" class="img-fluid w-100" style="object-fit: contain; max-height: 550px;" alt="Back">
+                                    <?php else: ?>
+                                        <div class="p-5 text-center text-muted fw-600">No back document uploaded</div>
+                                    <?php endif; ?>
                                 </div>
                                 <div class="tab-pane fade w-100 h-100 text-center" id="selfie">
-                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=1200&h=800&q=80" class="img-fluid" style="max-height: 550px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.1);" alt="">
+                                    <?php if($kyc['selfie']): ?>
+                                        <img src="../uploads/kyc/<?php echo $kyc['selfie']; ?>" class="img-fluid" style="max-height: 550px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.1);" alt="Selfie">
+                                    <?php else: ?>
+                                        <div class="p-5 text-center text-muted fw-600">No selfie uploaded</div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -118,10 +199,10 @@
                             </div>
                         </div>
 
-                        <div class="d-flex gap-3">
-                            <button class="btn btn-primary px-5 py-3 fw-800 flex-grow-1" style="border-radius: 15px;"><i class="fa-solid fa-check-circle me-2"></i> Approve Identity</button>
-                            <button class="btn btn-rose-light text-danger px-5 py-3 fw-800" style="border-radius: 15px;"><i class="fa-solid fa-times-circle me-2"></i> Decline Audit</button>
-                        </div>
+                        <form class="d-flex gap-3" method="POST">
+                            <button type="submit" name="approve_kyc" class="btn btn-primary px-5 py-3 fw-800 flex-grow-1" style="border-radius: 15px;"><i class="fa-solid fa-check-circle me-2"></i> Approve Identity</button>
+                            <button type="button" class="btn btn-rose-light text-danger px-5 py-3 fw-800" style="border-radius: 15px;" onclick="document.getElementById('rejectionArea').scrollIntoView({behavior: 'smooth'})"><i class="fa-solid fa-times-circle me-2"></i> Decline Audit</button>
+                        </form>
                     </div>
                 </div>
 
@@ -133,46 +214,93 @@
                         <div class="list-group list-group-flush mb-4">
                             <div class="list-group-item d-flex justify-content-between px-0 py-3 border-light">
                                 <span class="text-muted fw-600">Audit Reference</span>
-                                <span class="fw-800 text-mono text-primary">#KYC-99021</span>
+                                <span class="fw-800 text-mono text-primary">#KYC-<?php echo str_pad($kyc['id'], 5, '0', STR_PAD_LEFT); ?></span>
                             </div>
                             <div class="list-group-item d-flex justify-content-between px-0 py-3 border-light">
                                 <span class="text-muted fw-600">Document Class</span>
-                                <span class="fw-800">Passport</span>
+                                <span class="fw-800"><?php echo $kyc['document_type']; ?></span>
                             </div>
                             <div class="list-group-item d-flex justify-content-between px-0 py-3 border-light">
                                 <span class="text-muted fw-600">Timestamp</span>
-                                <span class="fw-800">Mar 15, 14:22</span>
+                                <span class="fw-800"><?php echo date('M d, H:i', strtotime($kyc['created_at'])); ?></span>
                             </div>
+                            <?php if($kyc['rejection_reason']): ?>
                             <div class="list-group-item d-flex justify-content-between px-0 py-3 border-0">
-                                <span class="text-muted fw-600">Audit History</span>
-                                <span class="text-rose fw-800">1 Previous Rejection</span>
+                                <span class="text-muted fw-600">Rejection Note</span>
+                                <span class="text-danger fw-800"><?php echo htmlspecialchars($kyc['rejection_reason']); ?></span>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="row g-4 mb-4">
+                            <!-- Personal Info -->
+                            <div class="col-md-6">
+                                <div class="p-4 bg-light rounded-4 h-100 border-0">
+                                    <h6 class="fw-800 text-xs text-uppercase mb-3 text-muted">Personal & Employment</h6>
+                                    <div class="mb-3">
+                                        <div class="text-xs text-muted mb-1">Declared Name</div>
+                                        <div class="fw-800"><?php echo htmlspecialchars($kyc['full_name']); ?></div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="text-xs text-muted mb-1">Date of Birth</div>
+                                        <div class="fw-800"><?php echo date('M d, Y', strtotime($kyc['dob'])); ?></div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="text-xs text-muted mb-1">SSN / National ID</div>
+                                        <div class="fw-800"><?php echo htmlspecialchars($kyc['ssn']); ?></div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="text-xs text-muted mb-1">Account Type</div>
+                                        <div class="fw-800"><?php echo htmlspecialchars($kyc['account_type']); ?></div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="text-xs text-muted mb-1">Employment</div>
+                                        <div class="fw-800"><?php echo htmlspecialchars($kyc['employment']); ?></div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-muted mb-1">Annual Income</div>
+                                        <div class="fw-800 text-success"><?php echo htmlspecialchars($kyc['income']); ?></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Address & Next of Kin -->
+                            <div class="col-md-6">
+                                <div class="p-4 bg-light rounded-4 h-100 border-0">
+                                    <h6 class="fw-800 text-xs text-uppercase mb-3 text-muted">Address & Beneficiary</h6>
+                                    <div class="mb-4">
+                                        <div class="text-xs text-muted mb-1">Residential Address</div>
+                                        <div class="fw-800"><?php echo htmlspecialchars($kyc['address']); ?></div>
+                                        <div class="fw-700 text-sm"><?php echo htmlspecialchars($kyc['city'] . ', ' . $kyc['state'] . ' ' . $kyc['zip']); ?></div>
+                                        <div class="fw-700 text-xs text-uppercase text-muted"><?php echo htmlspecialchars($kyc['country']); ?></div>
+                                    </div>
+                                    <hr class="my-3 opacity-10">
+                                    <div class="mb-3">
+                                        <div class="text-xs text-muted mb-1">Next of Kin</div>
+                                        <div class="fw-800"><?php echo htmlspecialchars($kyc['next_of_kin_name']); ?></div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-muted mb-1">Relationship</div>
+                                        <div class="fw-800"><?php echo htmlspecialchars($kyc['next_of_kin_relationship']); ?></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="p-4 bg-light rounded-4 mb-5 border-0">
-                            <h6 class="fw-800 text-xs text-uppercase mb-3 text-muted">User Profile</h6>
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="admin-avatar me-3 bg-indigo text-white shadow-sm" style="width: 32px; height: 32px; font-size: 0.8rem; font-weight: 800;">RB</div>
-                                <span class="fw-800 text-sm">Robert Bryan</span>
-                            </div>
-                            <div class="text-xs fw-600 text-muted mb-2"><i class="fa-solid fa-envelope me-2 text-primary opacity-50"></i> rbryan@company.com</div>
-                            <div class="text-xs fw-600 text-muted"><i class="fa-solid fa-phone me-2 text-primary opacity-50"></i> +1 882 192 001</div>
+                        <div class="mb-4" id="rejectionArea">
+                            <form method="POST">
+                                <label class="form-label fw-800 text-xs text-uppercase text-muted mb-3">Decline Resolution (Admin)</label>
+                                <select name="rejection_reason" class="form-select bg-light border-0 fw-600 p-3 mb-3" style="border-radius: 12px; font-size: 0.85rem;">
+                                    <option value="Expired Identity Document">Expired Identity Document</option>
+                                    <option value="Frame Corruption / Cropped">Frame Corruption / Cropped</option>
+                                    <option value="Insufficient Resolution">Insufficient Resolution</option>
+                                    <option value="Identity Parity Mismatch">Identity Parity Mismatch</option>
+                                    <option value="Invalid Asset Class">Invalid Asset Class</option>
+                                </select>
+                                <button type="submit" name="reject_kyc" class="btn btn-dark w-100 py-3 fw-800 mb-3" style="border-radius: 15px;">Decline & Notify User</button>
+                            </form>
+                            <p class="text-center text-xs text-muted mb-0">System audit logs will be updated.</p>
                         </div>
-
-                        <div class="mb-4">
-                            <label class="form-label fw-800 text-xs text-uppercase text-muted mb-3">Decline Resolution (Admin)</label>
-                            <select class="form-select bg-light border-0 fw-600 p-3" style="border-radius: 12px; font-size: 0.85rem;">
-                                <option>Select standard resolution...</option>
-                                <option>Expired Identity Document</option>
-                                <option>Frame Corruption / Cropped</option>
-                                <option>Insufficient Resolution</option>
-                                <option>Identity Parity Mismatch</option>
-                                <option>Invalid Asset Class</option>
-                            </select>
-                        </div>
-
-                        <button class="btn btn-dark w-100 py-3 fw-800 mb-3" style="border-radius: 15px;">Request Re-submission</button>
-                        <p class="text-center text-xs text-muted mb-0">System audit logs will be updated.</p>
                     </div>
                 </div>
             </div>

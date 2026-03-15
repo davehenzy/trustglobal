@@ -1,4 +1,48 @@
-<?php require_once '../includes/admin-check.php'; ?>
+<?php 
+require_once '../includes/admin-check.php'; 
+
+// Fetch Stats
+$total_assets = $pdo->query("SELECT SUM(balance) FROM users")->fetchColumn() ?: 0;
+$active_users = $pdo->query("SELECT COUNT(*) FROM users WHERE status='Active'")->fetchColumn();
+$pending_loans_amount = $pdo->query("SELECT SUM(amount) FROM loans WHERE status='Pending'")->fetchColumn() ?: 0;
+$pending_loans_count = $pdo->query("SELECT COUNT(*) FROM loans WHERE status='Pending'")->fetchColumn();
+$support_tickets = $pdo->query("SELECT COUNT(*) FROM support_tickets WHERE status='Open'")->fetchColumn();
+
+// Recent Users
+$recent_users = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5")->fetchAll();
+
+// System Activity Feed
+$activity_sql = "
+    (SELECT 'Transaction' as type, created_at, narration as detail, status FROM transactions)
+    UNION ALL
+    (SELECT 'New User' as type, created_at, CONCAT(name, ' ', lastname) as detail, status FROM users)
+    UNION ALL
+    (SELECT 'Loan' as type, created_at, loan_type as detail, status FROM loans)
+    UNION ALL
+    (SELECT 'Support' as type, created_at, subject as detail, status FROM support_tickets)
+    ORDER BY created_at DESC LIMIT 6
+";
+$activities = $pdo->query($activity_sql)->fetchAll();
+
+function time_ago($timestamp) {
+    $time = time() - strtotime($timestamp);
+    if ($time < 1) return 'Just now';
+    $units = [
+        31536000 => 'year',
+        2592000 => 'month',
+        604800 => 'week',
+        86400 => 'day',
+        3600 => 'hour',
+        60 => 'minute',
+        1 => 'second'
+    ];
+    foreach ($units as $unit => $text) {
+        if ($time < $unit) continue;
+        $num = floor($time / $unit);
+        return $num . ' ' . $text . (($num > 1) ? 's' : '') . ' ago';
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -119,8 +163,14 @@
             <a href="transactions.php" class="nav-link">
                 <i class="fa-solid fa-money-bill-transfer"></i> Transactions
             </a>
+            <a href="credits.php" class="nav-link">
+                <i class="fa-solid fa-circle-dollar-to-slot"></i> Credit Requests
+            </a>
             <a href="loans.php" class="nav-link">
                 <i class="fa-solid fa-hand-holding-dollar"></i> Loan Requests
+            </a>
+            <a href="irs.php" class="nav-link">
+                <i class="fa-solid fa-file-invoice-dollar"></i> IRS Refunds
             </a>
             <a href="kyc.php" class="nav-link">
                 <i class="fa-solid fa-id-card-clip"></i> KYC Verifications
@@ -198,6 +248,15 @@
                     </a>
                 </div>
                 <div class="col-md-3">
+                    <a href="credits.php" class="quick-link-card">
+                        <div class="quick-link-icon bg-blue-light text-primary"><i class="fa-solid fa-hourglass-half"></i></div>
+                        <div>
+                            <div class="fw-bold text-sm">Review Deposits</div>
+                            <div class="text-xs text-muted">Approve Credits</div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3">
                     <a href="kyc.php" class="quick-link-card">
                         <div class="quick-link-icon bg-amber-light"><i class="fa-solid fa-file-shield"></i></div>
                         <div>
@@ -223,9 +282,9 @@
                     <div class="stat-card">
                         <div class="stat-info">
                             <p>Total Assets</p>
-                            <h3>$18.4M</h3>
+                            <h3>$<?php echo number_format($total_assets / 1000000, 1); ?>M</h3>
                             <div class="stat-trend trend-up">
-                                <i class="fa-solid fa-arrow-up-long"></i> +8.2% <span class="text-muted fw-normal ms-1">vs last month</span>
+                                <i class="fa-solid fa-arrow-up-long"></i> +0% <span class="text-muted fw-normal ms-1">vs last month</span>
                             </div>
                         </div>
                         <div class="stat-icon bg-indigo-light">
@@ -237,9 +296,9 @@
                     <div class="stat-card">
                         <div class="stat-info">
                             <p>Active Users</p>
-                            <h3>12,482</h3>
+                            <h3><?php echo number_format($active_users); ?></h3>
                             <div class="stat-trend trend-up">
-                                <i class="fa-solid fa-arrow-up-long"></i> +124 <span class="text-muted fw-normal ms-1">new today</span>
+                                <i class="fa-solid fa-arrow-up-long"></i> <?php echo count($recent_users); ?> <span class="text-muted fw-normal ms-1">new today</span>
                             </div>
                         </div>
                         <div class="stat-icon bg-emerald-light">
@@ -251,9 +310,9 @@
                     <div class="stat-card">
                         <div class="stat-info">
                             <p>Pending Loans</p>
-                            <h3>$420k</h3>
+                            <h3>$<?php echo number_format($pending_loans_amount / 1000, 1); ?>k</h3>
                             <div class="stat-trend trend-down">
-                                <i class="fa-solid fa-clock"></i> 18 <span class="text-muted fw-normal ms-1">needs review</span>
+                                <i class="fa-solid fa-clock"></i> <?php echo $pending_loans_count; ?> <span class="text-muted fw-normal ms-1">needs review</span>
                             </div>
                         </div>
                         <div class="stat-icon bg-amber-light">
@@ -265,9 +324,9 @@
                     <div class="stat-card">
                         <div class="stat-info">
                             <p>Support Tickets</p>
-                            <h3>14</h3>
+                            <h3><?php echo $support_tickets; ?></h3>
                             <div class="stat-trend trend-up">
-                                <i class="fa-solid fa-bolt"></i> 8 <span class="text-muted fw-normal ms-1">high priority</span>
+                                <i class="fa-solid fa-bolt"></i> 0 <span class="text-muted fw-normal ms-1">high priority</span>
                             </div>
                         </div>
                         <div class="stat-icon bg-rose-light">
@@ -299,44 +358,27 @@
                 <div class="col-lg-4">
                     <div class="data-table-card mt-0 p-4 h-100">
                         <h5 class="fw-bold mb-4">System Activity</h5>
+                        <?php foreach($activities as $act): 
+                            $dot_color = 'bg-primary';
+                            if ($act['type'] == 'Transaction') $dot_color = 'bg-success';
+                            if ($act['type'] == 'New User') $dot_color = 'bg-info';
+                            if ($act['type'] == 'Loan') $dot_color = 'bg-warning';
+                            if ($act['type'] == 'Support') $dot_color = 'bg-rose';
+                        ?>
                         <div class="premium-list-item">
-                            <div class="d-flex align-items-center">
-                                <span class="activity-dot bg-success"></span>
-                                <div class="text-sm fw-600">KYC Verification Completed</div>
+                            <div class="d-flex align-items-center me-3" style="min-width: 0;">
+                                <span class="activity-dot <?php echo $dot_color; ?>"></span>
+                                <div class="text-sm fw-600 text-truncate">
+                                    <span class="text-muted fw-normal text-xs d-block"><?php echo strtoupper($act['type']); ?></span>
+                                    <?php echo htmlspecialchars($act['detail']); ?>
+                                </div>
                             </div>
-                            <div class="text-xs text-muted">2 mins ago</div>
+                            <div class="text-xs text-muted text-nowrap"><?php echo time_ago($act['created_at']); ?></div>
                         </div>
-                        <div class="premium-list-item">
-                            <div class="d-flex align-items-center">
-                                <span class="activity-dot bg-warning"></span>
-                                <div class="text-sm fw-600">New Loan Request: $25,000</div>
-                            </div>
-                            <div class="text-xs text-muted">15 mins ago</div>
-                        </div>
-                        <div class="premium-list-item">
-                            <div class="d-flex align-items-center">
-                                <span class="activity-dot bg-danger"></span>
-                                <div class="text-sm fw-600">Failed Admin Login Attempt</div>
-                            </div>
-                            <div class="text-xs text-muted">1 hour ago</div>
-                        </div>
-                        <div class="premium-list-item">
-                            <div class="d-flex align-items-center">
-                                <span class="activity-dot bg-info"></span>
-                                <div class="text-sm fw-600">System Backup Created</div>
-                            </div>
-                            <div class="text-xs text-muted">4 hours ago</div>
-                        </div>
-                        <div class="premium-list-item">
-                            <div class="d-flex align-items-center">
-                                <span class="activity-dot bg-primary"></span>
-                                <div class="text-sm fw-600">CMS Page "About Us" Updated</div>
-                            </div>
-                            <div class="text-xs text-muted">6 hours ago</div>
-                        </div>
+                        <?php endforeach; ?>
                         
                         <div class="mt-4">
-                            <button class="btn btn-light w-100 text-xs fw-bold py-2">VIEW FULL SYSTEM LOGS</button>
+                            <button class="btn btn-light w-100 text-xs fw-bold py-2" onclick="location.href='transactions.php'">VIEW FULL SYSTEM LOGS</button>
                         </div>
                     </div>
                 </div>
@@ -361,69 +403,36 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <?php foreach ($recent_users as $ru): ?>
                             <tr>
                                 <td>
                                     <div class="user-cell">
-                                        <div class="admin-avatar" style="width: 32px; height: 32px; font-size: 0.7rem;">JD</div>
+                                        <div class="admin-avatar" style="width: 32px; height: 32px; font-size: 0.7rem;"><?php echo strtoupper(substr($ru['name'], 0, 1) . substr($ru['lastname'], 0, 1)); ?></div>
                                         <div>
-                                            <div class="fw-bold">John Doe</div>
-                                            <div class="text-xs text-muted">john.doe@example.com</div>
+                                            <div class="fw-bold"><?php echo $ru['name'] . ' ' . $ru['lastname']; ?></div>
+                                            <div class="text-xs text-muted"><?php echo $ru['email']; ?></div>
                                         </div>
                                     </div>
                                 </td>
-                                <td>Savings Account</td>
-                                <td class="fw-bold">$12,500.00</td>
-                                <td><span class="status-badge status-active">Active</span></td>
-                                <td>2 Hours ago</td>
+                                <td><?php echo $ru['account_type']; ?></td>
+                                <td class="fw-bold">$<?php echo number_format($ru['balance'], 2); ?></td>
+                                <td>
+                                    <?php 
+                                    $s_class = 'status-pending';
+                                    if ($ru['status'] == 'Active') $s_class = 'status-active';
+                                    if ($ru['status'] == 'Blocked') $s_class = 'status-blocked';
+                                    ?>
+                                    <span class="status-badge <?php echo $s_class; ?>"><?php echo $ru['status']; ?></span>
+                                </td>
+                                <td><?php echo date('M d, Y', strtotime($ru['created_at'])); ?></td>
                                 <td>
                                     <div class="d-flex gap-1">
-                                        <a href="user-actions.php" class="action-btn text-warning" title="Quick Actions"><i class="fa-solid fa-bolt"></i></a>
-                                        <a href="user-edit.php" class="action-btn" title="View Profile"><i class="fa-solid fa-eye"></i></a>
+                                        <a href="user-actions.php?id=<?php echo $ru['id']; ?>" class="action-btn text-warning" title="Quick Actions"><i class="fa-solid fa-bolt"></i></a>
+                                        <a href="user-edit.php?id=<?php echo $ru['id']; ?>" class="action-btn" title="View Profile"><i class="fa-solid fa-eye"></i></a>
                                     </div>
                                 </td>
                             </tr>
-                            <tr>
-                                <td>
-                                    <div class="user-cell">
-                                        <img src="https://ui-avatars.com/api/?name=Sarah+Smith&background=random" class="user-avatar-sm" alt="">
-                                        <div>
-                                            <div class="fw-bold">Sarah Smith</div>
-                                            <div class="text-xs text-muted">s.smith@mail.com</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>Investment</td>
-                                <td class="fw-bold">$45,000.00</td>
-                                <td><span class="status-badge status-pending">Pending KYC</span></td>
-                                <td>5 Hours ago</td>
-                                <td>
-                                    <div class="d-flex gap-1">
-                                        <a href="user-actions.php" class="action-btn text-warning" title="Quick Actions"><i class="fa-solid fa-bolt"></i></a>
-                                        <button class="action-btn" title="View Profile"><i class="fa-solid fa-eye"></i></button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="user-cell">
-                                        <div class="admin-avatar" style="width: 32px; height: 32px; font-size: 0.7rem; background: #64748b;">MK</div>
-                                        <div>
-                                            <div class="fw-bold">Mike Kean</div>
-                                            <div class="text-xs text-muted">mike@kean.net</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>Business</td>
-                                <td class="fw-bold">$0.00</td>
-                                <td><span class="status-badge status-blocked">Blocked</span></td>
-                                <td>Yesterday</td>
-                                <td>
-                                    <div class="d-flex gap-1">
-                                        <a href="user-actions.php" class="action-btn text-warning" title="Quick Actions"><i class="fa-solid fa-bolt"></i></a>
-                                        <button class="action-btn" title="View Profile"><i class="fa-solid fa-eye"></i></button>
-                                    </div>
-                                </td>
-                            </tr>
+                            <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>

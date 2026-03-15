@@ -1,10 +1,12 @@
-﻿<?php require_once '../includes/user-check.php'; ?>
+<?php 
+require_once '../includes/user-check.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SwiftCapital Dashboard</title>
+    <title>Dashboard - SwiftCapital</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -13,74 +15,29 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<?php
+$page = 'dashboard';
+include '../includes/user-sidebar.php'; 
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="brand-section">
-            <div class="brand-logo">
-                <i class="fa-solid fa-chart-simple text-primary me-2"></i>
-                <span class="swift">Swift</span><span class="capital">Capital</span>
-            </div>
-            <div class="brand-tagline">Banking At Its Best</div>
-        </div>
+// Fetch Monthly Stats
+$start_of_month = date('Y-m-01 00:00:00');
+$user_id = $_SESSION['user_id'];
 
-        <div class="user-profile-widget">
-            <div class="avatar-circle">KC</div>
-            <div class="user-name">Kante Calm</div>
-            <div class="user-id">ID: 0537658047</div>
-            <button class="btn btn-kyc" onclick="location.href='verification.php'"><i class="fa-solid fa-circle-exclamation"></i> Verify KYC</button>
-            <div class="user-actions">
-                <a href="settings.php" class="btn btn-outline"><i class="fa-solid fa-user"></i> Profile</a>
-                <a href="#" class="btn btn-primary-soft"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
-            </div>
-        </div>
+// Monthly Income (Credits/Deposits)
+$stmt_inc = $pdo->prepare("SELECT SUM(amount) FROM transactions WHERE user_id = ? AND type IN ('Credit', 'Deposit') AND status = 'Completed' AND created_at >= ?");
+$stmt_inc->execute([$user_id, $start_of_month]);
+$monthly_income = $stmt_inc->fetchColumn() ?: 0;
 
-        <div class="nav-section">
-            <div class="nav-category">Main Menu</div>
-            <a href="index.php" class="nav-item-link active"><i class="fa-solid fa-house"></i> Dashboard</a>
-            <a href="transactions.php" class="nav-item-link"><i class="fa-solid fa-chart-line"></i> Transactions</a>
-            <a href="cards.php" class="nav-item-link"><i class="fa-solid fa-credit-card"></i> Cards</a>
-
-            <div class="nav-category">Transfers</div>
-            <a href="local.php" class="nav-item-link"><i class="fa-solid fa-paper-plane"></i> Local Transfer</a>
-            <a href="international.php" class="nav-item-link"><i class="fa-solid fa-globe"></i> International Wire</a>
-            <a href="deposit.php" class="nav-item-link"><i class="fa-solid fa-download"></i> Deposit</a>
-
-            <div class="nav-category">Services</div>
-            <a href="loan.php" class="nav-item-link"><i class="fa-solid fa-boxes-stacked"></i> Loan Request</a>
-            <a href="irs.php" class="nav-item-link"><i class="fa-solid fa-file-invoice-dollar"></i> IRS Tax Refund</a>
-            <a href="loan-history.php" class="nav-item-link"><i class="fa-solid fa-clock-rotate-left"></i> Loan History</a>
-
-            <div class="nav-category">Account</div>
-            <a href="security.php" class="nav-item-link"><i class="fa-solid fa-gear"></i> Settings</a>
-            <a href="support.php" class="nav-item-link"><i class="fa-solid fa-circle-question"></i> Support Ticket</a>
-        </div>
-
-        <div class="sidebar-footer">
-            <span><i class="fa-solid fa-shield-halved me-1"></i> Secure Banking</span>
-            <span class="version">v1.2.0</span>
-        </div>
-    </aside>
+// Monthly Outgoing (Debits/Transfers/Wires)
+$stmt_out = $pdo->prepare("SELECT SUM(amount) FROM transactions WHERE user_id = ? AND type NOT IN ('Credit', 'Deposit') AND status = 'Completed' AND created_at >= ?");
+$stmt_out->execute([$user_id, $start_of_month]);
+$monthly_outgoing = $stmt_out->fetchColumn() ?: 0;
+?>
 
     <!-- Main Content -->
     <main class="main-content">
         <!-- Top Navbar -->
-        <nav class="top-navbar">
-            <div class="nav-date">
-                <i class="fa-solid fa-calendar"></i>
-                <span id="currentDate">Sunday, February 15, 2026</span>
-            </div>
-            
-            <div class="nav-actions">
-                <div class="balance-badge">
-                    <i class="fa-solid fa-wallet"></i> $0
-                </div>
-                <button class="btn-icon-only">
-                    <i class="fa-solid fa-bell"></i>
-                </button>
-                <div class="nav-avatar">KC</div>
-            </div>
-        </nav>
+        <?php include '../includes/user-navbar.php'; ?>
 
         <!-- Page Content -->
         <div class="page-container">
@@ -91,7 +48,7 @@
                     <div class="card card-premium stat-card">
                         <div>
                             <div class="title">Current Balance</div>
-                            <div class="value">$0</div>
+                            <div class="value">$<?php echo number_format($_SESSION['balance'], 2); ?></div>
                         </div>
                         <div class="icon-box bg-blue-light">
                             <i class="fa-solid fa-wallet"></i>
@@ -102,7 +59,7 @@
                     <div class="card card-premium stat-card">
                         <div>
                             <div class="title">Monthly Income</div>
-                            <div class="value">$0</div>
+                            <div class="value text-success">$<?php echo number_format($monthly_income, 2); ?></div>
                         </div>
                         <div class="icon-box bg-green-light">
                             <i class="fa-solid fa-arrow-trend-up"></i>
@@ -113,7 +70,7 @@
                     <div class="card card-premium stat-card">
                         <div>
                             <div class="title">Monthly Outgoing</div>
-                            <div class="value">$0</div>
+                            <div class="value text-danger">$<?php echo number_format($monthly_outgoing, 2); ?></div>
                         </div>
                         <div class="icon-box bg-red-light">
                             <i class="fa-solid fa-arrow-trend-down"></i>
@@ -141,25 +98,25 @@
                     <div class="main-balance-card mb-4">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div class="d-flex align-items-center gap-3">
-                                <div class="avatar-circle text-primary bg-white" style="width: 45px; height: 45px;">KC</div>
+                                <div class="avatar-circle text-primary bg-white" style="width: 45px; height: 45px; font-weight:800;"><?php echo strtoupper(substr($_SESSION['name'], 0, 1)); ?></div>
                                 <div>
-                                    <div class="greeting">Good Afternoon</div>
-                                    <div class="user-name-large mb-0">Kante</div>
+                                    <div class="greeting">Verified Account</div>
+                                    <div class="user-name-large mb-0"><?php echo htmlspecialchars($_SESSION['name']); ?></div>
                                 </div>
                             </div>
                             <div class="text-end text-white-50 text-sm">
-                                <div id="currentTime">15:59:47</div>
-                                <div>Sunday, 15 February 2026</div>
+                                <div id="currentTime"></div>
+                                <div id="currentDate2"></div>
                             </div>
                         </div>
 
                         <div class="mt-4 mb-4 d-flex justify-content-between align-items-center">
                             <div>
                                 <div class="balance-label">Available Balance</div>
-                                <div class="balance-amount">$0 USD</div>
+                                <div class="balance-amount">$<?php echo number_format($_SESSION['balance'], 2); ?> USD</div>
                             </div>
                             <div>
-                                <i class="fa-solid fa-eye-slash text-white-50" style="font-size: 1.2rem; cursor: pointer;"></i>
+                                <i class="fa-solid fa-eye text-white-50" style="font-size: 1.2rem; cursor: pointer;"></i>
                             </div>
                         </div>
 
@@ -169,13 +126,13 @@
                                 <div>
                                     <div class="d-flex align-items-center">
                                         <span class="label">Your Account Number</span>
-                                        <span class="status-badge">Inactive</span>
+                                        <span class="status-badge" style="background: rgba(255,255,255,0.2)"><?php echo $_SESSION['role']; ?></span>
                                     </div>
-                                    <div class="number">0537658047</div>
+                                    <div class="number"><?php echo $_SESSION['account_number']; ?></div>
                                 </div>
                             </div>
                             <div class="action-buttons-overlay">
-                                <a href="transactions.php" class="btn btn-glass text-decoration-none"><i class="fa-solid fa-chart-line me-2"></i> Transactions</a>
+                                <a href="transactions.php" class="btn btn-glass text-decoration-none"><i class="fa-solid fa-chart-line me-2"></i> Ledger</a>
                                 <a href="deposit.php" class="btn btn-glass text-decoration-none"><i class="fa-solid fa-download me-2"></i> Top up</a>
                             </div>
                         </div>
@@ -327,6 +284,9 @@
                 <a href="#">Contact Support</a>
             </div>
         </footer>
+
+        <!-- Toast Container -->
+        <div class="toast-container-custom" id="toastContainer"></div>
     </main>
 
     <!-- Bootstrap JS Bundle -->
@@ -334,12 +294,92 @@
     <script>
         // Set dynamic times
         document.addEventListener('DOMContentLoaded', function() {
-            const dateNodes = document.querySelectorAll('#currentDate');
-            const now = new Date();
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const formattedDate = now.toLocaleDateString('en-US', options);
-            dateNodes.forEach(node => node.textContent = formattedDate);
+            function updateTime() {
+                const now = new Date();
+                
+                // Update Date
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const formattedDate = now.toLocaleDateString('en-US', options);
+                
+                document.querySelectorAll('#currentDate, #currentDate2').forEach(el => {
+                    if(el) el.textContent = formattedDate;
+                });
+
+                // Update Time
+                const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+                const formattedTime = now.toLocaleTimeString('en-US', timeOptions);
+                
+                const timeEl = document.getElementById('currentTime');
+                if(timeEl) timeEl.textContent = formattedTime;
+            }
+
+            updateTime();
+            setInterval(updateTime, 1000);
+
+            // Show latest unread toast if exists
+            <?php if($latest_unread): ?>
+                setTimeout(() => {
+                    showToast(
+                        "<?php echo addslashes($latest_unread['title']); ?>", 
+                        "<?php echo addslashes($latest_unread['message']); ?>", 
+                        "<?php echo $latest_unread['type']; ?>"
+                    );
+                }, 1500);
+            <?php endif; ?>
         });
+
+        function showToast(title, msg, type = 'System') {
+            const container = document.getElementById('toastContainer');
+            if(!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = 'premium-toast';
+            
+            let icon = 'fa-bell';
+            let bg = 'bg-sky-soft';
+            if(type == 'Transaction') { icon = 'fa-exchange-alt'; bg = 'bg-emerald-soft'; }
+            else if(type == 'Loan') { icon = 'fa-hand-holding-usd'; bg = 'bg-rose-soft'; }
+            else if(type == 'KYC') { icon = 'fa-user-shield'; bg = 'bg-amber-soft'; }
+            
+            toast.innerHTML = `
+                <div class="toast-icon ${bg}">
+                    <i class="fa-solid ${icon}"></i>
+                </div>
+                <div class="toast-body">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-msg">${msg}</div>
+                </div>
+                <i class="fa-solid fa-xmark toast-close-btn"></i>
+                <div class="toast-progress-bar"></div>
+            `;
+            
+            container.appendChild(toast);
+
+            // Close button click
+            toast.querySelector('.toast-close-btn').onclick = () => {
+                toast.classList.add('closing');
+                setTimeout(() => toast.remove(), 500);
+            };
+            
+            // Auto remove after 6s
+            setTimeout(() => {
+                if(toast.parentElement) {
+                    toast.classList.add('closing');
+                    setTimeout(() => toast.remove(), 500);
+                }
+            }, 6000);
+        }
+
+        function markRead(id) {
+            fetch(`mark-read.php?id=${id}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => {
+                // Update UI: hide the dot if it was the last unread, or decrease count
+                console.log("Notification marked as read");
+            })
+            .catch(err => console.error(err));
+        }
     </script>
 </body>
 </html>

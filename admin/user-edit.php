@@ -1,4 +1,113 @@
-﻿<?php require_once '../includes/admin-check.php'; ?>
+<?php 
+require_once '../includes/db.php';
+require_once '../includes/admin-check.php'; 
+
+$user_id = $_GET['id'] ?? null;
+
+if (!$user_id) {
+    header("Location: users.php");
+    exit;
+}
+
+// Fetch User
+$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+$stmt->execute([$user_id]);
+$user = $stmt->fetch();
+
+if (!$user) {
+    header("Location: users.php");
+    exit;
+}
+
+$success_msg = '';
+$error_msg = '';
+
+// Handle Profile Update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
+    $name = $_POST['name'];
+    $lastname = $_POST['lastname'];
+    $email = $_POST['email'];
+    $phone = $_POST['phone'];
+    $account_type = $_POST['account_type'];
+    $status = $_POST['status'];
+    $new_password = $_POST['password'];
+
+    try {
+        if (!empty($new_password)) {
+            $hashed_password = password_hash($new_password, PASSWORD_BCRYPT);
+            $stmt = $pdo->prepare("UPDATE users SET name = ?, lastname = ?, email = ?, phone = ?, account_type = ?, status = ?, password = ? WHERE id = ?");
+            $stmt->execute([$name, $lastname, $email, $phone, $account_type, $status, $hashed_password, $user_id]);
+        } else {
+            $stmt = $pdo->prepare("UPDATE users SET name = ?, lastname = ?, email = ?, phone = ?, account_type = ?, status = ? WHERE id = ?");
+            $stmt->execute([$name, $lastname, $email, $phone, $account_type, $status, $user_id]);
+        }
+        $success_msg = "Profile updated successfully.";
+        
+        // Refresh user data
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+        $stmt->execute([$user_id]);
+        $user = $stmt->fetch();
+    } catch (PDOException $e) {
+        $error_msg = "Error updating profile: " . $e->getMessage();
+    }
+}
+
+// Handle Balance Adjustment
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['adjust_balance'])) {
+    $action = $_POST['fundsAction']; // credit or debit
+    $amount = (float)$_POST['amount'];
+    $narration = $_POST['narration'];
+
+    if ($amount > 0) {
+        try {
+            $pdo->beginTransaction();
+
+            if ($action === 'credit') {
+                $new_balance = $user['balance'] + $amount;
+            } else {
+                $new_balance = $user['balance'] - $amount;
+            }
+
+            // Generate unique reference
+            $txn_hash = 'SWC-' . strtoupper(bin2hex(random_bytes(4)));
+
+            // Update balance
+            $stmt = $pdo->prepare("UPDATE users SET balance = ? WHERE id = ?");
+            $stmt->execute([$new_balance, $user_id]);
+
+            // Log Transaction
+            $backdate = $_POST['backdate'] ?? '';
+            if (!empty($backdate)) {
+                $stmt = $pdo->prepare("INSERT INTO transactions (user_id, type, amount, status, narration, txn_hash, created_at) VALUES (?, ?, ?, 'Completed', ?, ?, ?)");
+                $stmt->execute([$user_id, ucfirst($action), $amount, $narration, $txn_hash, $backdate]);
+            } else {
+                $stmt = $pdo->prepare("INSERT INTO transactions (user_id, type, amount, status, narration, txn_hash) VALUES (?, ?, ?, 'Completed', ?, ?)");
+                $stmt->execute([$user_id, ucfirst($action), $amount, $narration, $txn_hash]);
+            }
+
+            $pdo->commit();
+            $success_msg = "Balance adjusted successfully.";
+            
+            // Refresh user data
+            $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+            $stmt->execute([$user_id]);
+            $user = $stmt->fetch();
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            $error_msg = "Error adjusting balance: " . $e->getMessage();
+        }
+    } else {
+        $error_msg = "Amount must be greater than zero.";
+    }
+}
+
+// Fetch cumulative outflows
+$stmt = $pdo->prepare("SELECT SUM(amount) FROM transactions WHERE user_id = ? AND type IN ('Withdrawal', 'Debit') AND status = 'Completed'");
+$stmt->execute([$user_id]);
+$cumulative_outflows = $stmt->fetchColumn() ?: 0;
+
+$initials = strtoupper(substr($user['name'], 0, 1) . substr($user['lastname'], 0, 1));
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -77,57 +186,73 @@
                 <!-- User Basic Info -->
                 <div class="col-lg-8">
                     <div class="data-table-card p-5 border-0 bg-white" style="border-radius: 24px;">
+                        <?php if ($success_msg): ?>
+                            <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                                <i class="fa-solid fa-circle-check me-2"></i> <?php echo $success_msg; ?>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if ($error_msg): ?>
+                            <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                                <i class="fa-solid fa-circle-exclamation me-2"></i> <?php echo $error_msg; ?>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        <?php endif; ?>
+
                         <div class="d-flex align-items-center gap-4 mb-5">
-                            <div class="admin-avatar bg-indigo text-white shadow-lg" style="width: 70px; height: 70px; font-size: 1.8rem; font-weight: 800; border-radius: 20px;">KC</div>
+                            <div class="admin-avatar bg-primary text-white shadow-lg" style="width: 70px; height: 70px; font-size: 1.8rem; font-weight: 800; border-radius: 20px;"><?php echo $initials; ?></div>
                             <div>
-                                <h4 class="fw-800 mb-1">Kante Calm</h4>
-                                <p class="text-muted fw-600 mb-0">Artifact ID: #SC-0537 â€¢ Registry: Jan 2026</p>
+                                <h4 class="fw-800 mb-1"><?php echo htmlspecialchars($user['name'] . ' ' . $user['lastname']); ?></h4>
+                                <p class="text-muted fw-600 mb-0">Artifact ID: #SC-<?php echo str_pad($user['id'], 4, '0', STR_PAD_LEFT); ?> â€¢ Registry: <?php echo date('M Y', strtotime($user['created_at'])); ?></p>
                             </div>
                             <div class="ms-auto">
-                                <span class="status-badge status-active px-4 py-2 fw-800" style="border-radius: 10px; font-size: 0.75rem;">LIVE ACCOUNT</span>
+                                <span class="status-badge status-<?php echo strtolower($user['status']); ?> px-4 py-2 fw-800" style="border-radius: 10px; font-size: 0.75rem;"><?php echo strtoupper($user['status']); ?> ACCOUNT</span>
                             </div>
                         </div>
 
-                        <form>
+                        <form method="POST">
+                            <input type="hidden" name="update_profile" value="1">
                             <h6 class="fw-800 text-xs text-uppercase text-muted mb-4" style="letter-spacing: 1px;">Primary Profile Variables</h6>
                             <div class="row g-4 mb-5">
                                 <div class="col-md-6">
-                                    <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Legal Nomenclature</label>
-                                    <input type="text" class="form-control bg-light border-0 fw-600 p-3" style="border-radius: 12px;" value="Kante Calm">
+                                    <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">First Name</label>
+                                    <input type="text" name="name" class="form-control bg-light border-0 fw-600 p-3" style="border-radius: 12px;" value="<?php echo htmlspecialchars($user['name']); ?>" required>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Communication Endpoint (Email)</label>
-                                    <input type="email" class="form-control bg-light border-0 fw-600 p-3" style="border-radius: 12px;" value="kante@example.com">
+                                    <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Last Name</label>
+                                    <input type="text" name="lastname" class="form-control bg-light border-0 fw-600 p-3" style="border-radius: 12px;" value="<?php echo htmlspecialchars($user['lastname']); ?>" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Email Address</label>
+                                    <input type="email" name="email" class="form-control bg-light border-0 fw-600 p-3" style="border-radius: 12px;" value="<?php echo htmlspecialchars($user['email']); ?>" required>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Secure Mobile Link</label>
-                                    <input type="text" class="form-control bg-light border-0 fw-600 p-3" style="border-radius: 12px;" value="+1 234 567 890">
+                                    <input type="text" name="phone" class="form-control bg-light border-0 fw-600 p-3" style="border-radius: 12px;" value="<?php echo htmlspecialchars($user['phone']); ?>">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Account Tier Archetype</label>
-                                    <select class="form-select bg-light border-0 fw-600 p-3" style="border-radius: 12px;">
-                                        <option selected>Standard Institutional Checking</option>
-                                        <option>High-Yield Vanguard Savings</option>
-                                        <option>Digital Asset Management</option>
-                                        <option>Private Wealth Corporate</option>
+                                    <select name="account_type" class="form-select bg-light border-0 fw-600 p-3" style="border-radius: 12px;">
+                                        <option value="Savings Account" <?php echo $user['account_type'] == 'Savings Account' ? 'selected' : ''; ?>>Savings Account</option>
+                                        <option value="Checking Account" <?php echo $user['account_type'] == 'Checking Account' ? 'selected' : ''; ?>>Checking Account</option>
+                                        <option value="Fixed Deposit Account" <?php echo $user['account_type'] == 'Fixed Deposit Account' ? 'selected' : ''; ?>>Fixed Deposit Account</option>
+                                        <option value="Current Account" <?php echo $user['account_type'] == 'Current Account' ? 'selected' : ''; ?>>Current Account</option>
+                                        <option value="Business Account" <?php echo $user['account_type'] == 'Business Account' ? 'selected' : ''; ?>>Business Account</option>
                                     </select>
-                                </div>
-                            </div>
-
-                            <h6 class="fw-800 text-xs text-uppercase text-muted mb-4" style="letter-spacing: 1px;">Security Protocols</h6>
-                            <div class="row g-4 mb-5">
-                                <div class="col-md-6">
-                                    <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Modulate Passcode (Optional)</label>
-                                    <input type="password" class="form-control bg-light border-0 fw-600 p-3" style="border-radius: 12px;" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Authorization Status</label>
-                                    <select class="form-select bg-light border-0 fw-800 p-3 text-primary" style="border-radius: 12px;">
-                                        <option selected>Operational (Live)</option>
-                                        <option class="text-danger">Restricted (Suspended)</option>
-                                        <option class="text-warning">Audit Required (Pending)</option>
-                                        <option class="text-muted">Decommissioned</option>
+                                    <select name="status" class="form-select bg-light border-0 fw-800 p-3" style="border-radius: 12px;">
+                                        <option value="Active" <?php echo $user['status'] == 'Active' ? 'selected' : ''; ?> class="text-success">Active</option>
+                                        <option value="Blocked" <?php echo $user['status'] == 'Blocked' ? 'selected' : ''; ?> class="text-danger">Blocked</option>
+                                        <option value="Pending" <?php echo $user['status'] == 'Pending' ? 'selected' : ''; ?> class="text-warning">Pending</option>
+                                        <option value="Deactivated" <?php echo $user['status'] == 'Deactivated' ? 'selected' : ''; ?> class="text-muted">Deactivated</option>
                                     </select>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Modulate Passcode (Leave blank to keep current)</label>
+                                    <input type="password" name="password" class="form-control bg-light border-0 fw-600 p-3" style="border-radius: 12px;" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢">
                                 </div>
                             </div>
 
@@ -146,29 +271,36 @@
                         
                         <div class="p-4 rounded-4 mb-5 shadow-inner" style="background: #f8fafc;">
                             <p class="text-xs text-muted fw-800 text-uppercase mb-2">Available Liquidity</p>
-                            <h2 class="fw-800 mb-0 text-primary" style="letter-spacing: -1px;">$85,420.00</h2>
+                            <h2 class="fw-800 mb-0 text-primary" style="letter-spacing: -1px;">$<?php echo number_format($user['balance'], 2); ?></h2>
                         </div>
 
-                        <form>
+                        <form method="POST">
+                            <input type="hidden" name="adjust_balance" value="1">
                             <div class="mb-4">
                                 <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Adjustment Vector</label>
                                 <div class="d-flex gap-3">
-                                    <input type="radio" class="btn-check" name="fundsAction" id="credit" checked>
+                                    <input type="radio" class="btn-check" name="fundsAction" id="credit" value="credit" checked>
                                     <label class="btn btn-outline-success border-0 bg-light px-4 py-3 fw-800 w-50" style="border-radius: 12px;" for="credit"><i class="fa-solid fa-arrow-trend-up me-2"></i> INBOUND</label>
                                     
-                                    <input type="radio" class="btn-check" name="fundsAction" id="debit">
+                                    <input type="radio" class="btn-check" name="fundsAction" id="debit" value="debit">
                                     <label class="btn btn-outline-danger border-0 bg-light px-4 py-3 fw-800 w-50" style="border-radius: 12px;" for="debit"><i class="fa-solid fa-arrow-trend-down me-2"></i> OUTBOUND</label>
                                 </div>
                             </div>
 
                             <div class="mb-4">
                                 <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Settlement Amount ($)</label>
-                                <input type="number" class="form-control bg-light border-0 fw-800 p-4 fs-4" style="border-radius: 15px; letter-spacing: -1px;" placeholder="0.00">
+                                <input type="number" step="0.01" name="amount" class="form-control bg-light border-0 fw-800 p-4 fs-4" style="border-radius: 15px; letter-spacing: -1px;" placeholder="0.00" required>
                             </div>
 
                             <div class="mb-5">
                                 <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Protocol Narration</label>
-                                <textarea class="form-control bg-light border-0 fw-500 p-4" rows="3" style="border-radius: 15px; font-size: 0.85rem;" placeholder="Initialize administrative adjustment logic..."></textarea>
+                                <textarea name="narration" class="form-control bg-light border-0 fw-500 p-4" rows="3" style="border-radius: 15px; font-size: 0.85rem;" placeholder="Initialize administrative adjustment logic..."></textarea>
+                            </div>
+
+                            <div class="mb-5">
+                                <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Backdate Entry (Optional)</label>
+                                <input type="datetime-local" name="backdate" class="form-control bg-light border-0 fw-600 p-3" style="border-radius: 12px;">
+                                <div class="form-text text-xs mt-2">Leave blank to use real-time timestamp</div>
                             </div>
 
                             <button type="submit" class="btn btn-dark w-100 py-3 fw-800 shadow-lg" style="border-radius: 15px;">Authorize Ledger Entry</button>
@@ -180,16 +312,16 @@
                         <h6 class="fw-800 text-xs text-uppercase text-rose mb-4" style="letter-spacing: 1px;"><i class="fa-solid fa-shield-halved me-2"></i> Security Audit Trail</h6>
                         <ul class="list-unstyled mb-0">
                             <li class="mb-4 d-flex justify-content-between align-items-center">
-                                <span class="text-xs fw-800 text-muted text-uppercase">Last Known IP</span>
-                                <strong class="text-sm fw-800 text-mono">192.168.1.45</strong>
+                                <span class="text-xs fw-800 text-muted text-uppercase">KYC Evolution</span>
+                                <strong class="text-sm fw-800 <?php echo $user['kyc_status'] == 'Verified' ? 'text-success' : 'text-warning'; ?>"><?php echo strtoupper($user['kyc_status']); ?></strong>
                             </li>
                             <li class="mb-4 d-flex justify-content-between align-items-center">
-                                <span class="text-xs fw-800 text-muted text-uppercase">Primary Device</span>
-                                <strong class="text-sm fw-800">macOS Silicon</strong>
+                                <span class="text-xs fw-800 text-muted text-uppercase">Account Number</span>
+                                <strong class="text-sm fw-800"><?php echo $user['account_number']; ?></strong>
                             </li>
                             <li class="mb-0 d-flex justify-content-between align-items-center">
                                 <span class="text-xs fw-800 text-muted text-uppercase">Cumulative Outflows</span>
-                                <strong class="text-sm fw-800 text-rose">$4,200.00</strong>
+                                <strong class="text-sm fw-800 text-rose">$<?php echo number_format($cumulative_outflows, 2); ?></strong>
                             </li>
                         </ul>
                     </div>

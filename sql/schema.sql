@@ -129,15 +129,22 @@ CREATE TABLE `messages` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `settings`
+-- Table structure for table `notifications`
 --
 
-CREATE TABLE `settings` (
+CREATE TABLE `notifications` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `setting_key` varchar(100) NOT NULL UNIQUE,
-  `setting_value` text DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  `user_id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `message` text NOT NULL,
+  `type` enum('Transaction','Loan','KYC','System','Ticket') DEFAULT 'System',
+  `is_read` boolean DEFAULT FALSE,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
 
 --
 -- Dumping data for table `users`

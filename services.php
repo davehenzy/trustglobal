@@ -1,4 +1,21 @@
-﻿<!DOCTYPE html>
+<?php 
+require_once 'includes/db.php'; 
+
+// Fetch all settings
+$stmt = $pdo->query("SELECT setting_key, setting_value FROM settings");
+$settings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+
+// Helper function
+function getSetting($key, $default = '') {
+    global $settings;
+    return $settings[$key] ?? $default;
+}
+
+// Fetch all services
+$stmt = $pdo->query("SELECT * FROM services ORDER BY sort_order ASC, id DESC");
+$db_services = $stmt->fetchAll();
+?>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -23,6 +40,7 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="npm/bootstrap-icons%401.11.0/font/bootstrap-icons.css">
 <link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 </head>
 
@@ -49,11 +67,11 @@
         Services
     </a>
     <ul class="dropdown-menu" aria-labelledby="servicesDropdown">
-        <li><a class="dropdown-item" href="services.php#person-banking">Personal Banking</a></li>
-        <li><a class="dropdown-item" href="services.php#business-banking">Business Banking</a></li>
-        <li><a class="dropdown-item" href="services.php#corporate-banking">Corporate Banking</a></li>
-        <li><a class="dropdown-item" href="services.php#loan-banking">Loans & Mortgages</a></li>
-        <li><a class="dropdown-item" href="services.php#investment-banking">Investments</a></li>
+        <li><a class="dropdown-item" href="services.php#service-1">Personal Banking</a></li>
+        <li><a class="dropdown-item" href="services.php#service-2">Business Banking</a></li>
+        <li><a class="dropdown-item" href="services.php#service-3">Corporate Banking</a></li>
+        <li><a class="dropdown-item" href="services.php#service-4">Loans & Mortgages</a></li>
+        <li><a class="dropdown-item" href="services.php#service-5">Investments</a></li>
     </ul>
 </li>
 <li class="nav-item">
@@ -70,344 +88,134 @@
             </div>
         </div>
     </nav>
-        <x-home.page-header :$pagetitle="" :$pagedescription=""></x-home.page-header>
-    <!-- Services Overview -->
-    <section class="py-5" data-aos="fade-up">
-        <div class="container">
-            <div class="row text-center mb-5">
-                <div class="col-lg-8 mx-auto">
-                    <h2 class="fw-bold mb-3">Banking Solutions for Every Need</h2>
-                    <p class="text-muted">At SwiftCapital, we offer a wide range of financial services designed to help
-                        individuals, businesses, and corporations achieve their financial goals.</p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-4 mb-4">
-                    <div class="service-card card h-100">
-                        <img src="assets/images/photo-1556742049-0cfed4f6a45d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" class="card-img-top" alt="Personal Banking">
-                        <div class="card-body">
-                            <h5 class="card-title">Personal Banking</h5>
-                            <p class="card-text">Everyday banking solutions designed to simplify your financial life.</p>
-                            
-                        </div>
+    <!-- Hero Section -->
+    <section class="services-hero position-relative overflow-hidden" style="background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); min-height: 70vh; display: flex; align-items: center;">
+        <!-- Animated Orbs -->
+        <div class="position-absolute" style="top: 10%; left: 5%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(99,102,241,0.3) 0%, transparent 70%); border-radius: 50%;"></div>
+        <div class="position-absolute" style="bottom: 10%; right: 5%; width: 250px; height: 250px; background: radial-gradient(circle, rgba(139,92,246,0.2) 0%, transparent 70%); border-radius: 50%;"></div>
+        <div class="container py-5 position-relative" style="z-index: 2;">
+            <div class="row align-items-center">
+                <div class="col-lg-6 text-white mb-5 mb-lg-0" data-aos="fade-right">
+                    <span class="badge rounded-pill bg-indigo-light text-primary px-4 py-2 fw-800 text-xs mb-4 text-uppercase">Premium Financial Services</span>
+                    <h1 class="fw-800 display-3 mb-4 text-white">World-Class<br><span style="background: linear-gradient(90deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Banking Solutions</span></h1>
+                    <p class="lead text-white-50 mb-5">From high-yield savings to sophisticated wealth management — our institutional-grade products give you the edge.</p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="register.php" class="btn btn-primary btn-lg px-5 py-3 fw-800 shadow-lg" style="border-radius: 12px;">Open an Account</a>
+                        <a href="contact.php" class="btn btn-outline-light btn-lg px-4 py-3 fw-800" style="border-radius: 12px;">Talk to an Advisor</a>
                     </div>
                 </div>
-                <div class="col-md-4 mb-4">
-                    <div class="service-card card h-100">
-                        <img src="assets/images/photo-1507679799987-c73779587ccf?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" class="card-img-top" alt="Business Banking">
-                        <div class="card-body">
-                            <h5 class="card-title">Business Banking</h5>
-                            <p class="card-text">Specialized services to help your business grow and thrive.</p>
-                            
+                <div class="col-lg-6" data-aos="fade-left">
+                    <div class="row g-3">
+                        <?php foreach ($db_services as $i => $s): ?>
+                        <div class="col-6">
+                            <div class="glass rounded-4 p-4 text-white h-100" style="border: 1px solid rgba(255,255,255,0.1);">
+                                <div class="stat-icon <?php echo htmlspecialchars($s['color_class']); ?> mb-3" style="width: 48px; height: 48px; border-radius: 14px; font-size: 1.3rem;">
+                                    <i class="fa-solid <?php echo htmlspecialchars($s['icon']); ?>"></i>
+                                </div>
+                                <h6 class="fw-800 text-white mb-1"><?php echo htmlspecialchars($s['title']); ?></h6>
+                                <a href="#service-<?php echo $s['id']; ?>" class="text-white-50 text-xs fw-600" style="text-decoration: none;">Learn More →</a>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <div class="service-card card h-100">
-                        <img src="assets/images/photo-1560520031-3a4dc4e9de0c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" class="card-img-top" alt="Loans & Mortgages">
-                        <div class="card-body">
-                            <h5 class="card-title">Loans & Mortgages</h5>
-                            <p class="card-text">Flexible financing options with competitive rates and terms.</p>
-                            
-                        </div>
+                        <?php endforeach; ?>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Personal Banking Section -->
-    <div class="mb-4" id="person-banking"></div>
-    <section class="service-category" data-aos="fade-up">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-6 mb-4 mb-lg-0">
-                    <img src="assets/images/photo-1556742049-0cfed4f6a45d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Personal Banking" class="img-fluid rounded-4 shadow">
-                </div>
-                <div class="col-lg-6">
-                    <h2 class="fw-bold mb-4">Personal Banking</h2>
-                    <p class="mb-4">Our personal banking services are designed to help you manage your money efficiently,
-                        save for the future, and achieve your financial goals.</p>
-                    <div class="feature-list">
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="feature-text">
-                                <strong>Checking Accounts</strong> - Flexible accounts with no minimum balance requirements
-                                and low fees.
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="feature-text">
-                                <strong>Savings Accounts</strong> - Competitive interest rates to help your money grow.
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="feature-text">
-                                <strong>Credit Cards</strong> - Rewards, cash back, and travel benefits with low APRs.
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="feature-text">
-                                <strong>Mobile Banking</strong> - Manage your accounts anytime, anywhere with our
-                                award-winning app.
-                            </div>
-                        </div>
-                    </div>
-                    
-                </div>
-            </div>
-        </div>
-    </section>
-    <div class="mb-4" id="business-banking"></div>
-    <!-- Business Banking Section -->
-    <section class="service-category" data-aos="fade-up">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-6 order-lg-2 mb-4 mb-lg-0">
-                    <img src="assets/images/photo-1507679799987-c73779587ccf?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Business Banking" class="img-fluid rounded-4 shadow">
-                </div>
-                <div class="col-lg-6 order-lg-1">
-                    <h2 class="fw-bold mb-4">Business Banking</h2>
-                    <p class="mb-4">Our business banking solutions are tailored to meet the unique needs of businesses of
-                        all sizes, from startups to established enterprises.</p>
-                    <div class="feature-list">
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="feature-text">
-                                <strong>Business Checking</strong> - Accounts designed for different business sizes with
-                                cash management tools.
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="feature-text">
-                                <strong>Business Loans</strong> - Financing options to help your business grow, expand, or
-                                manage cash flow.
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="feature-text">
-                                <strong>Merchant Services</strong> - Payment processing solutions to help you accept
-                                payments securely.
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="feature-text">
-                                <strong>Treasury Management</strong> - Tools to help you manage cash flow, payments, and
-                                receivables efficiently.
-                            </div>
-                        </div>
-                    </div>
-                    
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Corporate Banking Section -->
-    <div class="mb-4" id="corporate-banking"></div>
-    <section class="service-category" data-aos="fade-up">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-6 mb-4 mb-lg-0">
-                    <img src="assets/images/photo-1573164713988-8665fc963095?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Corporate Banking" class="img-fluid rounded-4 shadow">
-                </div>
-                <div class="col-lg-6">
-                    <h2 class="fw-bold mb-4">Corporate Banking</h2>
-                    <p class="mb-4">Our corporate banking services provide comprehensive financial solutions for large
-                        organizations, multinational corporations, and institutional clients.</p>
-                    <div class="feature-list">
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="feature-text">
-                                <strong>Corporate Finance</strong> - Strategic financial advice and solutions for complex
-                                corporate needs.
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="feature-text">
-                                <strong>Trade Finance</strong> - International trade solutions to facilitate global business
-                                operations.
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="feature-text">
-                                <strong>Cash Management</strong> - Advanced tools for optimizing cash flow and liquidity
-                                management.
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="feature-text">
-                                <strong>Investment Banking</strong> - Services for mergers, acquisitions, and capital
-                                raising.
-                            </div>
-                        </div>
-                    </div>
-                    
-                </div>
-            </div>
-        </div>
-    </section>
+    <!-- Detailed Services Showcase -->
 
-    <div class="mb-4" id="loan-banking"></div>
-    <!-- Loans & Mortgages Section -->
-    <section class="service-category" data-aos="fade-up">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-6 order-lg-2 mb-4 mb-lg-0">
-                    <img src="assets/images/photo-1560520031-3a4dc4e9de0c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Loans & Mortgages" class="img-fluid rounded-4 shadow">
-                </div>
-                <div class="col-lg-6 order-lg-1">
-                    <h2 class="fw-bold mb-4">Loans & Mortgages</h2>
-                    <p class="mb-4">Our loan and mortgage products offer flexible financing options with competitive
-                        rates to help you achieve your personal and business goals.</p>
-                    <div class="feature-list">
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="feature-text">
-                                <strong>Home Mortgages</strong> - Fixed and adjustable-rate mortgages with competitive rates
-                                and flexible terms.
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="feature-text">
-                                <strong>Personal Loans</strong> - Unsecured loans for various personal needs with quick
-                                approval.
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="feature-text">
-                                <strong>Auto Loans</strong> - Competitive rates for new and used vehicle purchases.
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="feature-text">
-                                <strong>Home Equity Loans</strong> - Tap into your home's equity for major expenses or debt
-                                consolidation.
+    <div class="detailed-services">
+        <?php foreach ($db_services as $index => $service): ?>
+        <section class="py-5" id="service-<?php echo $service['id']; ?>" data-aos="fade-up">
+            <div class="container py-lg-5">
+                <div class="row align-items-center g-5 <?php echo ($index % 2 != 0) ? 'flex-lg-row-reverse' : ''; ?>">
+                    <div class="col-lg-6">
+                        <div class="position-relative">
+                            <img src="<?php echo htmlspecialchars($service['image_url']); ?>" alt="<?php echo htmlspecialchars($service['title']); ?>" class="img-fluid rounded-5 shadow-2xl" style="height: 450px; width: 100%; object-fit: cover;">
+                            <div class="position-absolute bottom-0 start-0 m-4 glass p-3 rounded-4 border-0 d-none d-md-block shadow-lg" style="width: 200px;">
+                                <div class="d-flex align-items-center">
+                                    <div class="stat-icon <?php echo htmlspecialchars($service['color_class']); ?> me-3" style="width: 40px; height: 40px; border-radius: 12px; font-size: 1.2rem;">
+                                        <i class="fa-solid <?php echo htmlspecialchars($service['icon']); ?>"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-800">Verified</h6>
+                                        <small class="text-muted">Institutional Grade</small>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    
-                </div>
-            </div>
-        </div>
-    </section>
+                    <div class="col-lg-6">
+                        <span class="badge rounded-pill <?php echo htmlspecialchars($service['color_class']); ?> px-4 py-2 text-xs fw-800 mb-4 text-uppercase">Exclusive Product</span>
+                        <h2 class="fw-800 display-5 mb-4"><?php echo htmlspecialchars($service['title']); ?></h2>
+                        <p class="lead text-muted mb-5">
+                            <?php echo nl2br(htmlspecialchars($service['description'])); ?>
+                        </p>
+                        
+                        <div class="row g-4 mb-5">
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-indigo-light text-primary rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
+                                        <i class="fa-solid fa-check text-xs"></i>
+                                    </div>
+                                    <span class="fw-700 text-sm">Global Accessibility</span>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-indigo-light text-primary rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
+                                        <i class="fa-solid fa-check text-xs"></i>
+                                    </div>
+                                    <span class="fw-700 text-sm">Secure Custody</span>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-indigo-light text-primary rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
+                                        <i class="fa-solid fa-check text-xs"></i>
+                                    </div>
+                                    <span class="fw-700 text-sm">Real-time Settlements</span>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-indigo-light text-primary rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
+                                        <i class="fa-solid fa-check text-xs"></i>
+                                    </div>
+                                    <span class="fw-700 text-sm">Expert Consultation</span>
+                                </div>
+                            </div>
+                        </div>
 
-    <div class="mb-4" id="investment-banking"></div>
-    <!-- Investments Section -->
-    <section class="service-category" data-aos="fade-up">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-6 mb-4 mb-lg-0">
-                    <img src="assets/images/photo-1460925895917-afdab827c52f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Investments" class="img-fluid rounded-4 shadow">
-                </div>
-                <div class="col-lg-6">
-                    <h2 class="fw-bold mb-4">Investments</h2>
-                    <p class="mb-4">Our investment services help you build and manage your portfolio with expert guidance
-                        and a wide range of investment options.</p>
-                    <div class="feature-list">
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="feature-text">
-                                <strong>Retirement Planning</strong> - IRAs, 401(k) rollovers, and other retirement
-                                investment options.
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="feature-text">
-                                <strong>Wealth Management</strong> - Personalized investment strategies for high-net-worth
-                                individuals.
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="feature-text">
-                                <strong>Mutual Funds</strong> - Access to a diverse range of professionally managed
-                                investment funds.
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="feature-text">
-                                <strong>Financial Advisory</strong> - Expert guidance to help you make informed investment
-                                decisions.
-                            </div>
+                        <div class="d-flex flex-wrap gap-3">
+                            <a href="register.php" class="btn btn-primary btn-lg px-5 py-3 fw-800 shadow-lg" style="border-radius: 12px;">Get Started</a>
+                            <a href="contact.php" class="btn btn-light btn-lg px-4 py-3 fw-800" style="border-radius: 12px;">Speak with an Advisor</a>
                         </div>
                     </div>
-                    
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+        <?php endforeach; ?>
+    </div>
 
     <!-- CTA Section -->
-    <section class="py-5 bg-light" data-aos="fade-up">
-        <div class="container">
-            <div class="row justify-content-center text-center">
+    <section class="py-5 bg-dark position-relative overflow-hidden" style="border-radius: 50px 50px 0 0; margin-top: -50px; z-index: 10;">
+        <div class="container py-5 text-center position-relative" style="z-index: 2;">
+            <div class="row justify-content-center">
                 <div class="col-lg-8">
-                    <h2 class="fw-bold mb-4">Ready to Get Started?</h2>
-                    <p class="text-muted mb-5">Our team of financial experts is ready to help you find the right banking
-                        solutions for your needs. Contact us today to learn more about our services or to open an account.
-                    </p>
-                    <div class="d-flex flex-wrap justify-content-center">
-                        <a href="register.php" class="btn btn-primary btn-lg px-5 py-3 me-3 mb-3">Open an Account</a>
-                        <a href="contact.php" class="btn btn-outline-primary btn-lg px-5 py-3 mb-3">Contact Us</a>
+                    <h2 class="fw-800 display-4 text-white mb-4">Elevate Your Financial Strategy Today</h2>
+                    <p class="lead text-white-50 mb-5">Our team of elite financial advisors is ready to craft a personalized solution tailored to your wealth management goals.</p>
+                    <div class="d-flex flex-wrap justify-content-center gap-3">
+                        <a href="register.php" class="btn btn-primary btn-lg px-5 py-3 fw-800 shadow-lg" style="border-radius: 12px;">Join SwiftCapital</a>
+                        <a href="contact.php" class="btn btn-outline-light btn-lg px-5 py-3 fw-800" style="border-radius: 12px;">Contact Concierge</a>
                     </div>
                 </div>
             </div>
         </div>
+        <!-- Decorative Background Element -->
+        <div class="position-absolute top-50 start-50 translate-middle" style="width: 100%; height: 100%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, rgba(0,0,0,0) 70%);"></div>
     </section>
 
     <!-- Footer -->
@@ -460,10 +268,8 @@
                 <div class="col-lg-2 col-md-4">
                     <h5>Contact</h5>
                     <ul>
-                        
-                        <li><a href="javascript::">support@trustsglobal.com</a></li>
-                        <li><a href="javascript::">301 East Water Street, Charlottesville, VA 22904 Virginia</a></li>
-                        
+                        <li><a href="javascript::"><?php echo getSetting('contact_email', 'support@trustsglobal.com'); ?></a></li>
+                        <li><a href="javascript::"><?php echo getSetting('contact_address', '301 East Water Street, Charlottesville, VA 22904'); ?></a></li>
                     </ul>
                 </div>
             </div>
@@ -485,12 +291,77 @@
     <script src="npm/bootstrap%405.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- AOS JS -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <style>
+        /* Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        /* Utilities */
+        .text-xs { font-size: 0.75rem; }
+        .text-sm { font-size: 0.875rem; }
+        .fw-700 { font-weight: 700; }
+        .fw-800 { font-weight: 800; }
+        .stat-icon { display: flex; align-items: center; justify-content: center; }
+
+        /* service-color classes matching admin */
+        .bg-indigo-light { background-color: rgba(99,102,241,0.15); }
+        .bg-emerald-light { background-color: rgba(16,185,129,0.15); }
+        .bg-amber-light  { background-color: rgba(245,158,11,0.15); }
+        .bg-rose-light   { background-color: rgba(239,68,68,0.15); }
+        .text-primary { color: #6366f1 !important; }
+        .text-success { color: #10b981 !important; }
+        .text-warning { color: #f59e0b !important; }
+        .text-danger  { color: #ef4444 !important; }
+
+        /* Sticky Nav */
+        .service-nav-bar { padding: 0; }
+        .service-nav-btn:hover, .service-nav-btn.active {
+            background-color: #6366f1;
+            color: #fff !important;
+            border-color: #6366f1 !important;
+        }
+
+        /* Alternating section backgrounds */
+        .detailed-services section:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        /* Hero image shadow */
+        .rounded-5 { border-radius: 1.5rem !important; }
+        .shadow-deep {
+            box-shadow: 0 25px 60px rgba(0,0,0,0.2) !important;
+        }
+
+        /* Smooth scroll */
+        html { scroll-behavior: smooth; }
+    </style>
     <script>
         AOS.init({
-            duration: 800,
+            duration: 900,
             once: true,
-            offset: 100
+            offset: 150
         });
+
+        // Scroll-spy: highlight active service in sticky nav
+        (function() {
+            const sections = document.querySelectorAll('.detailed-services section[id]');
+            const navLinks = document.querySelectorAll('.service-nav-btn');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(l => l.classList.remove('active'));
+                        const active = document.querySelector(`.service-nav-btn[href="#${entry.target.id}"]`);
+                        if (active) active.classList.add('active');
+                    }
+                });
+            }, { rootMargin: '-20% 0px -60% 0px' });
+
+            sections.forEach(s => observer.observe(s));
+        })();
     </script>
 </body>
 

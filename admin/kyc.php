@@ -1,4 +1,28 @@
-<?php require_once '../includes/admin-check.php'; ?>
+<?php 
+require_once '../includes/db.php';
+require_once '../includes/admin-check.php'; 
+
+// Fetch Stats
+$pending_count = $pdo->query("SELECT COUNT(*) FROM kyc_verifications WHERE status = 'Pending'")->fetchColumn();
+$approved_24h = $pdo->query("SELECT COUNT(*) FROM kyc_verifications WHERE status = 'Verified' AND created_at >= NOW() - INTERVAL 1 DAY")->fetchColumn();
+$rejected_today = $pdo->query("SELECT COUNT(*) FROM kyc_verifications WHERE status = 'Rejected' AND DATE(created_at) = CURDATE()")->fetchColumn();
+$total_vetted = $pdo->query("SELECT COUNT(*) FROM kyc_verifications WHERE status != 'Pending'")->fetchColumn();
+$total_requests = $pdo->query("SELECT COUNT(*) FROM kyc_verifications")->fetchColumn();
+$compliance_rate = $total_requests > 0 ? round(($total_vetted / $total_requests) * 100, 1) : 100;
+
+// Fetch KYC Queue
+$search = $_GET['search'] ?? '';
+$where_sql = "";
+$params = [];
+if ($search) {
+    $where_sql = "WHERE u.email LIKE ? OR u.name LIKE ? OR u.lastname LIKE ?";
+    $params = ["%$search%", "%$search%", "%$search%"];
+}
+
+$stmt = $pdo->prepare("SELECT k.*, u.name, u.lastname, u.email FROM kyc_verifications k JOIN users u ON k.user_id = u.id $where_sql ORDER BY k.created_at DESC");
+$stmt->execute($params);
+$kyc_queue = $stmt->fetchAll();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -35,6 +59,9 @@
             </a>
             <a href="loans.php" class="nav-link">
                 <i class="fa-solid fa-hand-holding-dollar"></i> Loan Requests
+            </a>
+            <a href="irs.php" class="nav-link">
+                <i class="fa-solid fa-file-invoice-dollar"></i> IRS Refunds
             </a>
             <a href="kyc.php" class="nav-link active">
                 <i class="fa-solid fa-id-card-clip"></i> KYC Verifications
@@ -90,7 +117,7 @@
                     <div class="stat-card" style="padding: 20px;">
                         <div>
                             <p class="text-xs text-muted fw-bold text-uppercase mb-1">Pending Approval</p>
-                            <h4 class="mb-0 fw-800">24</h4>
+                            <h4 class="mb-0 fw-800"><?php echo $pending_count; ?></h4>
                         </div>
                         <div class="stat-icon bg-amber-light" style="width: 45px; height: 45px; font-size: 1rem;"><i class="fa-solid fa-hourglass-start"></i></div>
                     </div>
@@ -99,7 +126,7 @@
                     <div class="stat-card" style="padding: 20px;">
                         <div>
                             <p class="text-xs text-muted fw-bold text-uppercase mb-1">Approved (24h)</p>
-                            <h4 class="mb-0 fw-800">142</h4>
+                            <h4 class="mb-0 fw-800"><?php echo $approved_24h; ?></h4>
                         </div>
                         <div class="stat-icon bg-emerald-light" style="width: 45px; height: 45px; font-size: 1rem;"><i class="fa-solid fa-check-double"></i></div>
                     </div>
@@ -108,7 +135,7 @@
                     <div class="stat-card" style="padding: 20px;">
                         <div>
                             <p class="text-xs text-muted fw-bold text-uppercase mb-1">Rejected Today</p>
-                            <h4 class="mb-0 fw-800">08</h4>
+                            <h4 class="mb-0 fw-800"><?php echo str_pad($rejected_today, 2, '0', STR_PAD_LEFT); ?></h4>
                         </div>
                         <div class="stat-icon bg-rose-light" style="width: 45px; height: 45px; font-size: 1rem;"><i class="fa-solid fa-ban"></i></div>
                     </div>
@@ -117,7 +144,7 @@
                     <div class="stat-card" style="padding: 20px;">
                         <div>
                             <p class="text-xs text-muted fw-bold text-uppercase mb-1">Compliance Rate</p>
-                            <h4 class="mb-0 fw-800">94.2%</h4>
+                            <h4 class="mb-0 fw-800"><?php echo $compliance_rate; ?>%</h4>
                         </div>
                         <div class="stat-icon bg-indigo-light" style="width: 45px; height: 45px; font-size: 1rem;"><i class="fa-solid fa-shield-halved"></i></div>
                     </div>
@@ -130,12 +157,16 @@
                     <div class="data-table-card mt-0">
                         <div class="card-header border-0 bg-transparent py-4 px-4 d-flex justify-content-between align-items-center">
                             <h5 class="mb-0 fw-800">Verification Queue</h5>
-                            <div class="d-flex gap-2">
+                            <form class="d-flex gap-2" method="GET">
                                 <div class="input-group input-group-sm" style="width: 250px;">
                                     <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search"></i></span>
-                                    <input type="text" class="form-control border-start-0" placeholder="Filter by email or name...">
+                                    <input type="text" name="search" class="form-control border-start-0" placeholder="Filter by email or name..." value="<?php echo htmlspecialchars($search); ?>">
                                 </div>
-                            </div>
+                                <button type="submit" class="btn btn-primary btn-sm px-3 fw-bold">Filter</button>
+                                <?php if($search): ?>
+                                    <a href="kyc.php" class="btn btn-outline-secondary btn-sm px-3 fw-bold">Clear</a>
+                                <?php endif; ?>
+                            </form>
                         </div>
                         <div class="table-responsive">
                             <table class="table align-middle">
@@ -149,48 +180,48 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    <?php if(empty($kyc_queue)): ?>
+                                    <tr>
+                                        <td colspan="5" class="text-center py-5 text-muted fw-600">No verification requests found.</td>
+                                    </tr>
+                                    <?php else: ?>
+                                    <?php foreach($kyc_queue as $k): ?>
                                     <tr>
                                         <td>
                                             <div class="d-flex align-items-center gap-3">
-                                                <div class="admin-avatar" style="width: 36px; height: 36px; font-size: 0.8rem;">RB</div>
+                                                <div class="admin-avatar" style="width: 36px; height: 36px; font-size: 0.8rem;"><?php echo strtoupper(substr($k['name'], 0, 1) . substr($k['lastname'], 0, 1)); ?></div>
                                                 <div>
-                                                    <div class="fw-bold">Robert Bryan</div>
-                                                    <div class="text-xs text-muted">rbryan@company.com</div>
+                                                    <div class="fw-bold"><?php echo $k['name'] . ' ' . $k['lastname']; ?></div>
+                                                    <div class="text-xs text-muted"><?php echo $k['email']; ?></div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="fw-600">International Passport</div>
-                                            <div class="text-xs text-primary">#DOC-9210-PAS</div>
-                                        </td>
-                                        <td><span class="status-badge status-pending">In Review</span></td>
-                                        <td class="text-sm">Mar 15, 2026 (12:45)</td>
-                                        <td><a href="kyc-view.php" class="btn btn-primary btn-sm px-3 fw-bold text-xs" style="border-radius: 8px;">Audit Review</a></td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="d-flex align-items-center gap-3">
-                                                <img src="https://ui-avatars.com/api/?name=Sarah+Smith" class="user-avatar-sm" style="width: 36px; height: 36px;" alt="">
-                                                <div>
-                                                    <div class="fw-bold">Sarah Smith</div>
-                                                    <div class="text-xs text-muted">s.smith@mail.com</div>
-                                                </div>
-                                            </div>
+                                            <div class="fw-600"><?php echo $k['document_type']; ?></div>
+                                            <div class="text-xs text-primary">#KYC-<?php echo str_pad($k['id'], 4, '0', STR_PAD_LEFT); ?></div>
                                         </td>
                                         <td>
-                                            <div class="fw-600">National ID Card</div>
-                                            <div class="text-xs text-primary">#DOC-8112-NID</div>
+                                            <?php 
+                                            $status_class = '';
+                                            switch($k['status']) {
+                                                case 'Verified': $status_class = 'status-active'; break;
+                                                case 'Pending': $status_class = 'status-pending'; break;
+                                                case 'Rejected': $status_class = 'status-blocked'; break;
+                                            }
+                                            ?>
+                                            <span class="status-badge <?php echo $status_class; ?>"><?php echo $k['status'] == 'Verified' ? 'Approved' : ($k['status'] == 'Pending' ? 'In Review' : 'Rejected'); ?></span>
                                         </td>
-                                        <td><span class="status-badge status-pending">In Review</span></td>
-                                        <td class="text-sm">Mar 14, 2026 (16:20)</td>
-                                        <td><a href="kyc-view.php" class="btn btn-primary btn-sm px-3 fw-bold text-xs" style="border-radius: 8px;">Audit Review</a></td>
+                                        <td class="text-sm"><?php echo date('M d, Y (H:i)', strtotime($k['created_at'])); ?></td>
+                                        <td><a href="kyc-view.php?id=<?php echo $k['id']; ?>" class="btn btn-primary btn-sm px-3 fw-bold text-xs" style="border-radius: 8px;">Audit Review</a></td>
                                     </tr>
+                                    <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
                         </div>
                         <div class="card-footer bg-white border-top p-4">
                             <div class="d-flex justify-content-between align-items-center">
-                                <div class="text-xs text-muted fw-bold uppercase">Showing the last 2 verification requests</div>
+                                <div class="text-xs text-muted fw-bold uppercase">Showing <?php echo count($kyc_queue); ?> verification requests</div>
                                 <a href="#" class="text-primary text-xs fw-bold text-decoration-none">View Archive <i class="fa-solid fa-arrow-right-long ms-1"></i></a>
                             </div>
                         </div>

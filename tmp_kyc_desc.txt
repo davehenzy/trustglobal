@@ -1,0 +1,9 @@
+id - int(11)
+user_id - int(11)
+document_type - varchar(100)
+document_front - varchar(255)
+document_back - varchar(255)
+selfie - varchar(255)
+status - enum('Pending','Verified','Rejected')
+rejection_reason - text
+created_at - timestamp

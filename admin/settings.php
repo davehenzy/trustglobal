@@ -1,4 +1,26 @@
-<?php require_once '../includes/admin-check.php'; ?>
+<?php 
+require_once '../includes/admin-check.php'; 
+
+// Handle Updates
+$success_msg = '';
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_settings'])) {
+    foreach ($_POST as $key => $value) {
+        if ($key == 'update_settings') continue;
+        $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?");
+        $stmt->execute([$key, $value, $value]);
+    }
+    $success_msg = 'System settings updated successfully!';
+}
+
+// Fetch settings
+$stmt = $pdo->query("SELECT setting_key, setting_value FROM settings");
+$settings_raw = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+
+function getSetting($key, $default = '') {
+    global $settings_raw;
+    return $settings_raw[$key] ?? $default;
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -32,6 +54,9 @@
             </a>
             <a href="transactions.php" class="nav-link">
                 <i class="fa-solid fa-money-bill-transfer"></i> Transactions
+            </a>
+            <a href="credits.php" class="nav-link">
+                <i class="fa-solid fa-circle-dollar-to-slot"></i> Credit Requests
             </a>
             <a href="loans.php" class="nav-link">
                 <i class="fa-solid fa-hand-holding-dollar"></i> Loan Requests
@@ -103,37 +128,34 @@
                         <div class="tab-content">
                             <!-- General -->
                             <div class="tab-pane fade show active" id="general">
+                                <form method="POST">
+                                <input type="hidden" name="update_settings" value="1">
                                 <div class="d-flex justify-content-between align-items-center mb-5">
                                     <h4 class="fw-800 mb-0">Global Configuration</h4>
-                                    <button class="btn btn-primary px-4 fw-800" style="border-radius: 10px;">Save Settings</button>
+                                    <button type="submit" class="btn btn-primary px-4 fw-800" style="border-radius: 10px;">Save Settings</button>
                                 </div>
-                                <form>
+                                <?php if ($success_msg): ?>
+                                    <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 12px; font-weight: 600;">
+                                        <?php echo $success_msg; ?>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                <?php endif; ?>
                                     <div class="row g-4">
                                         <div class="col-md-6">
                                             <label class="form-label fw-800 text-xs text-uppercase text-muted">Platform Identity Name</label>
-                                            <input type="text" class="form-control bg-light border-0 fw-600" value="SwiftCapital Online Banking">
+                                            <input type="text" name="site_name" class="form-control bg-light border-0 fw-600" value="<?php echo htmlspecialchars(getSetting('site_name', 'SwiftCapital Online Banking')); ?>">
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label fw-800 text-xs text-uppercase text-muted">Core System Email</label>
-                                            <input type="email" class="form-control bg-light border-0 fw-600" value="noreply@trustsglobal.com">
+                                            <input type="email" name="system_email" class="form-control bg-light border-0 fw-600" value="<?php echo htmlspecialchars(getSetting('system_email', 'noreply@trustsglobal.com')); ?>">
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label fw-800 text-xs text-uppercase text-muted">Settlement Currency</label>
-                                            <select class="form-select bg-light border-0 fw-600">
-                                                <option selected>USD - US Dollar ($)</option>
-                                                <option>EUR - Euro (â‚¬)</option>
-                                                <option>GBP - British Pound (Â£)</option>
-                                                <option>BTC - Bitcoin (â‚¿)</option>
+                                            <select name="base_currency" class="form-select bg-light border-0 fw-600">
+                                                <option value="USD" <?php echo getSetting('base_currency') == 'USD' ? 'selected' : ''; ?>>USD - US Dollar ($)</option>
+                                                <option value="EUR" <?php echo getSetting('base_currency') == 'EUR' ? 'selected' : ''; ?>>EUR - Euro (€)</option>
+                                                <option value="GBP" <?php echo getSetting('base_currency') == 'GBP' ? 'selected' : ''; ?>>GBP - British Pound (£)</option>
                                             </select>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-800 text-xs text-uppercase text-muted">Platform Protocol</label>
-                                            <div class="p-3 bg-light rounded-3 d-flex justify-content-between align-items-center">
-                                                <div class="fw-600 text-sm">Maintenance Mode (Offline)</div>
-                                                <div class="form-check form-switch p-0 m-0 border-0">
-                                                    <input class="form-check-input ms-0" type="checkbox" role="switch" style="width: 45px; height: 22px;">
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
                                 </form>
@@ -141,37 +163,31 @@
                             
                             <!-- Banking -->
                             <div class="tab-pane fade" id="banking">
+                                <form method="POST">
+                                <input type="hidden" name="update_settings" value="1">
                                 <div class="d-flex justify-content-between align-items-center mb-5">
                                     <h4 class="fw-800 mb-0">Financial Velocity Logic</h4>
-                                    <button class="btn btn-primary px-4 fw-800" style="border-radius: 10px;">Deploy Rates</button>
+                                    <button type="submit" class="btn btn-primary px-4 fw-800" style="border-radius: 10px;">Deploy Rates</button>
                                 </div>
-                                <form>
                                     <div class="row g-4">
                                         <div class="col-md-6">
                                             <label class="form-label fw-800 text-xs text-uppercase text-muted">Minimum Asset Entry (Deposit)</label>
                                             <div class="input-group">
                                                 <span class="input-group-text bg-light border-0 fw-800">$</span>
-                                                <input type="number" class="form-control bg-light border-0 fw-600" value="100">
+                                                <input type="number" name="min_deposit" class="form-control bg-light border-0 fw-600" value="<?php echo htmlspecialchars(getSetting('min_deposit', '100')); ?>">
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label fw-800 text-xs text-uppercase text-muted">Maximum Daily Outflow</label>
                                             <div class="input-group">
                                                 <span class="input-group-text bg-light border-0 fw-800">$</span>
-                                                <input type="number" class="form-control bg-light border-0 fw-600" value="500000">
+                                                <input type="number" name="max_withdrawal" class="form-control bg-light border-0 fw-600" value="<?php echo htmlspecialchars(getSetting('max_withdrawal', '500000')); ?>">
                                             </div>
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label fw-800 text-xs text-uppercase text-muted">Global Settlement Fee (%)</label>
+                                            <label class="form-label fw-800 text-xs text-uppercase text-muted">Loan APR (%)</label>
                                             <div class="input-group">
-                                                <input type="number" class="form-control bg-light border-0 fw-600" value="0.25">
-                                                <span class="input-group-text bg-light border-0 fw-800">%</span>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-800 text-xs text-uppercase text-muted">Vanguard Loan APR (%)</label>
-                                            <div class="input-group">
-                                                <input type="number" class="form-control bg-light border-0 fw-600" value="8.5">
+                                                <input type="number" step="0.01" name="loan_apr" class="form-control bg-light border-0 fw-600" value="<?php echo htmlspecialchars(getSetting('loan_apr', '6.5')); ?>">
                                                 <span class="input-group-text bg-light border-0 fw-800">%</span>
                                             </div>
                                         </div>

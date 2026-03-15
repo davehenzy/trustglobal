@@ -1,4 +1,21 @@
-﻿<!DOCTYPE html>
+<?php 
+require_once 'includes/db.php'; 
+
+// Fetch all settings
+$stmt = $pdo->query("SELECT setting_key, setting_value FROM settings");
+$settings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+
+// Helper function
+function getSetting($key, $default = '') {
+    global $settings;
+    return $settings[$key] ?? $default;
+}
+
+// Fetch all services
+$stmt = $pdo->query("SELECT * FROM services ORDER BY sort_order ASC, id DESC LIMIT 4");
+$db_services = $stmt->fetchAll();
+?>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -23,6 +40,7 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="npm/bootstrap-icons%401.11.0/font/bootstrap-icons.css">
 <link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 </head>
 
@@ -74,12 +92,11 @@
     <div class="container">
         <div class="row align-items-center hero-content">
             <div class="col-lg-6">
-                <h1>Banking Made Simple, Secure, and Smart</h1>
-                <p>Experience the next generation of banking with SwiftCapital. We combine cutting-edge technology with
-                    personalized service to provide you with the best banking experience.</p>
+                <h1><?php echo getSetting('hero_headline', 'Banking Made Simple, Secure, and Smart'); ?></h1>
+                <p><?php echo getSetting('hero_description', 'Experience the next generation of banking with SwiftCapital. We combine cutting-edge technology with personalized service to provide you with the best banking experience.'); ?></p>
                 <div class="d-flex flex-wrap">
-                    <a href="register.php" class="btn btn-light btn-lg me-3 mb-3">Open Account</a>
-                    <a href="about.php" class="btn btn-outline-light btn-lg mb-3">Learn More</a>
+                    <a href="register.php" class="btn btn-light btn-lg me-3 mb-3"><?php echo getSetting('hero_cta_primary', 'Open Account'); ?></a>
+                    <a href="about.php" class="btn btn-outline-light btn-lg mb-3"><?php echo getSetting('hero_cta_secondary', 'Learn More'); ?></a>
                 </div>
             </div>
             <div class="col-lg-6 d-none d-lg-block">
@@ -140,46 +157,43 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-lg-3 col-md-6">
-                <div class="service-card card h-100">
-                    <img src="assets/images/photo-1556742049-0cfed4f6a45d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" class="card-img-top" alt="Personal Banking">
-                    <div class="card-body">
-                        <h5 class="card-title">Personal Banking</h5>
-                        <p class="card-text">Everyday banking solutions designed to simplify your financial life.</p>
-                        <a href="services.php#person-banking" class="btn btn-outline-primary">Learn More</a>
+            <?php if (!empty($db_services)): ?>
+                <?php foreach ($db_services as $service): ?>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="service-card card h-100 shadow-sm border-0" style="border-radius: 20px;">
+                        <div class="card-body text-center p-4">
+                            <div class="stat-icon <?php echo htmlspecialchars($service['color_class']); ?> mx-auto mb-4" style="width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                                <i class="fa-solid <?php echo htmlspecialchars($service['icon']); ?>"></i>
+                            </div>
+                            <h5 class="fw-bold mb-3"><?php echo htmlspecialchars($service['title']); ?></h5>
+                            <p class="text-muted small mb-0"><?php echo htmlspecialchars($service['description']); ?></p>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="service-card card h-100">
-                    <img src="assets/images/photo-1507679799987-c73779587ccf?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" class="card-img-top" alt="Business Banking">
-                    <div class="card-body">
-                        <h5 class="card-title">Business Banking</h5>
-                        <p class="card-text">Specialized services to help your business grow and thrive.</p>
-                        <a href="services.php#business-banking" class="btn btn-outline-primary">Learn More</a>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <!-- Fallback to static if no services in DB -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="service-card card h-100">
+                        <img src="assets/images/photo-1556742049-0cfed4f6a45d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" class="card-img-top" alt="Personal Banking">
+                        <div class="card-body">
+                            <h5 class="card-title">Personal Banking</h5>
+                            <p class="card-text">Everyday banking solutions designed to simplify your financial life.</p>
+                            <a href="services.php#person-banking" class="btn btn-outline-primary">Learn More</a>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="service-card card h-100">
-                    <img src="assets/images/photo-1560520031-3a4dc4e9de0c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" class="card-img-top" alt="Loans & Mortgages">
-                    <div class="card-body">
-                        <h5 class="card-title">Loans & Mortgages</h5>
-                        <p class="card-text">Flexible financing options with competitive rates and terms.</p>
-                        <a href="services.php#loan-banking" class="btn btn-outline-primary">Learn More</a>
+                <div class="col-lg-3 col-md-6">
+                    <div class="service-card card h-100">
+                        <img src="assets/images/photo-1507679799987-c73779587ccf?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" class="card-img-top" alt="Business Banking">
+                        <div class="card-body">
+                            <h5 class="card-title">Business Banking</h5>
+                            <p class="card-text">Specialized services to help your business grow and thrive.</p>
+                            <a href="services.php#business-banking" class="btn btn-outline-primary">Learn More</a>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="service-card card h-100">
-                    <img src="assets/images/photo-1460925895917-afdab827c52f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" class="card-img-top" alt="Investments">
-                    <div class="card-body">
-                        <h5 class="card-title">Investments</h5>
-                        <p class="card-text">Expert guidance to help you build and manage your investment portfolio.</p>
-                        <a href="services.php#investment-banking" class="btn btn-outline-primary">Learn More</a>
-                    </div>
-                </div>
-            </div>
+            <?php endif; ?>
         </div>
     </div>
 </section>
@@ -188,7 +202,7 @@
         <div class="row text-center">
             <div class="col-md-3 col-6 mb-4 mb-md-0">
                 <div class="stat-item">
-                    <h2><span class="counter" data-target="2">0</span>M+</h2>
+                    <h2><span class="counter" data-target="<?php echo (float)filter_var(getSetting('active_users_display', '2M+'), FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION); ?>">0</span>M+</h2>
                     <p>Happy Customers</p>
                 </div>
             </div>
@@ -429,10 +443,8 @@
                 <div class="col-lg-2 col-md-4">
                     <h5>Contact</h5>
                     <ul>
-                        
-                        <li><a href="javascript::">support@SwiftCapital.com</a></li>
-                        <li><a href="javascript::">301 East Water Street, Charlottesville, VA 22904 Virginia</a></li>
-                        
+                        <li><a href="javascript::"><?php echo getSetting('contact_email', 'support@SwiftCapital.com'); ?></a></li>
+                        <li><a href="javascript::"><?php echo getSetting('contact_address', '301 East Water Street, Charlottesville, VA 22904'); ?></a></li>
                     </ul>
                 </div>
             </div>

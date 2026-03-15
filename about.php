@@ -1,4 +1,17 @@
-﻿<!DOCTYPE html>
+<?php 
+require_once 'includes/db.php'; 
+
+// Fetch all settings
+$stmt = $pdo->query("SELECT setting_key, setting_value FROM settings");
+$settings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+
+// Helper function
+function getSetting($key, $default = '') {
+    global $settings;
+    return $settings[$key] ?? $default;
+}
+?>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -70,7 +83,12 @@
             </div>
         </div>
     </nav>
-        <x-home.page-header :$pagetitle="" :$pagedescription=""></x-home.page-header>
+    <section class="py-5 bg-dark text-white text-center">
+        <div class="container py-5">
+            <h1 class="fw-800 display-4">About SwiftCapital</h1>
+            <p class="lead text-white-50">Discover our journey and heritage in premium banking.</p>
+        </div>
+    </section>
     <!-- About Section -->
     <section class="py-5" data-aos="fade-up">
         <div class="container">
@@ -79,16 +97,10 @@
                     <img src="assets/images/photo-1486406146926-c627a92ad1ab?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="SwiftCapital Building" class="img-fluid rounded-4 shadow">
                 </div>
                 <div class="col-lg-6">
-                    <h2 class="fw-bold mb-4">Our Story</h2>
-                    <p class="mb-4">Founded in 1995, SwiftCapital began with a simple idea: banking should be accessible,
-                        transparent, and focused on the customer. What started as a single branch has grown into a global
-                        financial institution serving millions of customers across 50 countries.</p>
-                    <p class="mb-4">Throughout our journey, we've remained committed to our founding principles while
-                        embracing innovation and technology to meet the evolving needs of our customers. Today, we're proud
-                        to be recognized as one of the most trusted and forward-thinking banks in the industry.</p>
-                    <p>Our success is built on the relationships we've developed with our customers, employees, and
-                        communities. We believe that banking is not just about money—it's about helping people achieve their
-                        dreams and secure their futures.</p>
+                    <h2 class="fw-bold mb-4"><?php echo getSetting('about_heading', 'Our Story'); ?></h2>
+                    <div class="mb-4 lead">
+                        <?php echo nl2br(htmlspecialchars(getSetting('about_content', "Founded in 1995, SwiftCapital began with a simple idea: banking should be accessible, transparent, and focused on the customer.\n\nThroughout our journey, we've remained committed to our founding principles while embracing innovation and technology."))); ?>
+                    </div>
                 </div>
             </div>
         </div>
@@ -480,10 +492,8 @@
                 <div class="col-lg-2 col-md-4">
                     <h5>Contact</h5>
                     <ul>
-                        
-                        <li><a href="javascript::">support@trustsglobal.com</a></li>
-                        <li><a href="javascript::">301 East Water Street, Charlottesville, VA 22904 Virginia</a></li>
-                        
+                        <li><a href="javascript::"><?php echo getSetting('contact_email', 'support@trustsglobal.com'); ?></a></li>
+                        <li><a href="javascript::"><?php echo getSetting('contact_address', '301 East Water Street, Charlottesville, VA 22904'); ?></a></li>
                     </ul>
                 </div>
             </div>

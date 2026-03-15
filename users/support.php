@@ -1,4 +1,45 @@
-﻿<?php require_once '../includes/user-check.php'; ?>
+<?php 
+require_once '../includes/db.php';
+require_once '../includes/user-check.php'; 
+
+$user_id = $_SESSION['user_id'];
+$success_msg = '';
+$error_msg = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_ticket'])) {
+    $subject = cleanInput($_POST['subject']);
+    $priority = cleanInput($_POST['priority']);
+    $message = cleanInput($_POST['message']);
+
+    if ($subject && $message) {
+        try {
+            $pdo->beginTransaction();
+            
+            // Create Ticket
+            $stmt = $pdo->prepare("INSERT INTO support_tickets (user_id, subject, status) VALUES (?, ?, 'Open')");
+            $stmt->execute([$user_id, $subject]);
+            $ticket_id = $pdo->lastInsertId();
+
+            // Create Initial Message
+            $stmt = $pdo->prepare("INSERT INTO messages (ticket_id, sender_id, message, is_admin) VALUES (?, ?, ?, 0)");
+            $stmt->execute([$ticket_id, $user_id, $message]);
+
+            $pdo->commit();
+            $success_msg = "Ticket #TK-" . str_pad($ticket_id, 5, '0', STR_PAD_LEFT) . " created successfully!";
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            $error_msg = "Error creating ticket: " . $e->getMessage();
+        }
+    } else {
+        $error_msg = "Please fill in all required fields.";
+    }
+}
+
+// Fetch user tickets
+$stmt = $pdo->prepare("SELECT * FROM support_tickets WHERE user_id = ? ORDER BY created_at DESC");
+$stmt->execute([$user_id]);
+$user_tickets = $stmt->fetchAll();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -138,73 +179,15 @@
 </head>
 <body>
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="brand-section">
-            <div class="brand-logo">
-                <i class="fa-solid fa-chart-simple text-primary me-2"></i>
-                <span class="swift">Swift</span><span class="capital">Capital</span>
-            </div>
-            <div class="brand-tagline">Banking At Its Best</div>
-        </div>
-
-        <div class="user-profile-widget">
-            <div class="avatar-circle">KC</div>
-            <div class="user-name">Kante Calm</div>
-            <div class="user-id">ID: 0537658047</div>
-            <button class="btn btn-kyc" onclick="location.href='verification.php'"><i class="fa-solid fa-circle-exclamation"></i> Verify KYC</button>
-            <div class="user-actions">
-                <a href="settings.php" class="btn btn-outline"><i class="fa-solid fa-user"></i> Profile</a>
-                <a href="#" class="btn btn-primary-soft"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
-            </div>
-        </div>
-
-        <div class="nav-section">
-            <div class="nav-category">Main Menu</div>
-            <a href="index.php" class="nav-item-link"><i class="fa-solid fa-house"></i> Dashboard</a>
-            <a href="transactions.php" class="nav-item-link"><i class="fa-solid fa-chart-line"></i> Transactions</a>
-            <a href="cards.php" class="nav-item-link"><i class="fa-solid fa-credit-card"></i> Cards</a>
-
-            <div class="nav-category">Transfers</div>
-            <a href="local.php" class="nav-item-link"><i class="fa-solid fa-paper-plane"></i> Local Transfer</a>
-            <a href="international.php" class="nav-item-link"><i class="fa-solid fa-globe"></i> International Wire</a>
-            <a href="deposit.php" class="nav-item-link"><i class="fa-solid fa-download"></i> Deposit</a>
-
-            <div class="nav-category">Services</div>
-            <a href="loan.php" class="nav-item-link"><i class="fa-solid fa-boxes-stacked"></i> Loan Request</a>
-            <a href="irs.php" class="nav-item-link"><i class="fa-solid fa-file-invoice-dollar"></i> IRS Tax Refund</a>
-            <a href="loan-history.php" class="nav-item-link"><i class="fa-solid fa-clock-rotate-left"></i> Loan History</a>
-
-            <div class="nav-category">Account</div>
-            <a href="security.php" class="nav-item-link"><i class="fa-solid fa-gear"></i> Settings</a>
-            <a href="support.php" class="nav-item-link active"><i class="fa-solid fa-circle-question"></i> Support Ticket</a>
-        </div>
-
-        <div class="sidebar-footer">
-            <span><i class="fa-solid fa-shield-halved me-1"></i> Secure Banking</span>
-            <span class="version">v1.2.0</span>
-        </div>
-    </aside>
+<?php 
+$page = 'support';
+include '../includes/user-sidebar.php'; 
+?>
 
     <!-- Main Content -->
     <main class="main-content">
         <!-- Top Navbar -->
-        <nav class="top-navbar">
-            <div class="nav-date">
-                <i class="fa-solid fa-calendar"></i>
-                <span id="currentDate">Thursday, March 12, 2026</span>
-            </div>
-            
-            <div class="nav-actions">
-                <div class="balance-badge">
-                    <i class="fa-solid fa-wallet"></i> $0
-                </div>
-                <button class="btn-icon-only">
-                    <i class="fa-solid fa-bell"></i>
-                </button>
-                <div class="nav-avatar">KC</div>
-            </div>
-        </nav>
+        <?php include '../includes/user-navbar.php'; ?>
 
         <!-- Page Content -->
         <div class="page-container">
@@ -219,6 +202,18 @@
                         <p class="page-subtitle-centered">We're here to help. Tell us about your issue and we'll find a solution as quickly as possible.</p>
                     </div>
 
+                    <?php if($success_msg): ?>
+                        <div class="alert alert-success border-0 rounded-4 shadow-sm mb-4 fw-600">
+                            <i class="fa-solid fa-circle-check me-2"></i> <?php echo $success_msg; ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if($error_msg): ?>
+                        <div class="alert alert-danger border-0 rounded-4 shadow-sm mb-4 fw-600">
+                            <i class="fa-solid fa-circle-exclamation me-2"></i> <?php echo $error_msg; ?>
+                        </div>
+                    <?php endif; ?>
+
                     <div class="support-form-card">
                         
                         <div class="support-form-section-title">
@@ -230,13 +225,12 @@
                             <i class="fa-solid fa-comment-dots"></i>
                         </div>
 
-
-                        <form action="index.php">
+                        <form method="POST">
                         <div class="row g-4">
                             <div class="col-12">
                                 <label class="form-label">Subject <span class="req">*</span></label>
                                 <div class="custom-input-group">
-                                    <input type="text" placeholder="What can we help you with?" required>
+                                    <input type="text" name="subject" placeholder="What can we help you with?" required>
                                     <i class="fa-solid fa-pen-to-square left-icon"></i>
                                 </div>
                             </div>
@@ -244,10 +238,9 @@
                             <div class="col-12">
                                 <label class="form-label">Priority Level <span class="req">*</span></label>
                                 <div class="custom-input-group">
-                                    <select required>
-                                        <option value="" disabled selected>Select Priority</option>
+                                    <select name="priority" required>
+                                        <option value="Medium Priority" selected>Medium Priority</option>
                                         <option>Low Priority</option>
-                                        <option>Medium Priority</option>
                                         <option>High Priority</option>
                                         <option>Urgent</option>
                                     </select>
@@ -258,7 +251,7 @@
                             <div class="col-12">
                                 <label class="form-label">Describe Your Issue <span class="req">*</span></label>
                                 <div class="custom-input-group">
-                                    <textarea rows="6" placeholder="Please provide all relevant details..." required></textarea>
+                                    <textarea name="message" rows="6" placeholder="Please provide all relevant details..." required></textarea>
                                     <i class="fa-solid fa-comment-dots left-icon" style="top: 25px;"></i>
                                 </div>
                             </div>
@@ -272,13 +265,62 @@
                             </div>
                         </div>
 
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg fw-bold">
+                        <div class="d-grid shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                            <button type="submit" name="submit_ticket" class="btn btn-primary btn-lg fw-bold py-3" style="border-radius: 0;">
                                 <i class="fa-solid fa-paper-plane me-2"></i> Submit Ticket
                             </button>
                         </div>
                         </form>
+                    </div>
 
+                    <!-- Previous Tickets -->
+                    <div class="support-form-card">
+                        <div class="support-form-section-title mb-4">
+                            <i class="fa-solid fa-history"></i> Your Support History
+                        </div>
+
+                        <?php if(empty($user_tickets)): ?>
+                            <div class="text-center py-5">
+                                <i class="fa-solid fa-folder-open text-muted mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
+                                <p class="text-muted fw-600">No support tickets found.</p>
+                            </div>
+                        <?php else: ?>
+                            <div class="table-responsive">
+                                <table class="table custom-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Ticket ID</th>
+                                            <th>Subject</th>
+                                            <th>Status</th>
+                                            <th>Created</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach($user_tickets as $ticket): ?>
+                                            <tr>
+                                                <td><span class="fw-bold">#TK-<?php echo str_pad($ticket['id'], 5, '0', STR_PAD_LEFT); ?></span></td>
+                                                <td><?php echo htmlspecialchars($ticket['subject']); ?></td>
+                                                <td>
+                                                    <?php 
+                                                        $status = $ticket['status'];
+                                                        $class = 'bg-secondary';
+                                                        if($status == 'Open') $class = 'bg-primary';
+                                                        elseif($status == 'Resolved') $class = 'bg-success';
+                                                        elseif($status == 'Pending') $class = 'bg-warning';
+                                                    ?>
+                                                    <span class="badge <?php echo $class; ?>"><?php echo $status; ?></span>
+                                                </td>
+                                                <td><?php echo date('M d, Y', strtotime($ticket['created_at'])); ?></td>
+                                                <td>
+                                                    <a href="ticket-view.php?id=<?php echo $ticket['id']; ?>" class="btn btn-sm btn-outline-primary">View</a>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php endif; ?>
                     </div>
 
                 </div>

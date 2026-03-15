@@ -1,4 +1,4 @@
-﻿<?php require_once '../includes/user-check.php'; ?>
+<?php require_once '../includes/user-check.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -249,16 +249,22 @@
             </div>
             <div class="pin-card-body">
                 <div class="user-avatar-wrapper">
-                    <div class="user-avatar">KA</div>
+                    <div class="user-avatar"><?php echo strtoupper(substr($_SESSION['name'], 0, 1) . substr($_SESSION['lastname'], 0, 1)); ?></div>
                     <div class="user-status"><i class="fa-solid fa-shield-halved"></i></div>
                 </div>
                 
-                <h3 class="user-name">Kante Cante Calm</h3>
+                <h3 class="user-name"><?php echo htmlspecialchars($_SESSION['name'] . ' ' . $_SESSION['lastname']); ?></h3>
                 <p class="pin-instruction">Enter your 4-digit verification PIN</p>
 
-                <form action="index.php">
-                    <input type="password" class="pin-input" maxlength="4" autofocus>
-                    <button type="button" class="btn-verify" onclick="window.location.href='index.php'">Verify PIN</button>
+                <?php if (isset($_SESSION['pin_error'])): ?>
+                    <div class="alert alert-danger py-2 text-sm mb-3">
+                        <i class="fa-solid fa-circle-exclamation me-2"></i> <?php echo $_SESSION['pin_error']; unset($_SESSION['pin_error']); ?>
+                    </div>
+                <?php endif; ?>
+
+                <form action="pin-process.php" method="POST">
+                    <input type="password" name="pin" class="pin-input" maxlength="4" autofocus required>
+                    <button type="submit" class="btn-verify">Verify PIN</button>
                 </form>
 
                 <div class="security-notice">

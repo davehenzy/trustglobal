@@ -1,4 +1,27 @@
-﻿<?php require_once '../includes/user-check.php'; ?>
+<?php 
+require_once '../includes/db.php';
+require_once '../includes/user-check.php'; 
+
+$user_id = $_SESSION['user_id'];
+
+// Search logic
+$search = $_GET['search'] ?? '';
+$where_sql = "";
+$params = [$user_id];
+
+if ($search) {
+    $where_sql = " AND (txn_hash LIKE ? OR narration LIKE ?)";
+    $params[] = "%$search%";
+    $params[] = "%$search%";
+}
+
+$stmt = $pdo->prepare("SELECT * FROM transactions WHERE user_id = ? $where_sql ORDER BY created_at DESC");
+$stmt->execute($params);
+$transactions = $stmt->fetchAll();
+
+// Fetch summary stats for user header
+$balance = $pdo->query("SELECT balance FROM users WHERE id = $user_id")->fetchColumn();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -81,82 +104,38 @@
 </head>
 <body>
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="brand-section">
-            <div class="brand-logo">
-                <i class="fa-solid fa-chart-simple text-primary me-2"></i>
-                <span class="swift">Swift</span><span class="capital">Capital</span>
-            </div>
-            <div class="brand-tagline">Banking At Its Best</div>
-        </div>
-
-        <div class="user-profile-widget">
-            <div class="avatar-circle">KC</div>
-            <div class="user-name">Kante Calm</div>
-            <div class="user-id">ID: 0537658047</div>
-            <button class="btn btn-kyc" onclick="location.href='verification.php'"><i class="fa-solid fa-circle-exclamation"></i> Verify KYC</button>
-            <div class="user-actions">
-                <a href="settings.php" class="btn btn-outline"><i class="fa-solid fa-user"></i> Profile</a>
-                <a href="#" class="btn btn-primary-soft"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
-            </div>
-        </div>
-
-        <div class="nav-section">
-            <div class="nav-category">Main Menu</div>
-            <a href="index.php" class="nav-item-link"><i class="fa-solid fa-house"></i> Dashboard</a>
-            <a href="transactions.php" class="nav-item-link active"><i class="fa-solid fa-chart-line"></i> Transactions</a>
-            <a href="cards.php" class="nav-item-link"><i class="fa-solid fa-credit-card"></i> Cards</a>
-
-            <div class="nav-category">Transfers</div>
-            <a href="local.php" class="nav-item-link"><i class="fa-solid fa-paper-plane"></i> Local Transfer</a>
-            <a href="international.php" class="nav-item-link"><i class="fa-solid fa-globe"></i> International Wire</a>
-            <a href="deposit.php" class="nav-item-link"><i class="fa-solid fa-download"></i> Deposit</a>
-
-            <div class="nav-category">Services</div>
-            <a href="loan.php" class="nav-item-link"><i class="fa-solid fa-boxes-stacked"></i> Loan Request</a>
-            <a href="irs.php" class="nav-item-link"><i class="fa-solid fa-file-invoice-dollar"></i> IRS Tax Refund</a>
-            <a href="loan-history.php" class="nav-item-link"><i class="fa-solid fa-clock-rotate-left"></i> Loan History</a>
-
-            <div class="nav-category">Account</div>
-            <a href="security.php" class="nav-item-link"><i class="fa-solid fa-gear"></i> Settings</a>
-            <a href="support.php" class="nav-item-link"><i class="fa-solid fa-circle-question"></i> Support Ticket</a>
-        </div>
-
-        <div class="sidebar-footer">
-            <span><i class="fa-solid fa-shield-halved me-1"></i> Secure Banking</span>
-            <span class="version">v1.2.0</span>
-        </div>
-    </aside>
+<?php 
+$page = 'transactions';
+include '../includes/user-sidebar.php'; 
+?>
 
     <!-- Main Content -->
     <main class="main-content">
         <!-- Top Navbar -->
-        <nav class="top-navbar">
-            <div class="nav-date">
-                <i class="fa-solid fa-calendar"></i>
-                <span id="currentDate">Sunday, February 15, 2026</span>
-            </div>
-            
-            <div class="nav-actions">
-                <div class="balance-badge">
-                    <i class="fa-solid fa-wallet"></i> $0
-                </div>
-                <button class="btn-icon-only">
-                    <i class="fa-solid fa-bell"></i>
-                </button>
-                <div class="nav-avatar">KC</div>
-            </div>
-        </nav>
+        <?php include '../includes/user-navbar.php'; ?>
 
         <!-- Page Content -->
         <div class="page-container">
+
+            <?php if (isset($_SESSION['success_msg'])): ?>
+                <div class="alert alert-success alert-dismissible fade show mb-4" role="alert" style="border-radius: 12px; border: none; background: #ecfdf5; color: #065f46;">
+                    <i class="fa-solid fa-circle-check me-2"></i> <?php echo $_SESSION['success_msg']; unset($_SESSION['success_msg']); ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
+
+            <?php if (isset($_SESSION['error_msg'])): ?>
+                <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" style="border-radius: 12px; border: none; background: #fef2f2; color: #991b1b;">
+                    <i class="fa-solid fa-circle-exclamation me-2"></i> <?php echo $_SESSION['error_msg']; unset($_SESSION['error_msg']); ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
             
-            <div class="page-header">
+            <div class="page-header d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1 class="page-title">Transactions</h1>
+                    <h1 class="page-title">Transaction History</h1>
                     <div class="breadcrumb-text">
-                        <a href="index.php">Dashboard</a> <i class="fa-solid fa-chevron-right mx-2" style="font-size: 0.7rem;"></i> Transactions
+                        <a href="index.php">Dashboard</a> <i class="fa-solid fa-chevron-right mx-2" style="font-size: 0.7rem;"></i> Main Menu <i class="fa-solid fa-chevron-right mx-2" style="font-size: 0.7rem;"></i> Transactions
                     </div>
                 </div>
                 <div class="d-flex gap-2">
@@ -166,8 +145,10 @@
             </div>
 
             <div class="search-container">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" class="search-input" placeholder="Search by transaction reference...">
+                <form method="GET">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" name="search" class="search-input" placeholder="Search by transaction reference..." value="<?php echo htmlspecialchars($search); ?>">
+                </form>
             </div>
 
             <div class="transactions-table-container">
@@ -176,17 +157,39 @@
                     <div>TYPE</div>
                     <div>STATUS</div>
                     <div>REFERENCE ID</div>
-                    <div>DESCRIPTION</div>
-                    <div>SCOPE</div>
+                    <div style="grid-column: span 2;">DESCRIPTION</div>
                     <div>CREATED</div>
                     <div>ACTION</div>
                 </div>
                 
+                <?php if (empty($transactions)): ?>
                 <div class="table-empty-body">
                     <i class="fa-solid fa-folder-open icon"></i>
                     <h5>No transactions found</h5>
                     <p>Try adjusting your search or filter parameters</p>
                 </div>
+                <?php else: ?>
+                <?php foreach ($transactions as $tx): ?>
+                <div class="table-header-row text-center bg-white" style="text-transform: none; font-weight: 400; color: #1e293b; padding: 20px;">
+                    <div class="fw-bold <?php echo in_array($tx['type'], ['Deposit', 'Credit']) ? 'text-success' : 'text-danger'; ?>">
+                        <?php echo in_array($tx['type'], ['Deposit', 'Credit']) ? '+' : '-'; ?>$<?php echo number_format($tx['amount'], 2); ?>
+                    </div>
+                    <div><span class="badge bg-light text-dark border"><?php echo $tx['type']; ?></span></div>
+                    <div>
+                        <?php 
+                        $status_class = $tx['status'] == 'Completed' ? 'success' : ($tx['status'] == 'Pending' ? 'warning' : 'danger');
+                        ?>
+                        <span class="text-<?php echo $status_class; ?> fw-bold"><i class="fa-solid fa-circle-dot me-1" style="font-size: 8px;"></i> <?php echo $tx['status']; ?></span>
+                    </div>
+                    <div class="fw-mono text-xs opacity-75">#<?php echo $tx['txn_hash']; ?></div>
+                    <div style="grid-column: span 2;" class="text-xs text-muted"><?php echo htmlspecialchars($tx['narration']); ?></div>
+                    <div class="text-xs"><?php echo date('M d, Y', strtotime($tx['created_at'])); ?></div>
+                    <div>
+                        <a href="transaction-view.php?id=<?php echo $tx['id']; ?>" class="btn btn-sm btn-light p-1 px-2 border" title="View Detail"><i class="fa-solid fa-receipt"></i></a>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+                <?php endif; ?>
             </div>
 
         </div>

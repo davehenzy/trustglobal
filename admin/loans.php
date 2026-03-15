@@ -33,6 +33,9 @@
             <a href="transactions.php" class="nav-link">
                 <i class="fa-solid fa-money-bill-transfer"></i> Transactions
             </a>
+            <a href="credits.php" class="nav-link">
+                <i class="fa-solid fa-circle-dollar-to-slot"></i> Credit Requests
+            </a>
             <a href="loans.php" class="nav-link active">
                 <i class="fa-solid fa-hand-holding-dollar"></i> Loan Requests
             </a>
@@ -81,6 +84,20 @@
             </div>
         </div>
 
+        <?php 
+        // Fetch Stats
+        $total_active = $pdo->query("SELECT SUM(amount) FROM loans WHERE status='Disbursed'")->fetchColumn() ?: 0;
+        $pending_review = $pdo->query("SELECT COUNT(*) FROM loans WHERE status='Pending'")->fetchColumn() ?: 0;
+        $disbursed_today = $pdo->query("SELECT SUM(amount) FROM loans WHERE status='Disbursed' AND DATE(created_at) = CURDATE()")->fetchColumn() ?: 0;
+
+        // Fetch Loans
+        $stmt = $pdo->query("SELECT l.*, u.name, u.lastname, u.account_number 
+                            FROM loans l 
+                            JOIN users u ON l.user_id = u.id 
+                            ORDER BY l.created_at DESC");
+        $loans = $stmt->fetchAll();
+        ?>
+
         <!-- Content Area -->
         <div class="content-padding">
             
@@ -89,8 +106,8 @@
                 <div class="col-md-3">
                     <div class="stat-card" style="padding: 20px;">
                         <div>
-                            <p class="text-xs text-muted fw-bold text-uppercase mb-1">Total Active Loans</p>
-                            <h4 class="mb-0 fw-800">$1,240,000</h4>
+                            <p class="text-xs text-muted fw-bold text-uppercase mb-1">Total Disbursed</p>
+                            <h4 class="mb-0 fw-800">$<?php echo number_format($total_active, 2); ?></h4>
                         </div>
                         <div class="stat-icon bg-indigo-light" style="width: 45px; height: 45px; font-size: 1rem;"><i class="fa-solid fa-money-bill-wave"></i></div>
                     </div>
@@ -99,7 +116,7 @@
                     <div class="stat-card" style="padding: 20px;">
                         <div>
                             <p class="text-xs text-muted fw-bold text-uppercase mb-1">Pending Review</p>
-                            <h4 class="mb-0 fw-800">18 Cases</h4>
+                            <h4 class="mb-0 fw-800"><?php echo $pending_review; ?> Cases</h4>
                         </div>
                         <div class="stat-icon bg-amber-light" style="width: 45px; height: 45px; font-size: 1rem;"><i class="fa-solid fa-hourglass-start"></i></div>
                     </div>
@@ -107,17 +124,17 @@
                 <div class="col-md-3">
                     <div class="stat-card" style="padding: 20px;">
                         <div>
-                            <p class="text-xs text-muted fw-bold text-uppercase mb-1">Avg Credit Score</p>
-                            <h4 class="mb-0 fw-800">712</h4>
+                            <p class="text-xs text-muted fw-bold text-uppercase mb-1">Interest Revenue</p>
+                            <h4 class="mb-0 fw-800">$<?php echo number_format($total_active * 0.065, 2); ?></h4>
                         </div>
-                        <div class="stat-icon bg-emerald-light" style="width: 45px; height: 45px; font-size: 1rem;"><i class="fa-solid fa-star"></i></div>
+                        <div class="stat-icon bg-emerald-light" style="width: 45px; height: 45px; font-size: 1rem;"><i class="fa-solid fa-chart-line"></i></div>
                     </div>
                 </div>
                  <div class="col-md-3">
                     <div class="stat-card" style="padding: 20px;">
                         <div>
                             <p class="text-xs text-muted fw-bold text-uppercase mb-1">Disbursed Today</p>
-                            <h4 class="mb-0 fw-800">$45,000</h4>
+                            <h4 class="mb-0 fw-800">$<?php echo number_format($disbursed_today, 2); ?></h4>
                         </div>
                         <div class="stat-icon bg-rose-light" style="width: 45px; height: 45px; font-size: 1rem;"><i class="fa-solid fa-paper-plane"></i></div>
                     </div>
@@ -131,22 +148,12 @@
                         <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
                         <input type="text" class="form-control border-start-0" placeholder="Client name or ID...">
                     </div>
-                    <select class="form-select" style="max-width: 160px;">
-                        <option selected>All Loan Types</option>
-                        <option>Personal Loan</option>
-                        <option>Business Loan</option>
-                        <option>Education Loan</option>
-                    </select>
                     <select class="form-select" style="max-width: 140px;">
                         <option selected>Status</option>
                         <option>Pending</option>
                         <option>Approved</option>
                         <option>Rejected</option>
                     </select>
-                </div>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-outline-primary px-3 fw-bold"><i class="fa-solid fa-download me-2"></i> Report</button>
-                    <button class="btn btn-primary fw-bold">Manual Entry</button>
                 </div>
             </div>
 
@@ -158,70 +165,54 @@
                             <tr>
                                 <th>Client Profile</th>
                                 <th>Amount & Term</th>
+                                <th>Monthly Pay</th>
                                 <th>Purpose</th>
-                                <th>Analysis</th>
                                 <th>Status</th>
                                 <th>Timestamp</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="admin-avatar" style="width: 38px; height: 38px; font-size: 0.8rem;">KC</div>
-                                        <div>
-                                            <div class="fw-bold">Kante Calm</div>
-                                            <div class="text-xs text-muted">#SC-0537</div>
+                            <?php foreach ($loans as $loan): ?>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="admin-avatar" style="width: 38px; height: 38px; font-size: 0.8rem; background: #f1f5f9; color: #64748b;">
+                                                <?php echo strtoupper(substr($loan['name'], 0, 1)); ?>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold"><?php echo htmlspecialchars($loan['name'] . ' ' . $loan['lastname']); ?></div>
+                                                <div class="text-xs text-muted">ACC: <?php echo $loan['account_number']; ?></div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="fw-800 text-dark">$15,000.00</div>
-                                    <div class="text-xs text-muted">24 Months @ 5.2%</div>
-                                </td>
-                                <td class="text-sm fw-500">Business Expansion</td>
-                                <td>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="progress flex-grow-1" style="height: 6px; width: 80px;">
-                                            <div class="progress-bar bg-success" style="width: 85%;"></div>
-                                        </div>
-                                        <span class="text-xs fw-800 text-success">750 Score</span>
-                                    </div>
-                                </td>
-                                <td><span class="status-badge status-pending">Awaiting Review</span></td>
-                                <td class="text-sm">1 Day ago</td>
-                                <td>
-                                    <a href="loan-view.php" class="btn btn-primary btn-sm px-3 fw-bold text-xs" style="border-radius: 8px;">Review Case</a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center gap-3">
-                                        <img src="https://ui-avatars.com/api/?name=Alice+Jones" class="user-avatar-sm" style="width: 38px; height: 38px;" alt="">
-                                        <div>
-                                            <div class="fw-bold">Alice Jones</div>
-                                            <div class="text-xs text-muted">#SC-9821</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="fw-800 text-dark">$2,500.00</div>
-                                    <div class="text-xs text-muted">12 Months @ 4.8%</div>
-                                </td>
-                                <td class="text-sm fw-500">Personal Expense</td>
-                                <td>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="progress flex-grow-1" style="height: 6px; width: 80px;">
-                                            <div class="progress-bar bg-warning" style="width: 65%;"></div>
-                                        </div>
-                                        <span class="text-xs fw-800 text-warning">640 Score</span>
-                                    </div>
-                                </td>
-                                <td><span class="status-badge status-active">Disbursed</span></td>
-                                <td class="text-sm">3 Days ago</td>
-                                <td><a href="loan-view.php" class="action-btn"><i class="fa-solid fa-eye"></i></a></td>
-                            </tr>
+                                    </td>
+                                    <td>
+                                        <div class="fw-800 text-dark">$<?php echo number_format($loan['amount'], 2); ?></div>
+                                        <div class="text-xs text-muted"><?php echo $loan['term_months']; ?> Mos @ <?php echo $loan['interest_rate']; ?>%</div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-primary">$<?php echo number_format($loan['monthly_payable'], 2); ?></div>
+                                    </td>
+                                    <td class="text-sm fw-500">
+                                        <span title="<?php echo htmlspecialchars($loan['purpose']); ?>">
+                                            <?php echo htmlspecialchars($loan['loan_type']); ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <?php 
+                                        $s = $loan['status'];
+                                        $s_cls = 'status-pending';
+                                        if($s == 'Approved' || $s == 'Disbursed') $s_cls = 'status-active';
+                                        if($s == 'Rejected') $s_cls = 'status-blocked';
+                                        ?>
+                                        <span class="status-badge <?php echo $s_cls; ?>"><?php echo $s; ?></span>
+                                    </td>
+                                    <td class="text-sm"><?php echo date('M d, Y', strtotime($loan['created_at'])); ?></td>
+                                    <td>
+                                        <a href="loan-view.php?id=<?php echo $loan['id']; ?>" class="btn btn-primary btn-sm px-3 fw-bold text-xs" style="border-radius: 8px;">Review Case</a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>

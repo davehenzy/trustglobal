@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // SwiftCapital Login Logic
 require_once 'includes/db.php';
 
@@ -25,14 +25,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             } else {
                 // Login Success!
                 $_SESSION['user_id'] = $user['id'];
-                $_SESSION['user_name'] = $user['name'];
+                $_SESSION['name'] = $user['name'];
+                $_SESSION['lastname'] = $user['lastname'];
+                $_SESSION['email'] = $user['email'];
+                $_SESSION['account_number'] = $user['account_number'];
+                $_SESSION['balance'] = $user['balance'];
+                $_SESSION['kyc_status'] = $user['kyc_status'];
+                $_SESSION['user_name'] = $user['name']; // Legacy support
                 $_SESSION['role'] = $user['role'];
 
                 // Redirect based on role
                 if ($user['role'] == 'Admin') {
                     header("Location: admin/index.php");
                 } else {
-                    header("Location: users/index.php");
+                    $_SESSION['pin_verified'] = false;
+                    header("Location: users/pin.php");
                 }
                 exit();
             }

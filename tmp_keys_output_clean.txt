@@ -1,0 +1,4 @@
+[transactions]: id, user_id, type, amount, method, status, narration, txn_hash, created_at
+[loans]: EMPTY TABLE
+[support_tickets]: id, user_id, subject, status, created_at
+[users]: id, name, middlename, lastname, username, email, password, pin, phone, country, account_type, account_number, balance, status, kyc_status, role, created_at

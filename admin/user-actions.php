@@ -1,4 +1,94 @@
-<?php require_once '../includes/admin-check.php'; ?>
+<?php 
+require_once '../includes/db.php';
+require_once '../includes/admin-check.php'; 
+
+$user_id = $_GET['id'] ?? null;
+
+if (!$user_id) {
+    header("Location: users.php");
+    exit;
+}
+
+// Fetch User
+$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+$stmt->execute([$user_id]);
+$user = $stmt->fetch();
+
+if (!$user) {
+    header("Location: users.php");
+    exit;
+}
+
+$success_msg = '';
+$error_msg = '';
+
+// Handle Actions (Credit, Debit, Status)
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['credit_user'])) {
+        $amount = (float)$_POST['amount'];
+        $narration = $_POST['narration'];
+        $backdate = $_POST['backdate'] ?? '';
+        try {
+            $pdo->beginTransaction();
+            $new_balance = $user['balance'] + $amount;
+            $pdo->prepare("UPDATE users SET balance = ? WHERE id = ?")->execute([$new_balance, $user_id]);
+            $ref = 'SWC-' . strtoupper(bin2hex(random_bytes(4)));
+            
+            if (!empty($backdate)) {
+                $stmt = $pdo->prepare("INSERT INTO transactions (user_id, type, amount, status, narration, txn_hash, method, created_at) VALUES (?, 'Credit', ?, 'Completed', ?, ?, 'Admin Credit', ?)");
+                $stmt->execute([$user_id, $amount, $narration, $ref, $backdate]);
+            } else {
+                $stmt = $pdo->prepare("INSERT INTO transactions (user_id, type, amount, status, narration, txn_hash, method) VALUES (?, 'Credit', ?, 'Completed', ?, ?, 'Admin Credit')");
+                $stmt->execute([$user_id, $amount, $narration, $ref]);
+            }
+            
+            $pdo->commit();
+            $success_msg = "Account credited successfully.";
+        } catch (Exception $e) { $pdo->rollBack(); $error_msg = $e->getMessage(); }
+    }
+    
+    if (isset($_POST['debit_user'])) {
+        $amount = (float)$_POST['amount'];
+        $narration = $_POST['narration'];
+        $backdate = $_POST['backdate'] ?? '';
+        try {
+            $pdo->beginTransaction();
+            $new_balance = $user['balance'] - $amount;
+            $pdo->prepare("UPDATE users SET balance = ? WHERE id = ?")->execute([$new_balance, $user_id]);
+            $ref = 'SWC-' . strtoupper(bin2hex(random_bytes(4)));
+
+            if (!empty($backdate)) {
+                $stmt = $pdo->prepare("INSERT INTO transactions (user_id, type, amount, status, narration, txn_hash, method, created_at) VALUES (?, 'Debit', ?, 'Completed', ?, ?, 'Admin Debit', ?)");
+                $stmt->execute([$user_id, $amount, $narration, $ref, $backdate]);
+            } else {
+                $stmt = $pdo->prepare("INSERT INTO transactions (user_id, type, amount, status, narration, txn_hash, method) VALUES (?, 'Debit', ?, 'Completed', ?, ?, 'Admin Debit')");
+                $stmt->execute([$user_id, $amount, $narration, $ref]);
+            }
+
+            $pdo->commit();
+            $success_msg = "Account debited successfully.";
+        } catch (Exception $e) { $pdo->rollBack(); $error_msg = $e->getMessage(); }
+    }
+
+    if (isset($_POST['update_status'])) {
+        $status = $_POST['status'];
+        $pdo->prepare("UPDATE users SET status = ? WHERE id = ?")->execute([$status, $user_id]);
+        $success_msg = "User status updated to $status.";
+    }
+
+    // Refresh user
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+    $stmt->execute([$user_id]);
+    $user = $stmt->fetch();
+}
+
+// Fetch Recent Activities
+$stmt = $pdo->prepare("SELECT * FROM transactions WHERE user_id = ? ORDER BY created_at DESC LIMIT 5");
+$stmt->execute([$user_id]);
+$activities = $stmt->fetchAll();
+
+$initials = strtoupper(substr($user['name'], 0, 1) . substr($user['lastname'], 0, 1));
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -237,36 +327,55 @@
         <div class="content-padding">
             
             <!-- User Summary Header -->
+            <?php if ($success_msg): ?>
+                <div class="alert alert-success alert-dismissible fade show mb-4 border-0 shadow-sm" role="alert" style="border-radius: 12px;">
+                    <i class="fa-solid fa-circle-check me-2"></i> <?php echo $success_msg; ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($error_msg): ?>
+                <div class="alert alert-danger alert-dismissible fade show mb-4 border-0 shadow-sm" role="alert" style="border-radius: 12px;">
+                    <i class="fa-solid fa-circle-exclamation me-2"></i> <?php echo $error_msg; ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <?php endif; ?>
+
             <div class="user-profile-header">
                 <div class="row align-items-center">
                     <div class="col-md-auto">
-                        <div class="profile-large-avatar">KC</div>
+                        <div class="profile-large-avatar"><?php echo $initials; ?></div>
                     </div>
                     <div class="col-md mt-3 mt-md-0">
                         <div class="d-flex align-items-center gap-2 mb-1">
-                            <h2 class="mb-0 fw-bold">Kante Calm</h2>
-                            <span class="status-badge status-active">Active</span>
+                            <h2 class="mb-0 fw-bold"><?php echo htmlspecialchars($user['name'] . ' ' . $user['lastname']); ?></h2>
+                            <?php 
+                                $s_class = 'status-pending';
+                                if ($user['status'] == 'Active') $s_class = 'status-active';
+                                if ($user['status'] == 'Blocked') $s_class = 'status-blocked';
+                            ?>
+                            <span class="status-badge <?php echo $s_class; ?>"><?php echo $user['status']; ?></span>
                         </div>
-                        <p class="mb-3 opacity-75"><i class="fa-solid fa-envelope me-2"></i> kante@example.com | <i class="fa-solid fa-hashtag ms-2 me-1"></i> #SC-0537</p>
+                        <p class="mb-3 opacity-75"><i class="fa-solid fa-envelope me-2"></i> <?php echo htmlspecialchars($user['email']); ?> | <i class="fa-solid fa-hashtag ms-2 me-1"></i> #SC-<?php echo str_pad($user['id'], 4, '0', STR_PAD_LEFT); ?></p>
                         
                         <div class="d-flex flex-wrap gap-3">
                             <div class="header-stat">
                                 <div class="header-stat-label">Available Balance</div>
-                                <div class="header-stat-value">$85,420.00</div>
+                                <div class="header-stat-value">$<?php echo number_format($user['balance'], 2); ?></div>
                             </div>
                             <div class="header-stat">
                                 <div class="header-stat-label">Account Type</div>
-                                <div class="header-stat-value">Checking</div>
+                                <div class="header-stat-value"><?php echo $user['account_type']; ?></div>
                             </div>
                             <div class="header-stat">
                                 <div class="header-stat-label">Joined Date</div>
-                                <div class="header-stat-value">Mar 12, 2026</div>
+                                <div class="header-stat-value"><?php echo date('M d, Y', strtotime($user['created_at'])); ?></div>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-auto mt-4 mt-lg-0">
                         <div class="d-flex gap-2">
-                            <a href="user-edit.php" class="btn btn-light px-4 fw-bold shadow-sm">View Full Profile</a>
+                            <a href="user-edit.php?id=<?php echo $user['id']; ?>" class="btn btn-light px-4 fw-bold shadow-sm">View Full Profile</a>
                         </div>
                     </div>
                 </div>
@@ -382,11 +491,11 @@
             </div>
 
             <div class="row mt-5">
-                <div class="col-lg-8">
+                <div class="col-lg-12">
                     <div class="data-table-card mt-0">
                         <div class="card-header">
                             <h5 class="mb-0 fw-bold">Recent Activities</h5>
-                            <button class="btn btn-sm btn-outline-primary fw-bold">View History</button>
+                            <a href="transactions.php?search=<?php echo urlencode($user['email']); ?>" class="btn btn-sm btn-outline-primary fw-bold">View History</a>
                         </div>
                         <div class="table-responsive">
                             <table class="table align-middle">
@@ -396,41 +505,34 @@
                                         <th>Amount</th>
                                         <th>Date</th>
                                         <th>Status</th>
+                                        <th>Reference</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td>
-                                            <div class="fw-bold">Bank Transfer Deposit</div>
-                                            <div class="text-xs text-muted">Ref: BT-992120</div>
-                                        </td>
-                                        <td class="fw-bold text-success">+$2,500.00</td>
-                                        <td class="text-sm">Today, 10:45 AM</td>
-                                        <td><span class="status-badge status-active">Completed</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="fw-bold">Card Withdrawal</div>
-                                            <div class="text-xs text-muted">Ref: WD-112045</div>
-                                        </td>
-                                        <td class="fw-bold text-danger">-$150.00</td>
-                                        <td class="text-sm">Yesterday, 04:20 PM</td>
-                                        <td><span class="status-badge status-active">Completed</span></td>
-                                    </tr>
+                                    <?php if (empty($activities)): ?>
+                                        <tr><td colspan="5" class="text-center py-4 text-muted">No recent activities found</td></tr>
+                                    <?php else: ?>
+                                        <?php foreach ($activities as $act): ?>
+                                        <tr>
+                                            <td>
+                                                <div class="fw-bold"><?php echo $act['type']; ?> <?php echo $act['method'] ? "($act[method])" : ""; ?></div>
+                                            </td>
+                                            <td class="fw-bold <?php echo in_array($act['type'], ['Deposit', 'Credit']) ? 'text-success' : 'text-danger'; ?>">
+                                                <?php echo in_array($act['type'], ['Deposit', 'Credit']) ? '+' : '-'; ?>$<?php echo number_format($act['amount'], 2); ?>
+                                            </td>
+                                            <td class="text-sm"><?php echo date('M d, H:i', strtotime($act['created_at'])); ?></td>
+                                            <td>
+                                                <?php 
+                                                $ast_class = $act['status'] == 'Completed' ? 'status-active' : ($act['status'] == 'Pending' ? 'status-pending' : 'status-blocked');
+                                                ?>
+                                                <span class="status-badge <?php echo $ast_class; ?>"><?php echo $act['status']; ?></span>
+                                            </td>
+                                            <td><span class="text-xs fw-mono opacity-75">#<?php echo $act['txn_hash']; ?></span></td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="data-table-card mt-lg-0">
-                        <div class="card-header">
-                            <h5 class="mb-0 fw-bold">Account Memo</h5>
-                        </div>
-                        <div class="p-4">
-                            <textarea class="form-control mb-3" rows="4" placeholder="Add administrative notes about this user..."></textarea>
-                            <button class="btn btn-primary w-100 fw-bold">Save Note</button>
-                            <p class="text-xs text-muted mt-3 mb-0 text-center"><i class="fa-solid fa-lock me-1"></i> These notes are only visible to admins.</p>
                         </div>
                     </div>
                 </div>
@@ -454,21 +556,23 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <form>
+                    <form method="POST">
+                        <input type="hidden" name="credit_user" value="1">
                         <div class="mb-3">
-                            <label class="form-label">Amount to Credit</label>
+                            <label class="form-label">Amount to Credit ($)</label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
-                                <input type="number" class="form-control" placeholder="0.00">
+                                <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" required>
                             </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Description / Narrative</label>
-                            <input type="text" class="form-control" placeholder="e.g. Bonus Credit, Wire Deposit">
+                            <input type="text" name="narration" class="form-control" placeholder="e.g. Bonus Credit, Wire Deposit" required>
                         </div>
                         <div class="mb-4">
-                            <label class="form-label">Transaction Date</label>
-                            <input type="date" class="form-control">
+                            <label class="form-label">Backdate Transaction (Optional)</label>
+                            <input type="datetime-local" name="backdate" class="form-control">
+                            <div class="form-text text-xs">Leave empty for current time</div>
                         </div>
                         <button type="submit" class="btn btn-success w-100 btn-action">Process Credit</button>
                     </form>
@@ -486,17 +590,23 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <form>
+                    <form method="POST">
+                        <input type="hidden" name="debit_user" value="1">
                         <div class="mb-3">
-                            <label class="form-label">Amount to Debit</label>
+                            <label class="form-label">Amount to Debit ($)</label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
-                                <input type="number" class="form-control" placeholder="0.00">
+                                <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" required>
                             </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Reason for Debit</label>
-                            <input type="text" class="form-control" placeholder="e.g. Service Fee, Reversal">
+                            <input type="text" name="narration" class="form-control" placeholder="e.g. Service Fee, Reversal" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Backdate Transaction (Optional)</label>
+                            <input type="datetime-local" name="backdate" class="form-control">
+                            <div class="form-text text-xs">Leave empty for current time</div>
                         </div>
                         <div class="mb-4 text-warning">
                             <div class="d-flex gap-2 align-items-center">
@@ -520,19 +630,16 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <form>
+                    <form method="POST">
+                        <input type="hidden" name="update_status" value="1">
                         <div class="mb-4">
-                            <label class="form-label">Current Status: <span class="badge bg-success">Active</span></label>
-                            <select class="form-select">
-                                <option value="active">Active (Full Access)</option>
-                                <option value="suspended">Suspended (Temporary restriction)</option>
-                                <option value="blocked">Blocked (Permanent ban)</option>
-                                <option value="pending">Pending KYC (Restricted action)</option>
+                            <label class="form-label">Current Status: <span class="badge bg-success"><?php echo $user['status']; ?></span></label>
+                            <select name="status" class="form-select">
+                                <option value="Active" <?php echo $user['status'] == 'Active' ? 'selected' : ''; ?>>Active (Full Access)</option>
+                                <option value="Pending" <?php echo $user['status'] == 'Pending' ? 'selected' : ''; ?>>Pending KYC (Restricted action)</option>
+                                <option value="Blocked" <?php echo $user['status'] == 'Blocked' ? 'selected' : ''; ?>>Blocked (Permanent ban)</option>
+                                <option value="Deactivated" <?php echo $user['status'] == 'Deactivated' ? 'selected' : ''; ?>>Deactivated</option>
                             </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Reason for Change</label>
-                            <textarea class="form-control" rows="3" placeholder="Explain why status is being updated..."></textarea>
                         </div>
                         <button type="submit" class="btn btn-warning w-100 btn-action fw-bold">Update Account Status</button>
                     </form>

@@ -1,4 +1,4 @@
-﻿<?php require_once '../includes/user-check.php'; ?>
+<?php require_once '../includes/user-check.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -369,73 +369,15 @@
 </head>
 <body>
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="brand-section">
-            <div class="brand-logo">
-                <i class="fa-solid fa-chart-simple text-primary me-2"></i>
-                <span class="swift">Swift</span><span class="capital">Capital</span>
-            </div>
-            <div class="brand-tagline">Banking At Its Best</div>
-        </div>
-
-        <div class="user-profile-widget">
-            <div class="avatar-circle">KC</div>
-            <div class="user-name">Kante Calm</div>
-            <div class="user-id">ID: 0537658047</div>
-            <button class="btn btn-kyc" onclick="location.href='verification.php'"><i class="fa-solid fa-circle-exclamation"></i> Verify KYC</button>
-            <div class="user-actions">
-                <a href="settings.php" class="btn btn-outline"><i class="fa-solid fa-user"></i> Profile</a>
-                <a href="#" class="btn btn-primary-soft"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
-            </div>
-        </div>
-
-        <div class="nav-section">
-            <div class="nav-category">Main Menu</div>
-            <a href="index.php" class="nav-item-link"><i class="fa-solid fa-house"></i> Dashboard</a>
-            <a href="transactions.php" class="nav-item-link"><i class="fa-solid fa-chart-line"></i> Transactions</a>
-            <a href="cards.php" class="nav-item-link"><i class="fa-solid fa-credit-card"></i> Cards</a>
-
-            <div class="nav-category">Transfers</div>
-            <a href="local.php" class="nav-item-link active"><i class="fa-solid fa-paper-plane"></i> Local Transfer</a>
-            <a href="international.php" class="nav-item-link"><i class="fa-solid fa-globe"></i> International Wire</a>
-            <a href="deposit.php" class="nav-item-link"><i class="fa-solid fa-download"></i> Deposit</a>
-
-            <div class="nav-category">Services</div>
-            <a href="loan.php" class="nav-item-link"><i class="fa-solid fa-boxes-stacked"></i> Loan Request</a>
-            <a href="irs.php" class="nav-item-link"><i class="fa-solid fa-file-invoice-dollar"></i> IRS Tax Refund</a>
-            <a href="loan-history.php" class="nav-item-link"><i class="fa-solid fa-clock-rotate-left"></i> Loan History</a>
-
-            <div class="nav-category">Account</div>
-            <a href="security.php" class="nav-item-link"><i class="fa-solid fa-gear"></i> Settings</a>
-            <a href="support.php" class="nav-item-link"><i class="fa-solid fa-circle-question"></i> Support Ticket</a>
-        </div>
-
-        <div class="sidebar-footer">
-            <span><i class="fa-solid fa-shield-halved me-1"></i> Secure Banking</span>
-            <span class="version">v1.2.0</span>
-        </div>
-    </aside>
+<?php 
+$page = 'local';
+include '../includes/user-sidebar.php'; 
+?>
 
     <!-- Main Content -->
     <main class="main-content">
         <!-- Top Navbar -->
-        <nav class="top-navbar">
-            <div class="nav-date">
-                <i class="fa-solid fa-calendar"></i>
-                <span id="currentDate">Thursday, March 12, 2026</span>
-            </div>
-            
-            <div class="nav-actions">
-                <div class="balance-badge">
-                    <i class="fa-solid fa-wallet"></i> $0
-                </div>
-                <button class="btn-icon-only">
-                    <i class="fa-solid fa-bell"></i>
-                </button>
-                <div class="nav-avatar">KC</div>
-            </div>
-        </nav>
+        <?php include '../includes/user-navbar.php'; ?>
 
         <!-- Page Content -->
         <div class="page-container">
@@ -465,7 +407,7 @@
                                 <div class="balance-icon-circle"><i class="fa-solid fa-wallet"></i></div>
                                 <div class="balance-text">
                                     <h6>Available Account Balance</h6>
-                                    <h4>$0.00</h4>
+                                    <h4>$<?php echo number_format($_SESSION['balance'], 2); ?></h4>
                                 </div>
                             </div>
                             <div class="status-badge-premium">Active</div>

