@@ -1,0 +1,5 @@
+--- DATABASE CHECK ---
+Found 1 users:
+ID: 1 | Username: [admin] | Email: [admin@swiftcapital.com] | Role: Admin | Status: Active
+Hash: $2y$10$Wuz0WETI/.O4ObEsjEHVVxmK37olcOxv.9A4rEChWUButE9lYqQv.
+-----------------------------------

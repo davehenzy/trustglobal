@@ -1,0 +1,6 @@
+Testing string: admin123
+Generated hash: $2y$10$BzRriZvWreKpRsXI4/PvOuMxNWWyJQP8cqJHKpABrAL9GOfj/nzvq
+Verification OK immediately after hashing.
+Database updated.
+Retrieved from DB: $2y$10$BzRriZvWreKpRsXI4/PvOuMxNWWyJQP8cqJHKpABrAL9GOfj/nzvq
+Verification OK after retrieving from DB.
