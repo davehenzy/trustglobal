@@ -1,0 +1,219 @@
+﻿<?php require_once '../includes/user-check.php'; ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction History - SwiftCapital</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+    <style>
+
+        
+        .search-container {
+            position: relative;
+            margin-bottom: 25px;
+        }
+        .search-container i {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+        }
+        .search-input {
+            width: 100%;
+            padding: 15px 20px 15px 50px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .search-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .transactions-table-container {
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .table-header-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1.5fr 2fr 1fr 1fr 1fr;
+            padding: 15px 20px;
+            background-color: #f8fafc;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table-empty-body {
+            padding: 80px 20px;
+            text-align: center;
+        }
+        .table-empty-body .icon {
+            font-size: 3.5rem;
+            color: #cbd5e1;
+            margin-bottom: 15px;
+        }
+        .table-empty-body h5 {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        .table-empty-body p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand-section">
+            <div class="brand-logo">
+                <i class="fa-solid fa-chart-simple text-primary me-2"></i>
+                <span class="swift">Swift</span><span class="capital">Capital</span>
+            </div>
+            <div class="brand-tagline">Banking At Its Best</div>
+        </div>
+
+        <div class="user-profile-widget">
+            <div class="avatar-circle">KC</div>
+            <div class="user-name">Kante Calm</div>
+            <div class="user-id">ID: 0537658047</div>
+            <button class="btn btn-kyc" onclick="location.href='verification.php'"><i class="fa-solid fa-circle-exclamation"></i> Verify KYC</button>
+            <div class="user-actions">
+                <a href="settings.php" class="btn btn-outline"><i class="fa-solid fa-user"></i> Profile</a>
+                <a href="#" class="btn btn-primary-soft"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
+            </div>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-category">Main Menu</div>
+            <a href="index.php" class="nav-item-link"><i class="fa-solid fa-house"></i> Dashboard</a>
+            <a href="transactions.php" class="nav-item-link active"><i class="fa-solid fa-chart-line"></i> Transactions</a>
+            <a href="cards.php" class="nav-item-link"><i class="fa-solid fa-credit-card"></i> Cards</a>
+
+            <div class="nav-category">Transfers</div>
+            <a href="local.php" class="nav-item-link"><i class="fa-solid fa-paper-plane"></i> Local Transfer</a>
+            <a href="international.php" class="nav-item-link"><i class="fa-solid fa-globe"></i> International Wire</a>
+            <a href="deposit.php" class="nav-item-link"><i class="fa-solid fa-download"></i> Deposit</a>
+
+            <div class="nav-category">Services</div>
+            <a href="loan.php" class="nav-item-link"><i class="fa-solid fa-boxes-stacked"></i> Loan Request</a>
+            <a href="irs.php" class="nav-item-link"><i class="fa-solid fa-file-invoice-dollar"></i> IRS Tax Refund</a>
+            <a href="loan-history.php" class="nav-item-link"><i class="fa-solid fa-clock-rotate-left"></i> Loan History</a>
+
+            <div class="nav-category">Account</div>
+            <a href="security.php" class="nav-item-link"><i class="fa-solid fa-gear"></i> Settings</a>
+            <a href="support.php" class="nav-item-link"><i class="fa-solid fa-circle-question"></i> Support Ticket</a>
+        </div>
+
+        <div class="sidebar-footer">
+            <span><i class="fa-solid fa-shield-halved me-1"></i> Secure Banking</span>
+            <span class="version">v1.2.0</span>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Navbar -->
+        <nav class="top-navbar">
+            <div class="nav-date">
+                <i class="fa-solid fa-calendar"></i>
+                <span id="currentDate">Sunday, February 15, 2026</span>
+            </div>
+            
+            <div class="nav-actions">
+                <div class="balance-badge">
+                    <i class="fa-solid fa-wallet"></i> $0
+                </div>
+                <button class="btn-icon-only">
+                    <i class="fa-solid fa-bell"></i>
+                </button>
+                <div class="nav-avatar">KC</div>
+            </div>
+        </nav>
+
+        <!-- Page Content -->
+        <div class="page-container">
+            
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Transactions</h1>
+                    <div class="breadcrumb-text">
+                        <a href="index.php">Dashboard</a> <i class="fa-solid fa-chevron-right mx-2" style="font-size: 0.7rem;"></i> Transactions
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-secondary bg-white"><i class="fa-solid fa-filter me-2"></i> Filter</button>
+                    <button class="btn btn-primary"><i class="fa-solid fa-download me-2"></i> Export</button>
+                </div>
+            </div>
+
+            <div class="search-container">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" class="search-input" placeholder="Search by transaction reference...">
+            </div>
+
+            <div class="transactions-table-container">
+                <div class="table-header-row text-center">
+                    <div>AMOUNT</div>
+                    <div>TYPE</div>
+                    <div>STATUS</div>
+                    <div>REFERENCE ID</div>
+                    <div>DESCRIPTION</div>
+                    <div>SCOPE</div>
+                    <div>CREATED</div>
+                    <div>ACTION</div>
+                </div>
+                
+                <div class="table-empty-body">
+                    <i class="fa-solid fa-folder-open icon"></i>
+                    <h5>No transactions found</h5>
+                    <p>Try adjusting your search or filter parameters</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer mt-auto">
+            <div class="brand">
+                <span class="text-primary fw-bold" style="letter-spacing: -0.5px;">Swift</span><span class="text-dark fw-bold" style="letter-spacing: -0.5px;">Capital</span> © 2026 SwiftCapital. All rights reserved.
+            </div>
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Contact Support</a>
+            </div>
+        </footer>
+    </main>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateNodes = document.querySelectorAll('#currentDate');
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const formattedDate = now.toLocaleDateString('en-US', options);
+            dateNodes.forEach(node => node.textContent = formattedDate);
+        });
+    </script>
+</body>
+</html>

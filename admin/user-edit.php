@@ -1,0 +1,226 @@
+﻿<?php require_once '../includes/admin-check.php'; ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit User - SwiftCapital Admin</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Custom Admin CSS -->
+    <link rel="stylesheet" href="admin-style.css">
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="admin-sidebar">
+        <div class="brand-area">
+            <div class="brand-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <div class="brand-name">SwiftAdmin</div>
+        </div>
+
+        <div class="nav-links">
+            <a href="index.php" class="nav-link">
+                <i class="fa-solid fa-gauge"></i> Dashboard
+            </a>
+            <a href="users.php" class="nav-link active">
+                <i class="fa-solid fa-users"></i> Users Management
+            </a>
+            <a href="transactions.php" class="nav-link">
+                <i class="fa-solid fa-money-bill-transfer"></i> Transactions
+            </a>
+            <a href="loans.php" class="nav-link">
+                <i class="fa-solid fa-hand-holding-dollar"></i> Loan Requests
+            </a>
+            <a href="kyc.php" class="nav-link">
+                <i class="fa-solid fa-id-card-clip"></i> KYC Verifications
+            </a>
+            <a href="support.php" class="nav-link">
+                <i class="fa-solid fa-headset"></i> Support Tickets
+            </a>
+            <a href="cms.php" class="nav-link">
+                <i class="fa-solid fa-pen-nib"></i> Frontend CMS
+            </a>
+            <a href="settings.php" class="nav-link">
+                <i class="fa-solid fa-gear"></i> System Settings
+            </a>
+            
+            <div class="mt-auto" style="position: absolute; bottom: 20px; width: 100%;">
+                <a href="../logout.php" class="nav-link text-danger">
+                    <i class="fa-solid fa-power-off"></i> Logout
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="breadcrumb-area">
+                <h4 class="mb-0 fw-800"><a href="users.php" class="text-decoration-none text-muted opacity-50">Users</a> <i class="fa-solid fa-chevron-right mx-2 text-xs"></i> Profile Modulation</h4>
+            </div>
+
+            <div class="user-nav">
+                <a href="users.php" class="btn btn-light-indigo btn-sm fw-800 px-3" style="border-radius: 10px;"><i class="fa-solid fa-arrow-left me-2"></i> User Directory</a>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-padding">
+            
+            <div class="row g-4">
+                <!-- User Basic Info -->
+                <div class="col-lg-8">
+                    <div class="data-table-card p-5 border-0 bg-white" style="border-radius: 24px;">
+                        <div class="d-flex align-items-center gap-4 mb-5">
+                            <div class="admin-avatar bg-indigo text-white shadow-lg" style="width: 70px; height: 70px; font-size: 1.8rem; font-weight: 800; border-radius: 20px;">KC</div>
+                            <div>
+                                <h4 class="fw-800 mb-1">Kante Calm</h4>
+                                <p class="text-muted fw-600 mb-0">Artifact ID: #SC-0537 â€¢ Registry: Jan 2026</p>
+                            </div>
+                            <div class="ms-auto">
+                                <span class="status-badge status-active px-4 py-2 fw-800" style="border-radius: 10px; font-size: 0.75rem;">LIVE ACCOUNT</span>
+                            </div>
+                        </div>
+
+                        <form>
+                            <h6 class="fw-800 text-xs text-uppercase text-muted mb-4" style="letter-spacing: 1px;">Primary Profile Variables</h6>
+                            <div class="row g-4 mb-5">
+                                <div class="col-md-6">
+                                    <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Legal Nomenclature</label>
+                                    <input type="text" class="form-control bg-light border-0 fw-600 p-3" style="border-radius: 12px;" value="Kante Calm">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Communication Endpoint (Email)</label>
+                                    <input type="email" class="form-control bg-light border-0 fw-600 p-3" style="border-radius: 12px;" value="kante@example.com">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Secure Mobile Link</label>
+                                    <input type="text" class="form-control bg-light border-0 fw-600 p-3" style="border-radius: 12px;" value="+1 234 567 890">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Account Tier Archetype</label>
+                                    <select class="form-select bg-light border-0 fw-600 p-3" style="border-radius: 12px;">
+                                        <option selected>Standard Institutional Checking</option>
+                                        <option>High-Yield Vanguard Savings</option>
+                                        <option>Digital Asset Management</option>
+                                        <option>Private Wealth Corporate</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <h6 class="fw-800 text-xs text-uppercase text-muted mb-4" style="letter-spacing: 1px;">Security Protocols</h6>
+                            <div class="row g-4 mb-5">
+                                <div class="col-md-6">
+                                    <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Modulate Passcode (Optional)</label>
+                                    <input type="password" class="form-control bg-light border-0 fw-600 p-3" style="border-radius: 12px;" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Authorization Status</label>
+                                    <select class="form-select bg-light border-0 fw-800 p-3 text-primary" style="border-radius: 12px;">
+                                        <option selected>Operational (Live)</option>
+                                        <option class="text-danger">Restricted (Suspended)</option>
+                                        <option class="text-warning">Audit Required (Pending)</option>
+                                        <option class="text-muted">Decommissioned</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-3 justify-content-end border-top pt-5">
+                                <a href="users.php" class="btn btn-light-soft px-5 py-3 fw-800" style="border-radius: 15px; background: #f1f5f9;">Discard Changes</a>
+                                <button type="submit" class="btn btn-primary px-5 py-3 fw-800 shadow-lg" style="border-radius: 15px;">Commit Profile Updates</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Balance Management (Action Sidebar) -->
+                <div class="col-lg-4">
+                    <div class="data-table-card p-5 border-0 bg-white mb-4 shadow" style="border-radius: 24px;">
+                        <h6 class="fw-800 text-xs text-uppercase text-muted mb-4" style="letter-spacing: 1px;">Manual Ledger Adjustment</h6>
+                        
+                        <div class="p-4 rounded-4 mb-5 shadow-inner" style="background: #f8fafc;">
+                            <p class="text-xs text-muted fw-800 text-uppercase mb-2">Available Liquidity</p>
+                            <h2 class="fw-800 mb-0 text-primary" style="letter-spacing: -1px;">$85,420.00</h2>
+                        </div>
+
+                        <form>
+                            <div class="mb-4">
+                                <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Adjustment Vector</label>
+                                <div class="d-flex gap-3">
+                                    <input type="radio" class="btn-check" name="fundsAction" id="credit" checked>
+                                    <label class="btn btn-outline-success border-0 bg-light px-4 py-3 fw-800 w-50" style="border-radius: 12px;" for="credit"><i class="fa-solid fa-arrow-trend-up me-2"></i> INBOUND</label>
+                                    
+                                    <input type="radio" class="btn-check" name="fundsAction" id="debit">
+                                    <label class="btn btn-outline-danger border-0 bg-light px-4 py-3 fw-800 w-50" style="border-radius: 12px;" for="debit"><i class="fa-solid fa-arrow-trend-down me-2"></i> OUTBOUND</label>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Settlement Amount ($)</label>
+                                <input type="number" class="form-control bg-light border-0 fw-800 p-4 fs-4" style="border-radius: 15px; letter-spacing: -1px;" placeholder="0.00">
+                            </div>
+
+                            <div class="mb-5">
+                                <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Protocol Narration</label>
+                                <textarea class="form-control bg-light border-0 fw-500 p-4" rows="3" style="border-radius: 15px; font-size: 0.85rem;" placeholder="Initialize administrative adjustment logic..."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-dark w-100 py-3 fw-800 shadow-lg" style="border-radius: 15px;">Authorize Ledger Entry</button>
+                        </form>
+                    </div>
+
+                    <!-- Risk Info -->
+                    <div class="data-table-card p-5 border-0 bg-white shadow-soft" style="border-radius: 24px;">
+                        <h6 class="fw-800 text-xs text-uppercase text-rose mb-4" style="letter-spacing: 1px;"><i class="fa-solid fa-shield-halved me-2"></i> Security Audit Trail</h6>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-4 d-flex justify-content-between align-items-center">
+                                <span class="text-xs fw-800 text-muted text-uppercase">Last Known IP</span>
+                                <strong class="text-sm fw-800 text-mono">192.168.1.45</strong>
+                            </li>
+                            <li class="mb-4 d-flex justify-content-between align-items-center">
+                                <span class="text-xs fw-800 text-muted text-uppercase">Primary Device</span>
+                                <strong class="text-sm fw-800">macOS Silicon</strong>
+                            </li>
+                            <li class="mb-0 d-flex justify-content-between align-items-center">
+                                <span class="text-xs fw-800 text-muted text-uppercase">Cumulative Outflows</span>
+                                <strong class="text-sm fw-800 text-rose">$4,200.00</strong>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-auto py-5 px-4 border-top bg-white text-center text-muted" style="font-size: 0.85rem;">
+            SwiftCapital Admin © 2026. Internal System Only.
+        </footer>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        .shadow-inner {
+            box-shadow: inset 0 2px 8px 0 rgba(0, 0, 0, 0.05);
+        }
+        .btn-check:checked + label {
+            background-color: var(--admin-primary) !important;
+            color: white !important;
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.2);
+        }
+        .btn-check:checked + label.btn-outline-success {
+            background-color: #10b981 !important;
+        }
+        .btn-check:checked + label.btn-outline-danger {
+            background-color: #f43f5e !important;
+        }
+    </style>
+</body>
+</html>

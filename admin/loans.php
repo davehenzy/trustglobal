@@ -1,0 +1,241 @@
+﻿<?php require_once '../includes/admin-check.php'; ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Requests - SwiftCapital Admin</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Custom Admin CSS -->
+    <link rel="stylesheet" href="admin-style.css">
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="admin-sidebar">
+        <div class="brand-area">
+            <div class="brand-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <div class="brand-name">SwiftAdmin</div>
+        </div>
+
+        <div class="nav-links">
+            <a href="index.php" class="nav-link">
+                <i class="fa-solid fa-gauge"></i> Dashboard
+            </a>
+            <a href="users.php" class="nav-link">
+                <i class="fa-solid fa-users"></i> Users Management
+            </a>
+            <a href="transactions.php" class="nav-link">
+                <i class="fa-solid fa-money-bill-transfer"></i> Transactions
+            </a>
+            <a href="loans.php" class="nav-link active">
+                <i class="fa-solid fa-hand-holding-dollar"></i> Loan Requests
+            </a>
+            <a href="kyc.php" class="nav-link">
+                <i class="fa-solid fa-id-card-clip"></i> KYC Verifications
+            </a>
+            <a href="support.php" class="nav-link">
+                <i class="fa-solid fa-headset"></i> Support Tickets
+            </a>
+            <a href="cms.php" class="nav-link">
+                <i class="fa-solid fa-pen-nib"></i> Frontend CMS
+            </a>
+            <a href="settings.php" class="nav-link">
+                <i class="fa-solid fa-gear"></i> System Settings
+            </a>
+            
+            <div class="mt-auto" style="position: absolute; bottom: 20px; width: 100%;">
+                <a href="../logout.php" class="nav-link text-danger">
+                    <i class="fa-solid fa-power-off"></i> Logout
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="breadcrumb-area">
+                <h4 class="mb-0 fw-800">Credit Requests</h4>
+            </div>
+
+            <div class="user-nav">
+                <div class="notification-bell">
+                    <i class="fa-solid fa-bell fs-5"></i>
+                    <span class="notification-dot"></span>
+                </div>
+                
+                <div class="admin-profile">
+                    <div class="admin-avatar">AD</div>
+                    <div class="d-none d-md-block">
+                        <div class="fw-bold text-sm">Admin Master</div>
+                        <div class="text-xs text-muted">Super Administrator</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-padding">
+            
+            <!-- Loan Analytics -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-3">
+                    <div class="stat-card" style="padding: 20px;">
+                        <div>
+                            <p class="text-xs text-muted fw-bold text-uppercase mb-1">Total Active Loans</p>
+                            <h4 class="mb-0 fw-800">$1,240,000</h4>
+                        </div>
+                        <div class="stat-icon bg-indigo-light" style="width: 45px; height: 45px; font-size: 1rem;"><i class="fa-solid fa-money-bill-wave"></i></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="padding: 20px;">
+                        <div>
+                            <p class="text-xs text-muted fw-bold text-uppercase mb-1">Pending Review</p>
+                            <h4 class="mb-0 fw-800">18 Cases</h4>
+                        </div>
+                        <div class="stat-icon bg-amber-light" style="width: 45px; height: 45px; font-size: 1rem;"><i class="fa-solid fa-hourglass-start"></i></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="padding: 20px;">
+                        <div>
+                            <p class="text-xs text-muted fw-bold text-uppercase mb-1">Avg Credit Score</p>
+                            <h4 class="mb-0 fw-800">712</h4>
+                        </div>
+                        <div class="stat-icon bg-emerald-light" style="width: 45px; height: 45px; font-size: 1rem;"><i class="fa-solid fa-star"></i></div>
+                    </div>
+                </div>
+                 <div class="col-md-3">
+                    <div class="stat-card" style="padding: 20px;">
+                        <div>
+                            <p class="text-xs text-muted fw-bold text-uppercase mb-1">Disbursed Today</p>
+                            <h4 class="mb-0 fw-800">$45,000</h4>
+                        </div>
+                        <div class="stat-icon bg-rose-light" style="width: 45px; height: 45px; font-size: 1rem;"><i class="fa-solid fa-paper-plane"></i></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Actions -->
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <div class="d-flex gap-2 flex-wrap">
+                    <div class="input-group" style="max-width: 320px;">
+                        <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
+                        <input type="text" class="form-control border-start-0" placeholder="Client name or ID...">
+                    </div>
+                    <select class="form-select" style="max-width: 160px;">
+                        <option selected>All Loan Types</option>
+                        <option>Personal Loan</option>
+                        <option>Business Loan</option>
+                        <option>Education Loan</option>
+                    </select>
+                    <select class="form-select" style="max-width: 140px;">
+                        <option selected>Status</option>
+                        <option>Pending</option>
+                        <option>Approved</option>
+                        <option>Rejected</option>
+                    </select>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary px-3 fw-bold"><i class="fa-solid fa-download me-2"></i> Report</button>
+                    <button class="btn btn-primary fw-bold">Manual Entry</button>
+                </div>
+            </div>
+
+            <!-- Loans Table -->
+            <div class="data-table-card mt-0">
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Client Profile</th>
+                                <th>Amount & Term</th>
+                                <th>Purpose</th>
+                                <th>Analysis</th>
+                                <th>Status</th>
+                                <th>Timestamp</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="admin-avatar" style="width: 38px; height: 38px; font-size: 0.8rem;">KC</div>
+                                        <div>
+                                            <div class="fw-bold">Kante Calm</div>
+                                            <div class="text-xs text-muted">#SC-0537</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-800 text-dark">$15,000.00</div>
+                                    <div class="text-xs text-muted">24 Months @ 5.2%</div>
+                                </td>
+                                <td class="text-sm fw-500">Business Expansion</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-grow-1" style="height: 6px; width: 80px;">
+                                            <div class="progress-bar bg-success" style="width: 85%;"></div>
+                                        </div>
+                                        <span class="text-xs fw-800 text-success">750 Score</span>
+                                    </div>
+                                </td>
+                                <td><span class="status-badge status-pending">Awaiting Review</span></td>
+                                <td class="text-sm">1 Day ago</td>
+                                <td>
+                                    <a href="loan-view.php" class="btn btn-primary btn-sm px-3 fw-bold text-xs" style="border-radius: 8px;">Review Case</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img src="https://ui-avatars.com/api/?name=Alice+Jones" class="user-avatar-sm" style="width: 38px; height: 38px;" alt="">
+                                        <div>
+                                            <div class="fw-bold">Alice Jones</div>
+                                            <div class="text-xs text-muted">#SC-9821</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-800 text-dark">$2,500.00</div>
+                                    <div class="text-xs text-muted">12 Months @ 4.8%</div>
+                                </td>
+                                <td class="text-sm fw-500">Personal Expense</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-grow-1" style="height: 6px; width: 80px;">
+                                            <div class="progress-bar bg-warning" style="width: 65%;"></div>
+                                        </div>
+                                        <span class="text-xs fw-800 text-warning">640 Score</span>
+                                    </div>
+                                </td>
+                                <td><span class="status-badge status-active">Disbursed</span></td>
+                                <td class="text-sm">3 Days ago</td>
+                                <td><a href="loan-view.php" class="action-btn"><i class="fa-solid fa-eye"></i></a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-auto py-4 px-4 border-top bg-white text-center text-muted" style="font-size: 0.85rem;">
+            SwiftCapital Admin © 2026. Internal System Only.
+        </footer>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
