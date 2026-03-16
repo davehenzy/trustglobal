@@ -124,7 +124,13 @@ $total_volume = $stmt_vol->fetchColumn() ?: 0;
                     <div class="main-balance-card mb-4">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div class="d-flex align-items-center gap-3">
-                                <div class="avatar-circle text-primary bg-white" style="width: 45px; height: 45px; font-weight:800;"><?php echo strtoupper(substr($_SESSION['name'], 0, 1)); ?></div>
+                                <div class="avatar-circle text-primary bg-white" style="width: 45px; height: 45px; font-weight:800; overflow: hidden;">
+                                    <?php if(!empty($_SESSION['profile_pic'])): ?>
+                                        <img src="../assets/uploads/profiles/<?php echo $_SESSION['profile_pic']; ?>" alt="Profile" style="width:100%; height:100%; object-fit:cover;">
+                                    <?php else: ?>
+                                        <?php echo strtoupper(substr($_SESSION['name'], 0, 1)); ?>
+                                    <?php endif; ?>
+                                </div>
                                 <div>
                                     <div class="greeting">Verified Account</div>
                                     <div class="user-name-large mb-0"><?php echo htmlspecialchars($_SESSION['name']); ?></div>

@@ -6,7 +6,13 @@
     </div>
 
     <div class="user-profile-widget">
-        <div class="avatar-circle"><?php echo strtoupper(substr($_SESSION['name'], 0, 1) . substr($_SESSION['lastname'], 0, 1)); ?></div>
+        <div class="avatar-circle" style="overflow: hidden;">
+            <?php if(!empty($_SESSION['profile_pic'])): ?>
+                <img src="../assets/uploads/profiles/<?php echo $_SESSION['profile_pic']; ?>" alt="Profile" style="width:100%; height:100%; object-fit:cover;">
+            <?php else: ?>
+                <?php echo strtoupper(substr($_SESSION['name'], 0, 1) . substr($_SESSION['lastname'], 0, 1)); ?>
+            <?php endif; ?>
+        </div>
         <div class="user-name"><?php echo htmlspecialchars($_SESSION['name'] . ' ' . $_SESSION['lastname']); ?></div>
         <div class="user-id">ID: <?php echo $_SESSION['account_number']; ?></div>
         <?php if($_SESSION['kyc_status'] != 'Verified' && $_SESSION['kyc_status'] != 'Pending'): ?>

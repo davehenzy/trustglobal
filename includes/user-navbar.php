@@ -75,8 +75,12 @@ foreach($notifs as $n) {
         </div>
 
         <div class="dropdown">
-            <div class="nav-avatar" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
-                <?php echo strtoupper(substr($_SESSION['name'], 0, 1) . substr($_SESSION['lastname'], 0, 1)); ?>
+            <div class="nav-avatar" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer; overflow: hidden;">
+                <?php if(!empty($_SESSION['profile_pic'])): ?>
+                    <img src="../assets/uploads/profiles/<?php echo $_SESSION['profile_pic']; ?>" alt="Profile" style="width:100%; height:100%; object-fit:cover;">
+                <?php else: ?>
+                    <?php echo strtoupper(substr($_SESSION['name'], 0, 1) . substr($_SESSION['lastname'], 0, 1)); ?>
+                <?php endif; ?>
             </div>
             <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2 mt-2" aria-labelledby="profileDropdown" style="border-radius: 12px; min-width: 200px;">
                 <li class="px-3 py-2 border-bottom mb-2">

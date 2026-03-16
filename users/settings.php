@@ -403,12 +403,21 @@ include '../includes/user-sidebar.php';
                     
                     <div class="profile-card">
                         <div class="profile-header">
-                            <div class="profile-avatar-large">
-                                <?php echo $initials; ?>
+                            <div class="profile-avatar-large" style="overflow: hidden; cursor: pointer;" onclick="document.getElementById('profile_pic_input').click();">
+                                <?php if(!empty($_SESSION['profile_pic'])): ?>
+                                    <img src="../assets/uploads/profiles/<?php echo $_SESSION['profile_pic']; ?>" alt="Profile" style="width:100%; height:100%; object-fit:cover;">
+                                <?php else: ?>
+                                    <?php echo $initials; ?>
+                                <?php endif; ?>
                                 <div class="avatar-camera-btn">
                                     <i class="fa-solid fa-camera"></i>
                                 </div>
                             </div>
+                            
+                            <!-- Hidden Upload Form -->
+                            <form id="profile_pic_form" action="upload-profile.php" method="POST" enctype="multipart/form-data" style="display: none;">
+                                <input type="file" name="profile_pic" id="profile_pic_input" onchange="document.getElementById('profile_pic_form').submit();" accept="image/*">
+                            </form>
                             <h4 class="profile-name"><?php echo htmlspecialchars($user['name'] . ' ' . $user['lastname']); ?></h4>
                             <div class="profile-acc">Account #<?php echo htmlspecialchars($user['account_number']); ?></div>
 
