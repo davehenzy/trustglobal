@@ -1,4 +1,4 @@
-﻿<?php require_once 'includes/db.php'; ?>
+<?php require_once 'includes/db.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -174,39 +174,39 @@
             </a>
             
             <!-- Title -->
-            <h1 class="text-4xl font-extrabold mb-6 text-center">Start Banking with Us</h1>
+            <h1 class="text-4xl font-extrabold mb-6 text-center">Initialize Relationship</h1>
             
             <!-- Description -->
             <p class="text-xl mb-8 max-w-md text-center text-white/80">
-                Create your SwiftCapital account in just a few steps and enjoy our full range of banking services.
+                Begin your secure onboarding process for institutional private wealth management and global asset preservation.
             </p>
             
             <!-- Benefits -->
             <div class="w-full max-w-md space-y-4">
                 <div class="flex items-start space-x-3">
                     <div class="flex-shrink-0 w-6 h-6 rounded-full bg-white/20 flex items-center justify-center mt-0.5">
-                        <i data-lucide="check" class="h-3 w-3"></i>
+                        <i data-lucide="shield" class="h-3 w-3"></i>
                     </div>
                     <p class="text-sm text-white/80">
-                        <span class="font-medium text-white">Secure Banking Platform</span> - Industry-leading security protocols to keep your funds safe
+                        <span class="font-medium text-white">Fiduciary Architecture</span> - Industry-leading security protocols designed for global asset preservation.
                     </p>
                 </div>
                 
                 <div class="flex items-start space-x-3">
                     <div class="flex-shrink-0 w-6 h-6 rounded-full bg-white/20 flex items-center justify-center mt-0.5">
-                        <i data-lucide="check" class="h-3 w-3"></i>
+                        <i data-lucide="globe" class="h-3 w-3"></i>
                     </div>
                     <p class="text-sm text-white/80">
-                        <span class="font-medium text-white">Fast Transfers</span> - Send and receive money quickly to anyone, anywhere
+                        <span class="font-medium text-white">Institutional Execution</span> - Real-time settlements across 140+ global markets with zero-latency.
                     </p>
                 </div>
                 
                 <div class="flex items-start space-x-3">
                     <div class="flex-shrink-0 w-6 h-6 rounded-full bg-white/20 flex items-center justify-center mt-0.5">
-                        <i data-lucide="check" class="h-3 w-3"></i>
+                        <i data-lucide="award" class="h-3 w-3"></i>
                     </div>
                     <p class="text-sm text-white/80">
-                        <span class="font-medium text-white">24/7 Account Access</span> - Manage your finances anytime, anywhere on any device
+                        <span class="font-medium text-white">Dedicated Stewardship</span> - 24/7 access to our senior board of advisors for strategic wealth growth.
                     </p>
                 </div>
             </div>
@@ -278,8 +278,8 @@
                 <!-- Progress Header -->
                 <div class="bg-gray-50 px-8 py-6 border-b border-gray-200">
                     <div class="flex justify-between items-center mb-2">
-                        <h2 class="text-2xl font-bold text-gray-900">Create Your Account</h2>
-                        <span class="text-sm font-medium text-gray-500">Step <span x-text="step"></span> of <span x-text="totalSteps"></span></span>
+                        <h2 class="text-2xl font-bold text-gray-900">Initialize Relationship</h2>
+                        <span class="text-sm font-medium text-gray-500">Milestone <span x-text="step"></span> of <span x-text="totalSteps"></span></span>
                     </div>
                     
                     <!-- Progress Bar -->
@@ -288,11 +288,11 @@
                     </div>
                     
                     <!-- Step Titles -->
-                    <div class="flex justify-between mt-2 text-xs text-gray-500">
-                        <div class="text-center" :class="{ 'text-primary-600 font-medium': step >= 1 }">Personal Info</div>
-                        <div class="text-center" :class="{ 'text-primary-600 font-medium': step >= 2 }">Contact Details</div>
-                        <div class="text-center" :class="{ 'text-primary-600 font-medium': step >= 3 }">Account Setup</div>
-                        <div class="text-center" :class="{ 'text-primary-600 font-medium': step >= 4 }">Security</div>
+                    <div class="flex justify-between mt-2 text-xs text-uppercase font-black tracking-widest text-gray-400">
+                        <div class="text-center" :class="{ 'text-primary-600': step >= 1 }">Identity Governance</div>
+                        <div class="text-center" :class="{ 'text-primary-600': step >= 2 }">Global Connectivity</div>
+                        <div class="text-center" :class="{ 'text-primary-600': step >= 3 }">Asset Alignment</div>
+                        <div class="text-center" :class="{ 'text-primary-600': step >= 4 }">Access Protocol</div>
                     </div>
                 </div>
                 

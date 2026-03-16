@@ -13,6 +13,10 @@ require_once '../includes/user-check.php';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
+    <style>
+        .ledger-hash { font-family: 'Courier New', Courier, monospace; letter-spacing: -0.5px; opacity: 0.6; }
+        .ledger-narration { font-size: 0.7rem; color: #64748b; line-height: 1.2; }
+    </style>
 </head>
 <body>
 <?php
@@ -32,6 +36,28 @@ $monthly_income = $stmt_inc->fetchColumn() ?: 0;
 $stmt_out = $pdo->prepare("SELECT SUM(amount) FROM transactions WHERE user_id = ? AND type NOT IN ('Credit', 'Deposit') AND status = 'Completed' AND created_at >= ?");
 $stmt_out->execute([$user_id, $start_of_month]);
 $monthly_outgoing = $stmt_out->fetchColumn() ?: 0;
+
+// Fetch User Cards (Institutional Highlight)
+$stmt_cards = $pdo->prepare("SELECT * FROM card_applications WHERE user_id = ? AND status = 'Approved' ORDER BY created_at DESC LIMIT 2");
+$stmt_cards->execute([$user_id]);
+$dashboard_cards = $stmt_cards->fetchAll();
+
+// Fetch Recent Transactions
+$stmt_last_tx = $pdo->prepare("SELECT * FROM transactions WHERE user_id = ? ORDER BY created_at DESC LIMIT 5");
+$stmt_last_tx->execute([$user_id]);
+$recent_transactions = $stmt_last_tx->fetchAll();
+
+// Fetch Pending Settlements Count/Volume
+$stmt_pending = $pdo->prepare("SELECT COUNT(*), SUM(amount) FROM transactions WHERE user_id = ? AND status = 'Pending'");
+$stmt_pending->execute([$user_id]);
+$pending_data = $stmt_pending->fetch();
+$pending_count = $pending_data[0] ?: 0;
+$pending_volume = $pending_data[1] ?: 0;
+
+// Fetch Total Transaction Volume (All time)
+$stmt_vol = $pdo->prepare("SELECT SUM(amount) FROM transactions WHERE user_id = ? AND status = 'Completed'");
+$stmt_vol->execute([$user_id]);
+$total_volume = $stmt_vol->fetchColumn() ?: 0;
 ?>
 
     <!-- Main Content -->
@@ -138,34 +164,34 @@ $monthly_outgoing = $stmt_out->fetchColumn() ?: 0;
                         </div>
                     </div>
 
-                    <!-- What would you like to do -->
+                    <!-- Institutional Portfolio Actions -->
                     <div class="mb-4">
-                        <h5 class="font-weight-bold mb-1">What would you like to do today?</h5>
-                        <p class="text-muted text-sm mb-3">Choose from our popular actions below</p>
+                        <h5 class="fw-bold mb-1">Portfolio Operations</h5>
+                        <p class="text-muted text-sm mb-3">Initialize strategic capital movements or account governance</p>
                         
                         <div class="row g-3">
                             <div class="col-md-3">
                                 <div class="quick-action-card qa-gray" onclick="window.location.href='settings.php'">
-                                    <div class="icon-wrapper"><i class="fa-solid fa-building"></i></div>
-                                    <div class="action-title">Account Info</div>
+                                    <div class="icon-wrapper"><i class="fa-solid fa-file-contract"></i></div>
+                                    <div class="action-title">Governance</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <div class="quick-action-card qa-blue">
-                                    <div class="icon-wrapper"><i class="fa-solid fa-paper-plane"></i></div>
-                                    <div class="action-title">Send Money</div>
+                                <div class="quick-action-card qa-blue" onclick="window.location.href='local.php'">
+                                    <div class="icon-wrapper"><i class="fa-solid fa-vault"></i></div>
+                                    <div class="action-title">Settlements</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="quick-action-card qa-green" onclick="window.location.href='deposit.php'">
                                     <div class="icon-wrapper"><i class="fa-solid fa-plus"></i></div>
-                                    <div class="action-title">Deposit</div>
+                                    <div class="action-title">Capital Inflow</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="quick-action-card qa-purple" onclick="window.location.href='transactions.php'">
                                     <div class="icon-wrapper"><i class="fa-solid fa-clock-rotate-left"></i></div>
-                                    <div class="action-title">History</div>
+                                    <div class="action-title">Ledger</div>
                                 </div>
                             </div>
                         </div>
@@ -175,15 +201,50 @@ $monthly_outgoing = $stmt_out->fetchColumn() ?: 0;
                     <div class="card card-premium mb-4">
                         <div class="card-body p-4">
                             <div class="section-header">
-                                <div class="section-title"><i class="fa-solid fa-credit-card"></i> Your Cards</div>
-                                <a href="cards.php" class="view-all-link">View all <i class="fa-solid fa-chevron-right ms-1"></i></a>
+                                <div class="section-title"><i class="fa-solid fa-credit-card"></i> Governance Cards</div>
+                                <a href="cards.php" class="view-all-link">Manage Vault <i class="fa-solid fa-chevron-right ms-1"></i></a>
                             </div>
+                            
+                            <?php if (empty($dashboard_cards)): ?>
                             <div class="empty-state">
                                 <i class="fa-solid fa-credit-card icon"></i>
-                                <h5>No cards yet</h5>
-                                <p>You haven't applied for any virtual cards yet. Apply for a new card to get started with secure online payments.</p>
+                                <h5>No active cards</h5>
+                                <p>Authorize a virtual card to begin secure global settlements and private procurement.</p>
                                 <a href="cards.php" class="btn btn-primary"><i class="fa-solid fa-plus me-1"></i> Apply for Card</a>
                             </div>
+                            <?php else: ?>
+                            <div class="row g-3">
+                                <?php foreach ($dashboard_cards as $card): 
+                                    $gradients = ['standard'=>'135deg,#375987,#002d62', 'gold'=>'135deg,#d97706,#b45309', 'platinum'=>'135deg,#475569,#1e293b', 'black'=>'135deg,#1e293b,#000'];
+                                    $grad = $gradients[$card['card_tier']] ?? $gradients['standard'];
+                                    $netIcons = ['visa'=>'fa-brands fa-cc-visa', 'mastercard'=>'fa-brands fa-cc-mastercard', 'amex'=>'fa-brands fa-cc-amex'];
+                                    $netIcon = $netIcons[$card['card_type']] ?? 'fa-solid fa-credit-card';
+                                ?>
+                                <div class="col-md-6">
+                                    <div class="p-3 shadow-lg" style="background: linear-gradient(<?php echo $grad; ?>); border-radius: 16px; color: #fff; position: relative; overflow: hidden; height: 165px; border: 1px solid rgba(255,255,255,0.1);">
+                                        <div style="position:absolute; top:-20%; right:-10%; width:150px; height:150px; background:radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 75%); border-radius:50%;"></div>
+                                        <div class="d-flex justify-content-between align-items-center mb-4">
+                                            <span class="fw-900 x-small tracking-widest opacity-75">SWIFT CAPITAL</span>
+                                            <i class="<?php echo $netIcon; ?> fs-4"></i>
+                                        </div>
+                                        <div class="mb-3 fs-5 tracking-widest fw-bold opacity-90" style="letter-spacing: 2px;">
+                                            •••• •••• •••• <?php echo substr($card['card_number'], -4); ?>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-end mt-2">
+                                            <div>
+                                                <div class="x-small text-uppercase opacity-50" style="font-size: 0.6rem;">Fiduciary Holder</div>
+                                                <div class="small fw-bold"><?php echo strtoupper($card['cardholder_name']); ?></div>
+                                            </div>
+                                            <div class="text-end">
+                                                <div class="x-small text-uppercase opacity-50" style="font-size: 0.6rem;">Limit Status</div>
+                                                <div class="px-2 py-0 bg-white text-dark rounded-pill fw-bold" style="font-size: 0.6rem;"><?php echo $card['card_tier']; ?></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -191,15 +252,51 @@ $monthly_outgoing = $stmt_out->fetchColumn() ?: 0;
                     <div class="card card-premium">
                         <div class="card-body p-4">
                             <div class="section-header">
-                                <div class="section-title"><i class="fa-solid fa-list-ul"></i> Recent Transactions</div>
-                                <a href="transactions.php" class="view-all-link">View all <i class="fa-solid fa-chevron-right ms-1"></i></a>
+                                <div class="section-title"><i class="fa-solid fa-list-ul"></i> Transaction Ledger</div>
+                                <a href="transactions.php" class="view-all-link">View full history <i class="fa-solid fa-chevron-right ms-1"></i></a>
                             </div>
+
+                            <?php if (empty($recent_transactions)): ?>
                             <div class="empty-state">
                                 <i class="fa-solid fa-inbox icon"></i>
-                                <h5>No transactions yet</h5>
-                                <p>Your transaction history will appear here</p>
-                                <a href="deposit.php" class="btn btn-primary">Make your first deposit</a>
+                                <h5>No settlements recorded</h5>
+                                <p>Your historical asset movements will appear in this ledger once initialized.</p>
+                                <a href="deposit.php" class="btn btn-primary">Initialize first top-up</a>
                             </div>
+                            <?php else: ?>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <tbody>
+                                        <?php foreach ($recent_transactions as $tx): 
+                                            $is_credit = in_array($tx['type'], ['Credit', 'Deposit']);
+                                            $type_icon = $is_credit ? 'fa-arrow-down-left' : 'fa-arrow-up-right';
+                                            $type_color = $is_credit ? 'text-success' : 'text-danger';
+                                            $type_bg = $is_credit ? 'bg-success-light' : 'bg-danger-light';
+                                            $disp_remark = !empty($tx['narration']) ? $tx['narration'] : (!empty($tx['remark']) ? $tx['remark'] : 'Institutional Settlement');
+                                        ?>
+                                        <tr>
+                                            <td style="width: 45px;">
+                                                <div class="avatar-circle <?php echo $type_color; ?> <?php echo $type_bg; ?>" style="width: 35px; height: 35px; font-size: 0.8rem;">
+                                                    <i class="fa-solid <?php echo $type_icon; ?>"></i>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="fw-bold small mb-0"><?php echo htmlspecialchars($disp_remark); ?></div>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="ledger-hash x-small">#<?php echo substr($tx['txn_hash'] ?? '0x'.bin2hex(random_bytes(4)), 0, 12); ?></span>
+                                                    <span class="text-muted x-small">· <?php echo date('M d', strtotime($tx['created_at'])); ?></span>
+                                                </div>
+                                            </td>
+                                            <td class="text-end">
+                                                <div class="fw-900 <?php echo $type_color; ?>"><?php echo $is_credit ? '+' : '-'; ?>$<?php echo number_format($tx['amount'], 2); ?></div>
+                                                <span class="badge rounded-pill <?php echo $tx['status'] == 'Completed' ? 'bg-success' : 'bg-warning'; ?> x-small" style="font-size: 0.5rem; letter-spacing: 0.5px;"><?php echo strtoupper($tx['status']); ?></span>
+                                            </td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -210,62 +307,85 @@ $monthly_outgoing = $stmt_out->fetchColumn() ?: 0;
                     
                     <!-- Account Statistics -->
                     <div class="widget-card">
-                        <div class="widget-title">Account Statistics</div>
+                        <div class="widget-title">Governance Metrics</div>
                         
                         <div class="stat-item">
-                            <div class="icon bg-blue-light"><i class="fa-solid fa-credit-card"></i></div>
+                            <div class="icon bg-blue-light"><i class="fa-solid fa-shield-halved"></i></div>
                             <div class="info">
-                                <div class="label">Transaction Limit</div>
+                                <div class="label">Sovereign Limit</div>
                                 <div class="value">$500,000.00</div>
                             </div>
                         </div>
                         
                         <div class="stat-item">
-                            <div class="icon bg-warning text-white" style="background-color: #fcd34d !important;"><i class="fa-solid fa-clock"></i></div>
+                            <div class="icon bg-warning-light text-warning" style="background: rgba(245, 158, 11, 0.1) !important;"><i class="fa-solid fa-clock-rotate-left"></i></div>
                             <div class="info">
-                                <div class="label">Pending Transactions</div>
-                                <div class="value">$0.00</div>
+                                <div class="label">Pending Settlements</div>
+                                <div class="value"><?php echo $pending_count; ?> <span class="text-xs text-muted fw-normal">($<?php echo number_format($pending_volume, 2); ?>)</span></div>
                             </div>
                         </div>
 
                         <div class="stat-item">
-                            <div class="icon bg-green-light"><i class="fa-solid fa-chart-column"></i></div>
+                            <div class="icon bg-green-light"><i class="fa-solid fa-chart-line"></i></div>
                             <div class="info">
-                                <div class="label">Transaction Volume</div>
-                                <div class="value">$0.00</div>
+                                <div class="label">Aggregated Volume</div>
+                                <div class="value">$<?php echo number_format($total_volume, 2); ?></div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Quick Transfer -->
+                    <!-- Global Asset Settlements -->
                     <div class="widget-card">
-                        <div class="widget-title">Quick Transfer</div>
+                        <div class="widget-title">Asset Settlements</div>
                         
-                        <div class="transfer-item">
-                            <div class="icon"><i class="fa-solid fa-user"></i></div>
+                        <div class="transfer-item" onclick="location.href='local.php'">
+                            <div class="icon text-primary"><i class="fa-solid fa-building-columns"></i></div>
                             <div class="details">
-                                <div class="title">Local Transfer</div>
-                                <div class="desc">0% Handling charges</div>
+                                <div class="title small fw-bold">Intra-Network Settlement</div>
+                                <div class="desc x-small">Zero-latency capital movement</div>
                             </div>
-                            <i class="fa-solid fa-chevron-right chevron"></i>
+                            <i class="fa-solid fa-chevron-right chevron fs-xs"></i>
                         </div>
                         
-                        <div class="transfer-item">
-                            <div class="icon"><i class="fa-solid fa-globe"></i></div>
+                        <div class="transfer-item" onclick="location.href='wire.php'">
+                            <div class="icon text-danger"><i class="fa-solid fa-globe"></i></div>
                             <div class="details">
-                                <div class="title">International Transfer</div>
-                                <div class="desc">Capital reach, 0% fee</div>
+                                <div class="title small fw-bold">Cross-Border Wire</div>
+                                <div class="desc x-small">SWIFT / SEPA / FedWire</div>
                             </div>
-                            <i class="fa-solid fa-chevron-right chevron"></i>
+                            <i class="fa-solid fa-chevron-right chevron fs-xs"></i>
                         </div>
                     </div>
 
-                    <!-- Need Help -->
-                    <div class="widget-card help-widget">
-                        <div class="icon"><i class="fa-solid fa-circle-question"></i></div>
-                        <h4>Need Help?</h4>
-                        <p>Our support team is here to assist you 24/7</p>
-                        <button class="btn w-100" onclick="location.href='support.php'"><i class="fa-solid fa-comment-dots me-2"></i> Contact Support</button>
+                    <!-- Institutional Market Insights -->
+                    <div class="widget-card">
+                        <div class="widget-title">Institutional Insights</div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small fw-bold">S&P 500</span>
+                                <span class="text-success small">+0.42% <i class="fa-solid fa-arrow-up"></i></span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small fw-bold">XAU/USD (Gold)</span>
+                                <span class="text-danger small">-0.15% <i class="fa-solid fa-arrow-down"></i></span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="small fw-bold">BTC/USD</span>
+                                <span class="text-success small">+2.18% <i class="fa-solid fa-arrow-up"></i></span>
+                            </div>
+                        </div>
+                        <hr class="opacity-10 my-2">
+                        <div class="small text-muted p-2 bg-light rounded">
+                            <i class="fa-solid fa-circle-info me-1"></i> Market yields are currently showing stabilization in secondary bond markets. Contact your advisor for tactical shifts.
+                        </div>
+                    </div>
+
+                    <!-- Strategic Advisory -->
+                    <div class="widget-card help-widget" style="background: var(--primary-color) !important;">
+                        <div class="icon"><i class="fa-solid fa-user-tie"></i></div>
+                        <h4 class="text-white">Strategic Advisory</h4>
+                        <p class="text-white opacity-75">Your dedicated board of advisors is on standby for capital settlement and strategic inquiries.</p>
+                        <button class="btn btn-light w-100" onclick="location.href='support.php'"><i class="fa-solid fa-comment-dots me-2"></i> Contact Advisor</button>
                     </div>
 
                 </div>
@@ -274,14 +394,24 @@ $monthly_outgoing = $stmt_out->fetchColumn() ?: 0;
         </div>
 
         <!-- Footer -->
-        <footer class="main-footer">
-            <div class="brand">
-                <span class="text-primary fw-bold" style="letter-spacing: -0.5px;">Swift</span><span class="text-dark fw-bold" style="letter-spacing: -0.5px;">Capital</span> © 2026 SwiftCapital. All rights reserved.
-            </div>
-            <div class="footer-links">
-                <a href="#">Privacy Policy</a>
-                <a href="#">Terms of Service</a>
-                <a href="#">Contact Support</a>
+        <footer class="main-footer border-top bg-white">
+            <div class="container-fluid py-4">
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <div class="brand">
+                            <span class="fw-bold" style="color: var(--norby-blue);">Swift</span><span class="fw-bold" style="color: var(--brand-red);">Capital</span> 
+                            <span class="text-muted small ms-2">© 2026. Global HQ: Zurich.</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <p class="x-small text-muted mb-0 font-italic text-uppercase ls-1">Approved for Institutional & Private Clients Only</p>
+                    </div>
+                    <div class="col-md-4 text-end footer-links">
+                        <li class="list-inline-item"><a href="#" class="small text-muted text-decoration-none">Privacy Policy</a></li>
+                        <li class="list-inline-item ms-3"><a href="#" class="small text-muted text-decoration-none">Governance Charter</a></li>
+                        <li class="list-inline-item ms-3"><a href="#" class="small text-muted text-decoration-none">Contact Support</a></li>
+                    </div>
+                </div>
             </div>
         </footer>
 

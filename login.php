@@ -1,4 +1,4 @@
-﻿<?php require_once 'includes/db.php'; ?>
+<?php require_once 'includes/db.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -174,38 +174,38 @@
             </a>
 
             <!-- Title -->
-            <h1 class="text-4xl font-extrabold mb-6 text-center">Swift Money Transfer</h1>
+            <h1 class="text-4xl font-extrabold mb-6 text-center">Institutional Client Access</h1>
 
             <!-- Description -->
             <p class="text-xl mb-8 max-w-md text-center text-white/80">
-                Swift and Secure Money Transfer to any bank account will become a breeze with SwiftCapital.
+                Secure portal for the management of global capital, asset settlements, and strategic private advisory.
             </p>
 
             <!-- Features -->
             <div class="grid grid-cols-2 gap-6 w-full max-w-md">
                 <div class="flex items-center space-x-3">
                     <div class="flex-shrink-0 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                        <i data-lucide="shield" class="h-5 w-5"></i>
+                        <i data-lucide="vault" class="h-5 w-5"></i>
                     </div>
-                    <span>Secure Transfers</span>
+                    <span>Capital Sovereignty</span>
                 </div>
                 <div class="flex items-center space-x-3">
                     <div class="flex-shrink-0 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                        <i data-lucide="zap" class="h-5 w-5"></i>
+                        <i data-lucide="bar-chart-3" class="h-5 w-5"></i>
                     </div>
-                    <span>Lightning Fast</span>
+                    <span>Strategic Yield</span>
                 </div>
                 <div class="flex items-center space-x-3">
                     <div class="flex-shrink-0 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                        <i data-lucide="globe" class="h-5 w-5"></i>
+                        <i data-lucide="globe-2" class="h-5 w-5"></i>
                     </div>
-                    <span>Global Access</span>
+                    <span>Global Settlements</span>
                 </div>
                 <div class="flex items-center space-x-3">
                     <div class="flex-shrink-0 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                        <i data-lucide="smartphone" class="h-5 w-5"></i>
+                        <i data-lucide="shield-check" class="h-5 w-5"></i>
                     </div>
-                    <span>Mobile Ready</span>
+                    <span>Board Governance</span>
                 </div>
             </div>
         </div>
@@ -227,9 +227,9 @@
             <!-- Login Card -->
             <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
                 <!-- Card Header -->
-                <div class="px-8 pt-8 pb-6">
-                    <h2 class="text-2xl font-bold text-gray-900">Sign In to SwiftCapital</h2>
-                    <p class="mt-2 text-sm text-gray-600">Access the SwiftCapital panel using your email and password.</p>
+                <div class="px-8 pt-8 pb-6 text-center">
+                    <h2 class="text-2xl font-bold text-gray-900">Secure Panel Access</h2>
+                    <p class="mt-2 text-sm text-gray-600">Enter your institutional credentials to authorize session initialization.</p>
                 </div>
 
                 <!-- Login Form -->
@@ -293,9 +293,9 @@
 
                         <!-- Buttons -->
                         <div class="flex flex-col space-y-4">
-                            <button type="submit" class="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg shadow transition duration-150 ease-in-out flex items-center justify-center">
-                                <i data-lucide="log-in" class="h-5 w-5 mr-2"></i>
-                                Sign In
+                            <button type="submit" class="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-black text-uppercase tracking-widest text-xs rounded-lg shadow transition duration-150 ease-in-out flex items-center justify-center">
+                                <i data-lucide="key" class="h-4 w-4 mr-2"></i>
+                                AUTHORIZE ACCESS
                             </button>
 
                             <a href="register.php" class="w-full py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition duration-150 ease-in-out flex items-center justify-center">
