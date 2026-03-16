@@ -318,6 +318,10 @@ function time_ago($timestamp) {
             });
         }
 
+        if(dropdown) {
+            dropdown.addEventListener('click', (e) => e.stopPropagation());
+        }
+
         document.addEventListener('click', () => dropdown.classList.remove('show'));
 
         function showToast(title, message, type = 'success') {

@@ -343,7 +343,7 @@ function time_ago($timestamp) {
                             <?php endif; ?>
                         </div>
                         <div class="notif-footer">
-                            <a href="#">Clear all notifications</a>
+                            <a href="#" id="clearNotifs">Clear all notifications</a>
                         </div>
                     </div>
                 </div>
@@ -871,7 +871,25 @@ function time_ago($timestamp) {
             dropdown.classList.toggle('show');
         });
 
+        dropdown.addEventListener('click', (e) => e.stopPropagation());
+
         document.addEventListener('click', () => dropdown.classList.remove('show'));
+
+        const clearBtn = document.getElementById('clearNotifs');
+        if(clearBtn) {
+            clearBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                fetch('clear-notifs.php', { method: 'POST' })
+                .then(() => {
+                    const dot = document.querySelector('.notification-dot');
+                    if(dot) dot.remove();
+                    const badge = document.querySelector('.unread-badge');
+                    if(badge) badge.innerText = '0 New';
+                    document.querySelectorAll('.notif-item.unread').forEach(item => item.classList.remove('unread'));
+                    showToast('Notifications Cleared', 'All alerts have been marked as read.', 'success');
+                });
+            });
+        }
 
         function showToast(title, message, type = 'success') {
             const container = document.getElementById('toastContainer');

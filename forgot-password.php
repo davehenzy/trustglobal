@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <title>Forgot Password - SwiftCapital</title>
@@ -13,7 +13,7 @@
 
 
     <!-- Tailwind CSS -->
-    <script src="3.4.17"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -57,11 +57,10 @@
     </script>
 
     <!-- Alpine.js -->
-    <script defer="" src="npm/alpinejs%403.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <!-- Lucide Icons -->
-    <script src="lucide%400.564.0/dist/umd/lucide.min.js"></script>
-    <script src="npm/lucide%40latest/dist/umd/lucide.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
