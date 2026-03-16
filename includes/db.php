@@ -1,5 +1,14 @@
-﻿<?php
+<?php
 // SwiftCapital Database Connection
+
+// Define Security Constant
+define('SWIFTCAP_SECURE', true);
+
+// Set Security Headers
+header("X-Frame-Options: SAMEORIGIN");
+header("X-Content-Type-Options: nosniff");
+header("X-XSS-Protection: 1; mode=block");
+header("Referrer-Policy: strict-origin-when-cross-origin");
 
 $host = 'localhost';
 $dbname = 'swiftcapital_db';
@@ -28,5 +37,14 @@ function cleanInput($data) {
 // Session start for authentication
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
+}
+
+// Session Security: Regenerate ID occasionally (e.g., every 30 mins)
+if (!isset($_SESSION['last_regeneration'])) {
+    session_regenerate_id(true);
+    $_SESSION['last_regeneration'] = time();
+} elseif (time() - $_SESSION['last_regeneration'] > 1800) {
+    session_regenerate_id(true);
+    $_SESSION['last_regeneration'] = time();
 }
 ?>

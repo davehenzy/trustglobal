@@ -1,4 +1,5 @@
 <?php
+if(!defined('SWIFTCAP_SECURE')) exit('Direct access prohibited');
 // Fetch Notifications for Navbar
 $stmt_notif = $pdo->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 10");
 $stmt_notif->execute([$_SESSION['user_id']]);

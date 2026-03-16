@@ -1,3 +1,4 @@
+<?php if(!defined('SWIFTCAP_SECURE')) exit('Direct access prohibited'); ?>
 <aside class="sidebar">
     <div class="brand-section">
         <a href="index.php" class="d-block py-2">
