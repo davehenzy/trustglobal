@@ -11,9 +11,7 @@ function getSetting($key, $default = '') {
     return $settings[$key] ?? $default;
 }
 
-// Fetch all services
-$stmt = $pdo->query("SELECT * FROM services ORDER BY sort_order ASC, id DESC LIMIT 4");
-$db_services = $stmt->fetchAll();
+$site_name = getSetting('site_name', 'SwiftCapital');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -21,495 +19,506 @@ $db_services = $stmt->fetchAll();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SwiftCapital - Modern Banking Solutions</title>
-    <meta name="google-site-verification" content="">
-    <title>SwiftCapital</title>
-    <meta name="description" content="SwiftCapital | We are here to serve you better and help save your money without charges..">
-    <meta property="og:locale" content="en_EN">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="SwiftCapital - We are here to serve you better and help save your money without charges..">
-    <meta property="og:description" content="SwiftCapital | We are here to serve you better and help save your money without charges">
-    <meta property="og:image" content="/assets/images/SWC%20Icon%20Dark.png">
-    <meta property="og:url" content="https://trustsglobal.com">
-    <meta property="og:site_name" content="SwiftCapital">
-
-    <!--favicon icon-->
+    <title><?php echo $site_name; ?> - Institutional Private Banking & Capital Management</title>
+    <meta name="description" content="Elite financial services for institutional investors and private wealth. Experience global banking excellence with <?php echo $site_name; ?>.">
+    
+    <!-- Favicon -->
     <link rel="icon" href="assets/images/SWC%20Icon%20Dark.png" type="image/png" sizes="16x16">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <!-- Bootstrap CSS -->
     <link href="npm/bootstrap%405.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="npm/bootstrap-icons%401.11.0/font/bootstrap-icons.css">
-<link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <style>
+        :root {
+            --norby-blue: #002d62;
+            --brand-red: #E21936;
+            --charcoal-gray: #101010;
+            --brand-white: #ffffff;
+            --primary-font: 'Lato', sans-serif;
+            --secondary-font: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            font-family: var(--primary-font);
+            background-color: var(--brand-white);
+            color: var(--charcoal-gray);
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--secondary-font);
+            letter-spacing: -0.02em;
+        }
+
+        .hero {
+            position: relative;
+            padding: 220px 0 160px;
+            background: var(--norby-blue);
+            color: var(--brand-white);
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: url('modern_office_workspace_1773622619884.png') center/cover;
+            opacity: 0.15;
+            z-index: 0;
+            filter: grayscale(100%);
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to right, var(--norby-blue) 0%, rgba(0, 45, 98, 0.4) 100%);
+            z-index: 1;
+        }
+
+        .hero .container { position: relative; z-index: 2; }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 2rem;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            opacity: 0.8;
+            max-width: 600px;
+            line-height: 1.8;
+            margin-bottom: 3rem;
+        }
+
+        .premium-btn {
+            padding: 18px 45px;
+            border-radius: 0;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        .btn-red { background: var(--brand-red); color: var(--brand-white); border: none; }
+        .btn-red:hover { background: var(--charcoal-gray); transform: translateY(-3px); box-shadow: 0 10px 30px rgba(226, 25, 54, 0.3); color: white; }
+
+        .btn-outline-executive { border: 2px solid var(--brand-white); color: var(--brand-white); }
+        .btn-outline-executive:hover { background: var(--brand-white); color: var(--norby-blue); }
+
+        .feature-card-premium {
+            background: var(--brand-white);
+            padding: 50px 40px;
+            border: 1px solid #edf2f7;
+            height: 100%;
+            transition: all 0.4s;
+            position: relative;
+        }
+
+        .feature-card-premium:hover {
+            border-bottom: 4px solid var(--brand-red);
+            transform: translateY(-10px);
+            box-shadow: 0 30px 70px rgba(0,0,0,0.06);
+        }
+
+        .feature-icon-box {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--norby-blue);
+            margin-bottom: 2.5rem;
+            border-left: 3px solid var(--brand-red);
+            padding-left: 15px;
+        }
+
+        .stat-banner {
+            background: var(--brand-white);
+            margin-top: -60px;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.08);
+            position: relative;
+            z-index: 10;
+        }
+
+        .stat-col {
+            padding: 50px 40px;
+            text-align: center;
+            border-right: 1px solid #f1f5f9;
+        }
+
+        .stat-col:last-child { border-right: none; }
+
+        .stat-col h2 { font-size: 2.5rem; font-weight: 900; color: var(--norby-blue); margin-bottom: 5px; }
+        .stat-col p { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: var(--brand-red); margin: 0; }
+
+        .section-title-executive {
+            text-align: center;
+            margin-bottom: 6rem;
+        }
+
+        .section-title-executive span {
+            color: var(--brand-red);
+            text-transform: uppercase;
+            font-weight: 900;
+            letter-spacing: 4px;
+            font-size: 0.8rem;
+            display: block;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title-executive h2 { font-size: 3rem; font-weight: 900; color: var(--norby-blue); }
+
+        .testimonial-executive {
+            background: var(--brand-white);
+            padding: 60px;
+            border-left: 5px solid var(--brand-red);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.03);
+            height: 100%;
+        }
+
+        .testimonial-text {
+            font-size: 1.15rem;
+            font-weight: 600;
+            line-height: 1.8;
+            color: #4a5568;
+            margin-bottom: 2rem;
+            font-style: italic;
+        }
+
+        .testimonial-author h6 { font-weight: 900; color: var(--norby-blue); margin: 0; font-size: 1rem; }
+        .testimonial-author p { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--brand-red); margin: 0; letter-spacing: 1px; }
+
+        .py-150 { padding: 150px 0; }
+
+        @media (max-width: 991px) {
+            .hero h1 { font-size: 2.8rem; }
+            .py-150 { padding: 100px 0; }
+        }
+
+        .ls-2 { letter-spacing: 2px; }
+        .fw-900 { font-weight: 900; }
+    </style>
 </head>
 
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top border-bottom py-3">
         <div class="container">
-            <a class="navbar-brand" style="width: 150px" href="index.php">
-                <img src="assets/images/SWC%20Secondary%20Logo%20Light.png" alt="SwiftCapital Logo" height="50">
+            <a class="navbar-brand" style="width: 170px" href="index.php">
+                <!-- Landscape Secondary Logo used in Navbar -->
+                <img src="assets/images/SWC%20Secondary%20Logo%20Dark.png" alt="<?php echo $site_name; ?> Logo" height="55">
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="bi bi-list fs-1" style="color: var(--norby-blue);"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-    <a class="nav-link" href="index.php">Home</a>
-</li>
-<li class="nav-item">
-    <a class="nav-link" href="about.php">About</a>
-</li>
-<li class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle" href="services.php" id="servicesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-        Services
-    </a>
-    <ul class="dropdown-menu" aria-labelledby="servicesDropdown">
-        <li><a class="dropdown-item" href="services.php#person-banking">Personal Banking</a></li>
-        <li><a class="dropdown-item" href="services.php#business-banking">Business Banking</a></li>
-        <li><a class="dropdown-item" href="services.php#corporate-banking">Corporate Banking</a></li>
-        <li><a class="dropdown-item" href="services.php#loan-banking">Loans & Mortgages</a></li>
-        <li><a class="dropdown-item" href="services.php#investment-banking">Investments</a></li>
-    </ul>
-</li>
-<li class="nav-item">
-    <a class="nav-link" href="careers.php">Careers</a>
-</li> 
-<li class="nav-item">
-    <a class="nav-link" href="contact.php">Contact</a>
-</li>
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item"><a class="nav-link fw-bold px-3 text-uppercase letter-spacing-1" href="index.php">Institutional</a></li>
+                    <li class="nav-item"><a class="nav-link fw-bold px-3 text-uppercase letter-spacing-1" href="about.php">Our Story</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle fw-bold px-3 text-uppercase letter-spacing-1" href="#" id="servicesDropdown" role="button" data-bs-toggle="dropdown">Expertise</a>
+                        <ul class="dropdown-menu shadow-lg border-0 p-0 rounded-0">
+                            <li><a class="dropdown-item py-3 fw-bold border-bottom" href="services.php#person-banking">Private Banking</a></li>
+                            <li><a class="dropdown-item py-3 fw-bold border-bottom" href="services.php#business-banking">Asset Management</a></li>
+                            <li><a class="dropdown-item py-3 fw-bold" href="services.php#corporate-banking">Corporate Finance</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a class="nav-link fw-bold px-3 text-uppercase letter-spacing-1" href="careers.php">Careers</a></li> 
+                    <li class="nav-item"><a class="nav-link fw-bold px-3 text-uppercase letter-spacing-1" href="contact.php">Advisory</a></li>
+                    <li class="nav-item ms-lg-5">
+                        <a href="login.php" class="premium-btn btn-red text-decoration-none">Client Access</a>
+                    </li>
                 </ul>
-                <div class="d-flex ms-lg-4">
-                                            <a href="logout.php" class="btn btn-outline-primary me-2">Log In</a>
-                        <a href="register.php" class="btn btn-primary">Open Account</a>
-                                    </div>
             </div>
         </div>
     </nav>
-    <section class="hero" data-aos="fade-up">
-    <div class="container">
-        <div class="row align-items-center hero-content">
-            <div class="col-lg-6">
-                <h1><?php echo getSetting('hero_headline', 'Banking Made Simple, Secure, and Smart'); ?></h1>
-                <p><?php echo getSetting('hero_description', 'Experience the next generation of banking with SwiftCapital. We combine cutting-edge technology with personalized service to provide you with the best banking experience.'); ?></p>
-                <div class="d-flex flex-wrap">
-                    <a href="register.php" class="btn btn-light btn-lg me-3 mb-3"><?php echo getSetting('hero_cta_primary', 'Open Account'); ?></a>
-                    <a href="about.php" class="btn btn-outline-light btn-lg mb-3"><?php echo getSetting('hero_cta_secondary', 'Learn More'); ?></a>
-                </div>
-            </div>
-            <div class="col-lg-6 d-none d-lg-block">
-                <img src="assets/images/photo-1563013544-824ae1b704d3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Banking App" class="img-fluid rounded-4 shadow-lg">
-            </div>
-        </div>
-    </div>
-</section>
-<section class="py-5" data-aos="fade-up">
-    <div class="container">
-        <div class="row text-center mb-5">
-            <div class="col-lg-8 mx-auto">
-                <h2 class="fw-bold mb-3">Why Choose SwiftCapital?</h2>
-                <p class="text-muted">We offer a comprehensive range of banking services designed to meet your financial
-                    needs.</p>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-4 mb-4">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="bi bi-shield-lock"></i>
-                    </div>
-                    <h4 class="fw-bold mb-3">Secure Banking</h4>
-                    <p class="text-muted mb-0">Your security is our priority. We use advanced encryption and
-                        multi-factor authentication to keep your accounts safe.</p>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="bi bi-phone"></i>
-                    </div>
-                    <h4 class="fw-bold mb-3">Mobile Banking</h4>
-                    <p class="text-muted mb-0">Bank on the go with our award-winning mobile app. Check balances,
-                        transfer funds, and pay bills from anywhere.</p>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="bi bi-graph-up"></i>
-                    </div>
-                    <h4 class="fw-bold mb-3">Financial Planning</h4>
-                    <p class="text-muted mb-0">Our expert advisors help you plan for the future with personalized
-                        financial advice and investment strategies.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-<section class="py-5 bg-light" data-aos="fade-up">
-    <div class="container">
-        <div class="row text-center mb-5">
-            <div class="col-lg-8 mx-auto">
-                <h2 class="fw-bold mb-3">Our Banking Services</h2>
-                <p class="text-muted">Comprehensive financial solutions tailored to your needs</p>
-            </div>
-        </div>
-        <div class="row">
-            <?php if (!empty($db_services)): ?>
-                <?php foreach ($db_services as $service): ?>
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <div class="service-card card h-100 shadow-sm border-0" style="border-radius: 20px;">
-                        <div class="card-body text-center p-4">
-                            <div class="stat-icon <?php echo htmlspecialchars($service['color_class']); ?> mx-auto mb-4" style="width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
-                                <i class="fa-solid <?php echo htmlspecialchars($service['icon']); ?>"></i>
-                            </div>
-                            <h5 class="fw-bold mb-3"><?php echo htmlspecialchars($service['title']); ?></h5>
-                            <p class="text-muted small mb-0"><?php echo htmlspecialchars($service['description']); ?></p>
-                        </div>
-                    </div>
-                </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <!-- Fallback to static if no services in DB -->
-                <div class="col-lg-3 col-md-6">
-                    <div class="service-card card h-100">
-                        <img src="assets/images/photo-1556742049-0cfed4f6a45d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" class="card-img-top" alt="Personal Banking">
-                        <div class="card-body">
-                            <h5 class="card-title">Personal Banking</h5>
-                            <p class="card-text">Everyday banking solutions designed to simplify your financial life.</p>
-                            <a href="services.php#person-banking" class="btn btn-outline-primary">Learn More</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="service-card card h-100">
-                        <img src="assets/images/photo-1507679799987-c73779587ccf?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" class="card-img-top" alt="Business Banking">
-                        <div class="card-body">
-                            <h5 class="card-title">Business Banking</h5>
-                            <p class="card-text">Specialized services to help your business grow and thrive.</p>
-                            <a href="services.php#business-banking" class="btn btn-outline-primary">Learn More</a>
-                        </div>
-                    </div>
-                </div>
-            <?php endif; ?>
-        </div>
-    </div>
-</section>
-<section class="stats" data-aos="fade-up">
-    <div class="container">
-        <div class="row text-center">
-            <div class="col-md-3 col-6 mb-4 mb-md-0">
-                <div class="stat-item">
-                    <h2><span class="counter" data-target="<?php echo (float)filter_var(getSetting('active_users_display', '2M+'), FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION); ?>">0</span>M+</h2>
-                    <p>Happy Customers</p>
-                </div>
-            </div>
-            <div class="col-md-3 col-6 mb-4 mb-md-0">
-                <div class="stat-item">
-                    <h2><span class="counter" data-target="500">0</span>+</h2>
-                    <p>Branches</p>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-item">
-                    <h2><span class="counter" data-target="50">0</span>+</h2>
-                    <p>Countries</p>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="stat-item">
-                    <h2><span class="counter" data-target="99.9">0</span>%</h2>
-                    <p>Uptime</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-<section class="security-features" data-aos="fade-up">
-    <div class="container">
-        <div class="row text-center mb-5">
-            <div class="col-lg-8 mx-auto">
-                <h2 class="fw-bold mb-3">Bank-Grade Security</h2>
-                <p class="text-muted">Your security is our top priority. We employ multiple layers of protection to keep
-                    your money and information safe.</p>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-4 mb-4">
-                <div class="security-item">
-                    <div class="security-icon">
-                        <i class="bi bi-fingerprint"></i>
-                    </div>
-                    <h4>Biometric Authentication</h4>
-                    <p>Use your fingerprint or face recognition to securely access your accounts.</p>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="security-item">
-                    <div class="security-icon">
-                        <i class="bi bi-shield-check"></i>
-                    </div>
-                    <h4>Fraud Monitoring</h4>
-                    <p>24/7 monitoring systems detect and prevent suspicious activities on your accounts.</p>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="security-item">
-                    <div class="security-icon">
-                        <i class="bi bi-lock"></i>
-                    </div>
-                    <h4>End-to-End Encryption</h4>
-                    <p>All your transactions and personal information are encrypted with bank-level security.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-<section class="app-download" data-aos="fade-up">
+
+    <!-- Hero Section -->
+    <section class="hero shadow-2xl">
+        <div class="hero-overlay"></div>
         <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-6 order-lg-2 mb-5 mb-lg-0">
-                    <img src="assets/images/photo-1563013544-824ae1b704d3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="SwiftCapital Mobile App" class="app-img">
-                </div>
-                <div class="col-lg-6 order-lg-1">
-                    <h2 class="fw-bold mb-4">Banking at Your Fingertips</h2>
-                    <p class="text-muted mb-4">Download our mobile app and manage your finances anytime, anywhere. Our intuitive app puts the power of banking in your pocket.</p>
-                    
-                    <div class="app-features">
-                        <div class="app-feature-item">
-                            <div class="app-feature-icon">
-                                <i class="bi bi-arrow-repeat"></i>
-                            </div>
-                            <div class="app-feature-text">
-                                <h5>Instant Transfers</h5>
-                                <p>Send money to anyone, anywhere, instantly.</p>
-                            </div>
-                        </div>
-                        <div class="app-feature-item">
-                            <div class="app-feature-icon">
-                                <i class="bi bi-bell"></i>
-                            </div>
-                            <div class="app-feature-text">
-                                <h5>Real-time Notifications</h5>
-                                <p>Stay informed about all account activities.</p>
-                            </div>
-                        </div>
-                        <div class="app-feature-item">
-                            <div class="app-feature-icon">
-                                <i class="bi bi-graph-up-arrow"></i>
-                            </div>
-                            <div class="app-feature-text">
-                                <h5>Expense Tracking</h5>
-                                <p>Monitor your spending habits with detailed analytics.</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="app-download-buttons">
-                        <a href="#"><img src="wikipedia/commons/thumb/7/78/Google_Play_Store_badge_EN.svg/2560px-Google_Play_Store_badge_EN.svg.png" alt="Get it on Google Play"></a>
-                        <a href="#"><img src="wikipedia/commons/thumb/3/3c/Download_on_the_App_Store_Badge.svg/2560px-Download_on_the_App_Store_Badge.svg.png" alt="Download on the App Store"></a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section><section class="testimonial" data-aos="fade-up">
-        <div class="container">
-            <div class="row text-center mb-5">
-                <div class="col-lg-8 mx-auto">
-                    <h2 class="fw-bold mb-3">What Our Customers Say</h2>
-                    <p class="text-muted">Don't just take our word for it. Here's what our customers have to say about their experience with SwiftCapital.</p>
-                </div>
-            </div>
             <div class="row">
-                <div class="col-md-4 mb-4">
-                    <div class="testimonial-card">
-                        <div class="d-flex align-items-center mb-4">
-                            <img src="api/portraits/women/32.jpg" alt="Customer">
-                            <div>
-                                <h5 class="mb-0">Sarah Johnson</h5>
-                                <small class="text-muted">Small Business Owner</small>
-                            </div>
-                        </div>
-                        <p class="mb-0">"SwiftCapital has been instrumental in helping my business grow. Their business banking services and dedicated support team have made managing my finances effortless."</p>
-                        <div class="mt-3 text-warning">
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                        </div>
+                <div class="col-lg-8" data-aos="fade-right">
+                    <span class="d-block mb-3 fw-900 text-uppercase" style="color:var(--brand-red); letter-spacing: 5px; font-size: 0.8rem;">World-Class Financial Governance</span>
+                    <h1 class="display-3 fw-900">Institutional <br><span style="color:var(--brand-red);">Private Banking.</span></h1>
+                    <p class="lead">Experience a higher standard of capital management. Our firm provides the strategic infrastructure required for global asset preservation and institutional wealth growth.</p>
+                    <div class="d-flex flex-wrap gap-4 mt-5">
+                        <a href="register.php" class="premium-btn btn-red text-decoration-none">Initialize Relationship</a>
+                        <a href="about.php" class="premium-btn btn-outline-executive text-decoration-none">The Strategy</a>
                     </div>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <div class="testimonial-card">
-                        <div class="d-flex align-items-center mb-4">
-                            <img src="api/portraits/men/45.jpg" alt="Customer">
-                            <div>
-                                <h5 class="mb-0">Michael Chen</h5>
-                                <small class="text-muted">Software Engineer</small>
-                            </div>
-                        </div>
-                        <p class="mb-0">"The mobile app is fantastic! I can do everything from checking my balance to paying bills and transferring money with just a few taps. Best banking experience I've ever had."</p>
-                        <div class="mt-3 text-warning">
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <div class="testimonial-card">
-                        <div class="d-flex align-items-center mb-4">
-                            <img src="api/portraits/women/68.jpg" alt="Customer">
-                            <div>
-                                <h5 class="mb-0">Emily Rodriguez</h5>
-                                <small class="text-muted">Homeowner</small>
-                            </div>
-                        </div>
-                        <p class="mb-0">"Getting a mortgage through SwiftCapital was surprisingly easy. Their team guided me through every step of the process, and I got a great rate. I couldn't be happier with my experience."</p>
-                        <div class="mt-3 text-warning">
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-half"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section><section class="cta" data-aos="fade-up">
-        <div class="container">
-            <div class="row justify-content-center text-center">
-                <div class="col-lg-8">
-                    <h2 class="fw-bold mb-4">Ready to Experience Better Banking?</h2>
-                    <p class="text-muted mb-5">Join millions of satisfied customers who have made the switch to SwiftCapital. Opening an account takes less than 10 minutes.</p>
-                    <a href="register.php" class="btn btn-primary btn-lg px-5 py-3">Open an Account Today</a>
                 </div>
             </div>
         </div>
     </section>
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-4 mb-5 mb-lg-0">
-                    <a class="navbar-brand" style="width: 150px" href="index.php">
-                        <img src="assets/images/SWC%20Secondary%20Logo%20Dark.png" alt="SwiftCapital Logo" height="50">
-                    </a>
-                    <p class="text-muted">Providing innovative banking solutions since 1995. Our mission is to empower
-                        our customers to achieve their financial goals.</p>
-                    <div class="social-icons">
-                        <a href="#"><i class="bi bi-facebook"></i></a>
-                        <a href="#"><i class="bi bi-twitter"></i></a>
-                        <a href="#"><i class="bi bi-instagram"></i></a>
-                        <a href="#"><i class="bi bi-linkedin"></i></a>
-                    </div>
-                </div>
-                <div class="col-lg-2 col-md-4 mb-5 mb-md-0">
-                    <h5>Products</h5>
-                    <ul>
-                        <li><a href="#">Checking Accounts</a></li>
-                        <li><a href="#">Savings Accounts</a></li>
-                        <li><a href="#">Credit Cards</a></li>
-                        <li><a href="#">Loans</a></li>
-                        <li><a href="#">Mortgages</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-2 col-md-4 mb-5 mb-md-0">
-                    <h5>Company</h5>
-                    <ul>
-                        <li><a href="#">About Us</a></li>
-                        <li><a href="#">Careers</a></li>
-                        <li><a href="#">Press</a></li>
-                        <li><a href="#">Blog</a></li>
-                        <li><a href="#">Contact Us</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-2 col-md-4 mb-5 mb-md-0">
-                    <h5>Support</h5>
-                    <ul>
-                        <li><a href="#">Help Center</a></li>
-                        <li><a href="#">FAQs</a></li>
-                        <li><a href="#">Security</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Terms of Service</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-2 col-md-4">
-                    <h5>Contact</h5>
-                    <ul>
-                        <li><a href="javascript::"><?php echo getSetting('contact_email', 'support@SwiftCapital.com'); ?></a></li>
-                        <li><a href="javascript::"><?php echo getSetting('contact_address', '301 East Water Street, Charlottesville, VA 22904'); ?></a></li>
-                    </ul>
+
+    <!-- Stats Section -->
+    <section class="container">
+        <div class="stat-banner row g-0 text-center">
+            <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="100">
+                <div class="stat-col">
+                    <h2>$42B+</h2>
+                    <p>Capital Managed</p>
                 </div>
             </div>
-            <div class="row copyright">
-                <div class="col-md-6 text-center text-md-start">
-                    <p class="mb-0">&copy; 2026 SwiftCapital. All rights reserved.</p>
+            <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="200">
+                <div class="stat-col">
+                    <h2>AA+</h2>
+                    <p>Credit Rating</p>
                 </div>
-                <div class="col-md-6 text-center text-md-end">
-                    <p class="mb-0">
-                        <a href="#" class="text-white-50 me-3">Privacy Policy</a>
-                        <a href="#" class="text-white-50">Terms of Service</a>
-                    </p>
+            </div>
+            <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="300">
+                <div class="stat-col">
+                    <h2>140+</h2>
+                    <p>Global Markets</p>
                 </div>
+            </div>
+            <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="400">
+                <div class="stat-col">
+                    <h2>24/7</h2>
+                    <p>Advisory Support</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Expertise Section -->
+    <section class="py-150">
+        <div class="container">
+            <div class="section-title-executive" data-aos="fade-up">
+                <span>Core Capabilities</span>
+                <h2>Financial Architecture.</h2>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="feature-card-premium">
+                        <div class="feature-icon-box"><i class="fa-solid fa-vault"></i></div>
+                        <h4 class="fw-900 mb-3">Fiduciary Stewardship</h4>
+                        <p class="text-secondary">Our mandate is absolute. We employ tactical asset allocation models to preserve and grow intergenerational wealth.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="feature-card-premium">
+                        <div class="feature-icon-box"><i class="fa-solid fa-chart-pie"></i></div>
+                        <h4 class="fw-900 mb-3">Strategic Architecture</h4>
+                        <p class="text-secondary">Bespoke algorithmic portfolio modeling designed for tax-neutral growth in complex global jurisdictions.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="feature-card-premium">
+                        <div class="feature-icon-box"><i class="fa-solid fa-earth-americas"></i></div>
+                        <h4 class="fw-900 mb-3">Global Arbitrage</h4>
+                        <p class="text-secondary">Direct market access to Tier-1 liquidity pools with zero-latency execution across all major asset classes.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Global Reach Section -->
+    <section class="py-150 bg-light border-top">
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6" data-aos="fade-right">
+                    <span class="text-uppercase fw-900 mb-3 d-block ls-2" style="color:var(--brand-red);">Global Sovereignty</span>
+                    <h2 class="display-5 fw-900 mb-4">A Network of Global Hubs.</h2>
+                    <p class="lead mb-5 text-secondary">Our institutional footprint spans the world's most critical financial centers, providing our partners with localized expertise and cross-border agility.</p>
+                    
+                    <div class="row g-4 mb-2">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled fw-bold text-uppercase small ls-1">
+                                <li class="mb-3"><i class="fa-solid fa-location-arrow text-danger me-2"></i> Zurich Headquarters</li>
+                                <li class="mb-3"><i class="fa-solid fa-location-arrow text-danger me-2"></i> London / The City</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled fw-bold text-uppercase small ls-1">
+                                <li class="mb-3"><i class="fa-solid fa-location-arrow text-danger me-2"></i> Singapore / Marina Bay</li>
+                                <li class="mb-3"><i class="fa-solid fa-location-arrow text-danger me-2"></i> New York / Wall St.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <hr class="my-4 opacity-10">
+                    <div class="d-flex align-items-center gap-4">
+                        <div class="d-flex flex-column">
+                            <span class="fw-900 h4 mb-0 text-dark">Tier-1</span>
+                            <span class="text-uppercase x-small ls-1 text-danger fw-bold">Capital Adequacy Ratio</span>
+                        </div>
+                        <div class="vr"></div>
+                        <div class="d-flex flex-column">
+                            <span class="fw-900 h4 mb-0 text-dark">AAA</span>
+                            <span class="text-uppercase x-small ls-1 text-danger fw-bold">Liquidity Coverage</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6" data-aos="fade-left">
+                    <div class="p-5 bg-white border shadow-2xl position-relative overflow-hidden">
+                        <div class="position-absolute top-0 end-0 p-4 opacity-10">
+                            <i class="fa-solid fa-building-columns display-1"></i>
+                        </div>
+                        <h4 class="fw-900 mb-4">Governance Charter</h4>
+                        <div class="mb-4">
+                            <h6 class="text-uppercase x-small fw-900 text-danger ls-2 mb-2">Internal Controls</h6>
+                            <p class="small text-secondary m-0">Rigorous audit trails and multi-signature verification flows for all institutional settlements.</p>
+                        </div>
+                        <div class="mb-4">
+                            <h6 class="text-uppercase x-small fw-900 text-danger ls-2 mb-2">Basel III Compliance</h6>
+                            <p class="small text-secondary m-0">Maintaining capitalization levels significantly above standard regulatory requirements.</p>
+                        </div>
+                        <div class="mb-0">
+                            <h6 class="text-uppercase x-small fw-900 text-danger ls-2 mb-2">Fiduciary Mandate</h6>
+                            <p class="small text-secondary m-0">Legally binding commitment to act solely in the best interest of our institutional partners.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Security Focus -->
+    <section class="py-150 bg-dark text-white" style="background: var(--norby-blue) !important;">
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6" data-aos="fade-right">
+                    <img src="modern_office_workspace_1773622619884.png" alt="Institutional Security" class="img-fluid border-start border-danger border-4 shadow-xl">
+                </div>
+                <div class="col-lg-6" data-aos="fade-left">
+                    <span class="text-uppercase fw-900 mb-3 d-block ls-2" style="color:var(--brand-red);">FIPS 140-2 Infrastructure</span>
+                    <h2 class="display-5 fw-900 mb-4 text-white">Uncompromising Security Architecture.</h2>
+                    <p class="lead opacity-75 mb-5">At <?php echo $site_name; ?>, your security is our primary mandate. We employ military-grade encryption and decentralized synchronization protocols to protect your assets 24/7/365.</p>
+                    <div class="row g-4">
+                        <div class="col-6">
+                            <h6 class="fw-900 text-uppercase small" style="color:var(--brand-red);"><i class="bi bi-shield-check me-2"></i> Quantum-Ready</h6>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="fw-900 text-uppercase small" style="color:var(--brand-red);"><i class="bi bi-fingerprint me-2"></i> Multi-Sig Flow</h6>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="fw-900 text-uppercase small" style="color:var(--brand-red);"><i class="bi bi-radar me-2"></i> 24/7 SOC Monitoring</h6>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="fw-900 text-uppercase small" style="color:var(--brand-red);"><i class="bi bi-lock me-2"></i> Vault Storage</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="py-150 bg-light">
+        <div class="container">
+            <div class="section-title-executive" data-aos="fade-up">
+                <span>Stakeholder Trust</span>
+                <h2>Institutional Perspective.</h2>
+            </div>
+            <div class="row g-5">
+                <div class="col-lg-6" data-aos="fade-right">
+                    <div class="testimonial-executive">
+                        <p class="testimonial-text">"The precision and institutional rigor of <?php echo $site_name; ?> is unmatched. Their ability to navigate complex cross-border regulations while maintaining absolute discretion is why our family office trusts them exclusively."</p>
+                        <div class="testimonial-author">
+                            <h6>Elena D. Moretti</h6>
+                            <p>Managing Director | Global Capital Group</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6" data-aos="fade-left">
+                    <div class="testimonial-executive">
+                        <p class="testimonial-text">"Transitioning our corporate treasury to SwiftCapital's infrastructure improved our operational agility by 40%. Their quant-driven insights provide a competitive edge in volatile markets."</p>
+                        <div class="testimonial-author">
+                            <h6>Marcus V. Sterling</h6>
+                            <p>Chief Investment Officer | Sterling & Co.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-150 bg-white border-top border-bottom">
+        <div class="container text-center">
+            <div class="row justify-content-center">
+                <div class="col-lg-8" data-aos="zoom-in">
+                    <h2 class="display-4 fw-900 mb-4" style="color: var(--norby-blue);">Secure Your Capital Legacy.</h2>
+                    <p class="lead text-secondary mb-5">Open an institutional account today and gain access to our global advisory network. Relationship initialization takes less than 10 minutes.</p>
+                    <a href="register.php" class="premium-btn btn-red btn-lg text-decoration-none">Initialize Relationship Today</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="text-white py-150" style="background: var(--norby-blue) !important;">
+        <div class="container">
+            <div class="row g-5">
+                <div class="col-lg-4">
+                    <a class="navbar-brand mb-4 d-block" style="width: 170px" href="index.php">
+                        <!-- Landscape Light Secondary Logo used on Blue Background -->
+                        <img src="assets/images/SWC%20Secondary%20Logo%20Light.png" alt="<?php echo $site_name; ?> Logo" height="55">
+                    </a>
+                    <p class="text-white-50 small mb-4"><?php echo $site_name; ?> is an international financial institution providing bespoke private banking and corporate advisory. Member FDIC. Equal Housing Lender.</p>
+                    <div class="social-icons">
+                        <a href="#" class="me-3 text-white-50"><i class="bi bi-linkedin"></i></a>
+                        <a href="#" class="me-3 text-white-50"><i class="bi bi-twitter-x"></i></a>
+                        <a href="#" class="text-white-50"><i class="bi bi-globe"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-6 ms-auto">
+                    <h6 class="fw-900 mb-4 text-uppercase small ls-2" style="color: var(--brand-red);">Expertise</h6>
+                    <ul class="list-unstyled text-white-50 small">
+                        <li class="mb-2">Private Wealth</li>
+                        <li class="mb-2">Asset Strategy</li>
+                        <li class="mb-2">Equity Markets</li>
+                        <li class="nav-item"><a href="#" class="text-white-50 text-decoration-none">Fixed Income</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-6">
+                    <h6 class="fw-900 mb-4 text-uppercase small ls-2" style="color: var(--brand-red);">Governance</h6>
+                    <ul class="list-unstyled text-white-50 small">
+                        <li class="mb-2">Compliance</li>
+                        <li class="mb-2">Privacy Charter</li>
+                        <li class="mb-2">Ethics Hotline</li>
+                        <li class="mb-2">Risk Policy</li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 text-center">
+                    <!-- Primary portrait logo in centered position -->
+                    <img src="assets/images/SWC%20Primary%20Logo%20Light.png" alt="SwiftCapital Primary Logo" height="110" class="mb-4">
+                    <p class="text-white-50 small"><i class="bi bi-geo-alt me-2"></i> Global Headquarters, Zurich</p>
+                </div>
+            </div>
+            <div class="mt-5 pt-5 border-top border-secondary opacity-50">
+                <p class="mb-0 small">&copy; 2026 <?php echo $site_name; ?> Group. Approved for Institutional Investors Only.</p>
             </div>
         </div>
     </footer>
 
-    <!-- Bootstrap JS -->
+    <!-- Scripts -->
     <script src="npm/bootstrap%405.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- AOS JS -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/countup.js/2.8.0/countUp.umd.js"></script>
     <script>
         AOS.init({
-            duration: 800,
+            duration: 1200,
             once: true,
-            offset: 100
+            offset: 100,
+            easing: 'ease-out-quint'
         });
-
-        // Initialize CountUp.js
-        const startCounters = () => {
-            const counters = document.querySelectorAll('.counter');
-            counters.forEach(counter => {
-                const target = parseFloat(counter.getAttribute('data-target'));
-                const hasDecimals = target % 1 !== 0;
-                const decimals = hasDecimals ? 1 : 0;
-                
-                // Use countUp global object exported by UMD script
-                const counterAnim = new countUp.CountUp(counter, target, {
-                    decimalPlaces: decimals,
-                    duration: 2.5,
-                    useEasing: true,
-                    useGrouping: true,
-                });
-                
-                if (!counterAnim.error) {
-                    counterAnim.start();
-                } else {
-                    console.error(counterAnim.error);
-                }
-            });
-        };
-
-        // Use Intersection Observer to trigger counter when in view
-        const observer = new IntersectionObserver((entries) => {
-            if(entries[0].isIntersecting) {
-                startCounters();
-                observer.disconnect(); // counter runs only once
-            }
-        });
-        
-        const statsSection = document.querySelector('.stats');
-        if(statsSection) {
-            observer.observe(statsSection);
-        }
     </script>
 </body>
 

@@ -1,10 +1,8 @@
 <aside class="sidebar">
     <div class="brand-section">
-        <div class="brand-logo">
-            <i class="fa-solid fa-chart-simple text-primary me-2"></i>
-            <span class="swift">Swift</span><span class="capital">Capital</span>
-        </div>
-        <div class="brand-tagline">Banking At Its Best</div>
+        <a href="index.php" class="d-block py-2">
+            <img src="../assets/images/SWC%20Secondary%20Logo%20Light.png" alt="SwiftCapital" height="40">
+        </a>
     </div>
 
     <div class="user-profile-widget">

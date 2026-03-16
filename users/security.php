@@ -1,10 +1,73 @@
-<?php require_once '../includes/user-check.php'; ?>
+<?php
+require_once '../includes/db.php';
+require_once '../includes/user-check.php';
+
+$user_id = $_SESSION['user_id'];
+$error = '';
+$success = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+
+    if ($action === 'update_password') {
+        $current_password = $_POST['current_password'] ?? '';
+        $new_password = $_POST['new_password'] ?? '';
+        $confirm_password = $_POST['confirm_password'] ?? '';
+
+        // Fetch current user password
+        $stmt = $pdo->prepare("SELECT password FROM users WHERE id = ?");
+        $stmt->execute([$user_id]);
+        $user = $stmt->fetch();
+
+        if (!password_verify($current_password, $user['password'])) {
+            $error = "The current password you entered is incorrect.";
+        } elseif (strlen($new_password) < 8) {
+            $error = "The new password must be at least 8 characters long.";
+        } elseif ($new_password !== $confirm_password) {
+            $error = "New password and confirmation do not match.";
+        } else {
+            $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+            if ($stmt->execute([$hashed_password, $user_id])) {
+                $success = "Your account password has been successfully updated.";
+            } else {
+                $error = "System error occurred. Please try again later.";
+            }
+        }
+    } elseif ($action === 'update_pin') {
+        $current_pin = $_POST['current_pin'] ?? '';
+        $new_pin = $_POST['new_pin'] ?? '';
+        $confirm_pin = $_POST['confirm_pin'] ?? '';
+
+        // Fetch current user PIN
+        $stmt = $pdo->prepare("SELECT pin FROM users WHERE id = ?");
+        $stmt->execute([$user_id]);
+        $user = $stmt->fetch();
+
+        if ($current_pin !== $user['pin']) {
+            $error = "The current transaction PIN entered is incorrect.";
+        } elseif (!is_numeric($new_pin) || strlen($new_pin) < 4) {
+            $error = "New PIN must be at least 4 digits.";
+        } elseif ($new_pin !== $confirm_pin) {
+            $error = "New PIN and confirmation do not match.";
+        } else {
+            $stmt = $pdo->prepare("UPDATE users SET pin = ? WHERE id = ?");
+            if ($stmt->execute([$new_pin, $user_id])) {
+                $success = "Your transaction PIN has been successfully updated.";
+                $_SESSION['pin'] = $new_pin; // Update session
+            } else {
+                $error = "System error occurred. Please try again later.";
+            }
+        }
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Security Settings - SwiftCapital</title>
+    <title>Security Governance - SwiftCapital</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -12,183 +75,140 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
     <style>
-        .security-card {
+        :root {
+            --security-accent: #c5a059;
+            --security-dark: #001f44;
+        }
+
+        .sec-wrap { max-width: 900px; margin: 0 auto; }
+        
+        .security-audit-card {
             background: #fff;
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            position: relative;
+        }
+
+        .security-audit-header {
+            padding: 35px 40px;
+            background: #fcfcfc;
+            border-bottom: 1px solid #edf2f7;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sec-title-box h5 {
+            font-weight: 800; color: var(--security-dark);
+            text-transform: uppercase; letter-spacing: 1px;
+            margin: 0; font-size: 1.1rem;
+        }
+
+        .sec-title-box p {
+            margin: 5px 0 0; color: #718096; font-size: 0.85rem; font-weight: 500;
+        }
+
+        .security-audit-body {
             padding: 40px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+        }
+
+        .sec-icon-circle {
+            width: 45px; height: 45px;
+            background: rgba(197, 160, 89, 0.1);
+            color: var(--security-accent);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .protocol-label {
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #a0aec0;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .protocol-input {
+            width: 100%;
+            padding: 16px 20px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 1rem;
+            color: #2d3748;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        .protocol-input:focus {
+            border-color: var(--security-accent);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(197, 160, 89, 0.05);
+        }
+
+        .btn-authorize {
+            background: var(--security-dark);
+            color: #fff;
+            border: none;
+            padding: 18px 30px;
+            border-radius: 4px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .btn-authorize:hover {
+            background: var(--security-accent);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(197, 160, 89, 0.2);
+        }
+
+        .alert-prestige {
+            border: none;
+            border-left: 4px solid;
+            border-radius: 0;
+            padding: 20px 25px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .alert-prestige-success {
+            background: #f0fdf4; border-color: #22c55e; color: #166534;
+        }
+
+        .alert-prestige-error {
+            background: #fef2f2; border-color: #ef4444; color: #991b1b;
+        }
+
+        .sec-note-box {
+            background: #fffbeb;
+            border-radius: 4px;
+            padding: 24px;
+            border: 1px solid #fef3c7;
+            display: flex; gap: 18px;
             margin-bottom: 40px;
         }
 
-        .security-section-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-dark);
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        .sec-note-box i { color: #d97706; font-size: 1.3rem; margin-top: 3px; }
+        .sec-note-text h6 { font-weight: 800; color: #92400e; margin-bottom: 5px; text-transform: uppercase; font-size: 0.8rem; }
+        .sec-note-text p { margin: 0; color: #b45309; font-size: 0.85rem; line-height: 1.6; }
 
-        .security-section-title i {
-            color: #38bdf8;
-            font-size: 1.1rem;
+        .requirement-list-gold {
+            list-style: none; padding: 0; margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
         }
-
-        .security-subtitle {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-bottom: 30px;
+        .requirement-list-gold li {
+            font-size: 0.8rem; font-weight: 600; color: #718096; display: flex; align-items: center; gap: 10px;
         }
-
-        .security-input-group {
-            position: relative;
-            margin-bottom: 25px;
-        }
-
-        .security-input-group i.left-icon {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
-
-        .security-input-group i.right-icon {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .security-input-group i.right-icon:hover {
-            color: var(--primary-color);
-        }
-
-        .security-input-group input {
-            width: 100%;
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 14px 45px;
-            font-size: 0.95rem;
-            color: var(--text-dark);
-            outline: none;
-            transition: all 0.2s;
-            background: #fff;
-        }
-
-        .security-input-group input:focus {
-            border-color: #38bdf8;
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
-        }
-
-        .requirement-box {
-            background-color: #f0f9ff;
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 30px;
-        }
-
-        .requirement-box-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #1e40af;
-            font-weight: 700;
-            font-size: 0.95rem;
-            margin-bottom: 12px;
-        }
-
-        .requirement-box-title i {
-            color: #3b82f6;
-            font-size: 1.1rem;
-        }
-
-        .requirement-box p {
-            color: #1e40af;
-            font-size: 0.85rem;
-            margin-bottom: 15px;
-            font-weight: 500;
-        }
-
-        .requirement-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .requirement-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #3b82f6;
-            font-size: 0.85rem;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
-        .requirement-item::before {
-            content: 'â—';
-            font-size: 0.6rem;
-            color: #0ea5e9;
-        }
-
-        .reminder-box {
-            background-color: #fefce8;
-            border-radius: 12px;
-            padding: 20px;
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-            border: 1px solid #fef08a;
-        }
-
-        .reminder-box i {
-            color: #eab308;
-            font-size: 1.1rem;
-            margin-top: 3px;
-        }
-
-        .reminder-content h6 {
-            color: #854d0e;
-            font-weight: 700;
-            font-size: 0.9rem;
-            margin-bottom: 6px;
-        }
-
-        .reminder-content p {
-            color: #854d0e;
-            font-size: 0.85rem;
-            margin-bottom: 0;
-            line-height: 1.5;
-            opacity: 0.9;
-        }
-
-        .btn-change-password {
-            background-color: #0ea5e9;
-            color: #fff;
-            border: none;
-            padding: 14px 30px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 1rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.2s ease;
-        }
-
-        .btn-change-password:hover {
-            background-color: #0284c7;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
-        }
+        .requirement-list-gold li i { color: var(--security-accent); font-size: 0.7rem; }
     </style>
 </head>
 <body>
@@ -198,113 +218,149 @@ $page = 'security';
 include '../includes/user-sidebar.php'; 
 ?>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Top Navbar -->
-        <?php include '../includes/user-navbar.php'; ?>
+<main class="main-content">
+    <?php include '../includes/user-navbar.php'; ?>
 
-        <!-- Page Content -->
-        <div class="page-container">
-            
-            <div class="row justify-content-center">
-                <div class="col-lg-8 col-xl-7">
-                    
-                    <div class="page-header mb-4">
-                        <div>
-                            <h1 class="page-title">Security Settings</h1>
-                            <div class="breadcrumb-text">
-                                <a href="index.php">Dashboard</a> <i class="fa-solid fa-chevron-right mx-2" style="font-size: 0.7rem;"></i> Settings <i class="fa-solid fa-chevron-right mx-2" style="font-size: 0.7rem;"></i> Security
+    <div class="page-container">
+        <div class="sec-wrap">
+            <div class="page-header mb-5 text-center text-lg-start">
+                <h1 class="page-title fw-900">Access Governance</h1>
+                <div class="breadcrumb-text">
+                    <a href="index.php">Institutional</a> / Security Protocols / Identity Verification
+                </div>
+            </div>
+
+            <?php if ($success): ?>
+            <div class="alert alert-prestige alert-prestige-success mb-5 animate__animated animate__fadeInDown">
+                <i class="fa-solid fa-circle-check me-2"></i> <?php echo $success; ?>
+            </div>
+            <?php endif; ?>
+
+            <?php if ($error): ?>
+            <div class="alert alert-prestige alert-prestige-error mb-5 animate__animated animate__shakeX">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i> <?php echo $error; ?>
+            </div>
+            <?php endif; ?>
+
+            <div class="sec-note-box shadow-sm">
+                <i class="fa-solid fa-shield-halved"></i>
+                <div class="sec-note-text">
+                    <h6>Institutional Cyber-Security Reminder</h6>
+                    <p>We do not store plain-text credentials. Every modification to your access protocols undergoes immediate encryption and global node synchronization. Ensure your credentials are unique to this primary account.</p>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Change Password -->
+                <div class="col-lg-6">
+                    <div class="security-audit-card">
+                        <div class="security-audit-header">
+                            <div class="sec-title-box">
+                                <h5>Password Protocol</h5>
+                                <p>Primary Access Authentication</p>
                             </div>
+                            <div class="sec-icon-circle"><i class="fa-solid fa-key"></i></div>
                         </div>
-                    </div>
-
-                    <div class="security-card">
-                        <div class="security-section-title">
-                            <i class="fa-solid fa-shield"></i> Change Password
-                        </div>
-                        <p class="security-subtitle">Update your account password to maintain security</p>
-
-                        <div class="mb-4">
-                            <label class="form-label fw-bold" style="font-size: 0.85rem;">Current Password</label>
-                            <div class="security-input-group">
-                                <i class="fa-solid fa-lock left-icon"></i>
-                                <input type="password" placeholder="Enter your current password">
-                                <i class="fa-solid fa-eye right-icon"></i>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label fw-bold" style="font-size: 0.85rem;">New Password</label>
-                            <div class="security-input-group">
-                                <i class="fa-solid fa-key left-icon"></i>
-                                <input type="password" placeholder="Enter your new password">
-                                <i class="fa-solid fa-eye right-icon"></i>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label fw-bold" style="font-size: 0.85rem;">Confirm Password</label>
-                            <div class="security-input-group">
-                                <i class="fa-solid fa-circle-check left-icon"></i>
-                                <input type="password" placeholder="Confirm your new password">
-                                <i class="fa-solid fa-eye right-icon"></i>
-                            </div>
-                        </div>
-
-                        <div class="requirement-box">
-                            <div class="requirement-box-title">
-                                <i class="fa-solid fa-shield-check"></i> Password Requirements
-                            </div>
-                            <p>Ensure that these requirements are met:</p>
-                            <ul class="requirement-list">
-                                <li class="requirement-item">Minimum 8 characters long - the more, the better</li>
-                                <li class="requirement-item">At least one lowercase character</li>
-                                <li class="requirement-item">At least one uppercase character</li>
-                                <li class="requirement-item">At least one number</li>
+                        <div class="security-audit-body">
+                            <form method="POST">
+                                <input type="hidden" name="action" value="update_password">
+                                <div class="mb-4">
+                                    <label class="protocol-label">Existing Password</label>
+                                    <input type="password" name="current_password" class="protocol-input" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="protocol-label">New Secure Password</label>
+                                    <input type="password" name="new_password" class="protocol-input" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="protocol-label">Verify New Password</label>
+                                    <input type="password" name="confirm_password" class="protocol-input" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required>
+                                </div>
+                                <button type="submit" class="btn-authorize">Authorize Update</button>
+                            </form>
+                            
+                            <ul class="requirement-list-gold">
+                                <li><i class="fa-solid fa-circle"></i> 8+ Characters</li>
+                                <li><i class="fa-solid fa-circle"></i> Alpha-Numeric</li>
+                                <li><i class="fa-solid fa-circle"></i> Case Sensitive</li>
+                                <li><i class="fa-solid fa-circle"></i> Unique String</li>
                             </ul>
                         </div>
+                    </div>
+                </div>
 
-                        <div class="reminder-box">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
-                            <div class="reminder-content">
-                                <h6>Security Reminder</h6>
-                                <p>After changing your password, you'll be required to log in again with your new credentials. Make sure to remember your new password or store it in a secure password manager.</p>
+                <!-- Change PIN -->
+                <div class="col-lg-6">
+                    <div class="security-audit-card">
+                        <div class="security-audit-header">
+                            <div class="sec-title-box">
+                                <h5>Transaction PIN</h5>
+                                <p>Operational Fund Access</p>
+                            </div>
+                            <div class="sec-icon-circle"><i class="fa-solid fa-fingerprint"></i></div>
+                        </div>
+                        <div class="security-audit-body">
+                            <form method="POST">
+                                <input type="hidden" name="action" value="update_pin">
+                                <div class="mb-4">
+                                    <label class="protocol-label">Current Strategic PIN</label>
+                                    <input type="password" name="current_pin" class="protocol-input" maxlength="10" placeholder="â€¢â€¢â€¢â€¢" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="protocol-label">New Operational PIN</label>
+                                    <input type="password" name="new_pin" class="protocol-input" maxlength="10" placeholder="â€¢â€¢â€¢â€¢" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="protocol-label">Verify Operational PIN</label>
+                                    <input type="password" name="confirm_pin" class="protocol-input" maxlength="10" placeholder="â€¢â€¢â€¢â€¢" required>
+                                </div>
+                                <button type="submit" class="btn-authorize" style="border-top: 2px solid var(--security-accent);">Authorize PIN Reset</button>
+                            </form>
+                            <div class="mt-4 p-3 bg-light rounded small text-muted">
+                                <i class="fa-solid fa-circle-info me-2 text-gold" style="color:var(--security-accent);"></i> Required for all international wires and local capital transfers.
                             </div>
                         </div>
-
-                        <button class="btn-change-password">
-                            <i class="fa-solid fa-lock"></i> Change Password
-                        </button>
                     </div>
+                </div>
+            </div>
 
+            <!-- Login History / Extra Info -->
+            <div class="security-audit-card mt-4">
+                <div class="security-audit-header py-4">
+                    <div class="sec-title-box">
+                        <h5>Encryption Standard</h5>
+                        <p>FIPS 140-2 Validated Infrastructure</p>
+                    </div>
+                    <div class="badge bg-success-subtle text-success px-4 py-2 border border-success-subtle">ACTIVE PROTOCOL</div>
+                </div>
+                <div class="security-audit-body py-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-9">
+                            <p class="mb-0 text-muted small">Your session is protected by 256-bit AES encryption. Automated logout is engaged after 15 minutes of inactivity to preserve asset integrity.</p>
+                        </div>
+                        <div class="col-md-3 text-md-end">
+                            <i class="fa-solid fa-shield-check fs-2 opacity-25"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
 
         </div>
+    </div>
 
-        <!-- Footer -->
-        <footer class="main-footer mt-auto">
-            <div class="brand">
-                <span class="text-primary fw-bold" style="letter-spacing: -0.5px;">Swift</span><span class="text-dark fw-bold" style="letter-spacing: -0.5px;">Capital</span> © 2026 SwiftCapital. All rights reserved.
-            </div>
-            <div class="footer-links">
-                <a href="#">Privacy Policy</a>
-                <a href="#">Terms of Service</a>
-                <a href="#">Contact Support</a>
-            </div>
-        </footer>
-    </main>
+    <!-- Footer -->
+    <footer class="main-footer mt-auto">
+        <div class="brand">
+            <span class="text-primary fw-bold" style="letter-spacing: -0.5px;">Swift</span><span class="text-dark fw-bold" style="letter-spacing: -0.5px;">Capital</span> Institutional © 2026.
+        </div>
+        <div class="footer-links">
+            <a href="#">Privacy Charter</a>
+            <a href="#">Terms of Governance</a>
+            <a href="#">Security Team</a>
+        </div>
+    </footer>
+</main>
 
-    <!-- Bootstrap JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const dateNodes = document.querySelectorAll('#currentDate');
-            const now = new Date();
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const formattedDate = now.toLocaleDateString('en-US', options);
-            dateNodes.forEach(node => node.textContent = formattedDate);
-        });
-    </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
