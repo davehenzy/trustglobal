@@ -108,7 +108,7 @@ $wires = $pdo->query("
             <a href="irs.php" class="nav-link"><i class="fa-solid fa-file-invoice-dollar"></i> IRS Refunds</a>
             <a href="kyc.php" class="nav-link"><i class="fa-solid fa-id-card-clip"></i> KYC Verifications</a>
             <a href="support.php" class="nav-link"><i class="fa-solid fa-headset"></i> Support Tickets</a>
-            <?php if ($_SESSION['role'] === 'Super Admin'): ?>
+            <?php if (in_array($_SESSION['role'] ?? '', ['Super Admin', 'Admin'])): ?>
             <a href="contacts.php" class="nav-link"><i class="fa-solid fa-envelope"></i> Contact Messages</a>
             <a href="cms.php" class="nav-link"><i class="fa-solid fa-pen-nib"></i> Frontend CMS</a>
             <a href="settings.php" class="nav-link"><i class="fa-solid fa-gear"></i> System Settings</a>

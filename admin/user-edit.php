@@ -109,7 +109,7 @@ $cumulative_outflows = $stmt->fetchColumn() ?: 0;
 
 // Fetch Sub-Admins for assignment (Super Admin only)
 $sub_admins = [];
-if ($_SESSION['role'] === 'Super Admin') {
+if (in_array($_SESSION['role'] ?? '', ['Super Admin', 'Admin'])) {
     $stmt = $pdo->query("SELECT id, name, lastname FROM users WHERE role = 'Sub-Admin' ORDER BY name ASC");
     $sub_admins = $stmt->fetchAll();
 }
@@ -260,7 +260,7 @@ $initials = strtoupper(substr($user['name'], 0, 1) . substr($user['lastname'], 0
                                         <option value="Deactivated" <?php echo $user['status'] == 'Deactivated' ? 'selected' : ''; ?> class="text-muted">Deactivated</option>
                                     </select>
                                 </div>
-                                <?php if ($_SESSION['role'] === 'Super Admin'): ?>
+                                <?php if (in_array($_SESSION['role'] ?? '', ['Super Admin', 'Admin'])): ?>
                                 <div class="col-md-6">
                                     <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Assigned Account Manager</label>
                                     <select name="assigned_admin_id" class="form-select bg-light border-0 fw-800 p-3" style="border-radius: 12px;">
@@ -273,7 +273,7 @@ $initials = strtoupper(substr($user['name'], 0, 1) . substr($user['lastname'], 0
                                     </select>
                                 </div>
                                 <?php endif; ?>
-                                <div class="col-md-<?php echo ($_SESSION['role'] === 'Super Admin') ? '12' : '6'; ?>">
+                                <div class="col-md-<?php echo (in_array($_SESSION['role'] ?? '', ['Super Admin', 'Admin'])) ? '12' : '6'; ?>">
                                     <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Modulate Passcode (Leave blank to keep current)</label>
                                     <input type="password" name="password" class="form-control bg-light border-0 fw-600 p-3" style="border-radius: 12px;" placeholder="••••••••">
                                 </div>

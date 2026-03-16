@@ -260,7 +260,7 @@ function time_ago($timestamp) {
             <a href="support.php" class="nav-link">
                 <i class="fa-solid fa-headset"></i> Support Tickets
             </a>
-            <?php if ($_SESSION['role'] === 'Super Admin'): ?>
+            <?php if (in_array($_SESSION['role'] ?? '', ['Super Admin', 'Admin'])): ?>
             <a href="contacts.php" class="nav-link d-flex align-items-center justify-content-between">
                 <span><i class="fa-solid fa-envelope"></i> Contact Messages</span>
                 <?php if ($unread_contacts > 0): ?>

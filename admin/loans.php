@@ -45,7 +45,7 @@
             <a href="support.php" class="nav-link">
                 <i class="fa-solid fa-headset"></i> Support Tickets
             </a>
-            <?php if ($_SESSION['role'] === 'Super Admin'): ?>
+            <?php if (in_array($_SESSION['role'] ?? '', ['Super Admin', 'Admin'])): ?>
             <a href="cms.php" class="nav-link">
                 <i class="fa-solid fa-pen-nib"></i> Frontend CMS
             </a>

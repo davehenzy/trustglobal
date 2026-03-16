@@ -124,16 +124,23 @@
                                 <th>Account Type</th>
                                 <th>Account Balance</th>
                                 <th>Status</th>
+                                <?php if (!in_array($_SESSION['role'] ?? '', ['Sub-Admin'])): ?>
+                                <th>Assigned To</th>
+                                <?php endif; ?>
                                 <th>Quick Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php
-                            if ($_SESSION['role'] === 'Sub-Admin') {
+                            if (in_array($_SESSION['role'] ?? '', ['Sub-Admin'])) {
                                 $stmt = $pdo->prepare("SELECT * FROM users WHERE (role = 'User' OR role IS NULL OR role = '') AND assigned_admin_id = ? ORDER BY created_at DESC");
                                 $stmt->execute([$_SESSION['user_id']]);
                             } else {
-                                $stmt = $pdo->query("SELECT * FROM users WHERE (role = 'User' OR role IS NULL OR role = '') ORDER BY created_at DESC");
+                                $stmt = $pdo->query("SELECT u.*, a.name as manager_name, a.lastname as manager_lastname 
+                                                      FROM users u 
+                                                      LEFT JOIN users a ON u.assigned_admin_id = a.id 
+                                                      WHERE (u.role = 'User' OR u.role IS NULL OR u.role = '') 
+                                                      ORDER BY u.created_at DESC");
                             }
                             while ($user = $stmt->fetch()) {
                                 $status_class = '';
@@ -163,6 +170,15 @@
                                 <td><?php echo htmlspecialchars($user['account_type']); ?></td>
                                 <td class="fw-bold text-dark">$<?php echo number_format($user['balance'], 2); ?></td>
                                 <td><span class="status-badge <?php echo $status_class; ?>"><?php echo $user['status']; ?></span></td>
+                                <?php if (!in_array($_SESSION['role'] ?? '', ['Sub-Admin'])): ?>
+                                <td>
+                                    <?php if ($user['assigned_admin_id']): ?>
+                                        <span class="text-xs fw-bold text-primary"><i class="fa-solid fa-user-shield me-1"></i> <?php echo htmlspecialchars($user['manager_name']); ?></span>
+                                    <?php else: ?>
+                                        <span class="text-xs text-muted">Unassigned</span>
+                                    <?php endif; ?>
+                                </td>
+                                <?php endif; ?>
                                 <td>
                                     <div class="dropdown">
                                         <button class="action-btn dropdown-toggle no-caret" data-bs-toggle="dropdown">

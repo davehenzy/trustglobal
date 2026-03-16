@@ -8,18 +8,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $phone = $_POST['phone'];
     $balance = $_POST['balance'];
     $account_type = $_POST['account_type'];
+    $assigned_admin_id = (!empty($_POST['assigned_admin_id'])) ? $_POST['assigned_admin_id'] : null;
     $status = 'Active'; // Default for admin-added users
 
     // Generate a username if none provided
     $username = strtolower(str_replace(' ', '', $name)) . rand(100, 999);
 
     try {
-        $stmt = $pdo->prepare("INSERT INTO users (name, lastname, username, email, password, phone, balance, account_type, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$name, '', $username, $email, $password, $phone, $balance, $account_type, $status]);
+        $stmt = $pdo->prepare("INSERT INTO users (name, lastname, username, email, password, phone, balance, account_type, status, assigned_admin_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$name, '', $username, $email, $password, $phone, $balance, $account_type, $status, $assigned_admin_id]);
         $success = "User enrolled successfully!";
     } catch (PDOException $e) {
         $error = "Error: " . $e->getMessage();
     }
+}
+
+// Fetch Sub-Admins for assignment (Super Admin only)
+$sub_admins = [];
+if (in_array($_SESSION['role'] ?? '', ['Super Admin', 'Admin'])) {
+    $stmt = $pdo->query("SELECT id, name, lastname FROM users WHERE role = 'Sub-Admin' ORDER BY name ASC");
+    $sub_admins = $stmt->fetchAll();
 }
 ?>
 <!DOCTYPE html>
@@ -65,12 +73,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <a href="support.php" class="nav-link">
                 <i class="fa-solid fa-headset"></i> Support Tickets
             </a>
+            <?php if (in_array($_SESSION['role'] ?? '', ['Super Admin', 'Admin'])): ?>
             <a href="cms.php" class="nav-link">
                 <i class="fa-solid fa-pen-nib"></i> Frontend CMS
             </a>
             <a href="settings.php" class="nav-link">
                 <i class="fa-solid fa-gear"></i> System Settings
             </a>
+            <?php endif; ?>
             
             <div class="mt-auto" style="position: absolute; bottom: 20px; width: 100%;">
                 <a href="../logout.php" class="nav-link text-danger">
@@ -181,6 +191,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         </div>
                                     </div>
                                 </div>
+                                <?php if (in_array($_SESSION['role'] ?? '', ['Super Admin', 'Admin'])): ?>
+                                <div class="col-md-6">
+                                    <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Assign Account Manager</label>
+                                    <select name="assigned_admin_id" class="form-select bg-light border-0 fw-800 p-3" style="border-radius: 12px;">
+                                        <option value="">Unassigned (General Queue)</option>
+                                        <?php foreach ($sub_admins as $sa): ?>
+                                            <option value="<?php echo $sa['id']; ?>">
+                                                <?php echo htmlspecialchars($sa['name'] . ' ' . $sa['lastname']); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <?php endif; ?>
 
                                 <div class="col-md-12 mt-5">
                                     <div class="p-4 rounded-4 border-0 d-flex align-items-center gap-4 bg-indigo-light">

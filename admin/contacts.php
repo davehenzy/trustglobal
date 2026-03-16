@@ -65,7 +65,7 @@ if (isset($_GET['id'])) {
                 <span class="badge bg-danger ms-auto" style="font-size:.6rem;"><?php echo $unread; ?></span>
                 <?php endif; ?>
             </a>
-            <?php if ($_SESSION['role'] === 'Super Admin'): ?>
+            <?php if (in_array($_SESSION['role'] ?? '', ['Super Admin', 'Admin'])): ?>
             <a href="cms.php" class="nav-link"><i class="fa-solid fa-pen-nib"></i> Frontend CMS</a>
             <a href="settings.php" class="nav-link"><i class="fa-solid fa-gear"></i> System Settings</a>
             <?php endif; ?>

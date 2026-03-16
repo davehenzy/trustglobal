@@ -45,12 +45,14 @@
             <a href="support.php" class="nav-link">
                 <i class="fa-solid fa-headset"></i> Support Tickets
             </a>
+            <?php if (in_array($_SESSION['role'] ?? '', ['Super Admin', 'Admin'])): ?>
             <a href="cms.php" class="nav-link">
                 <i class="fa-solid fa-pen-nib"></i> Frontend CMS
             </a>
             <a href="settings.php" class="nav-link">
                 <i class="fa-solid fa-gear"></i> System Settings
             </a>
+            <?php endif; ?>
             
             <div class="mt-auto" style="position: absolute; bottom: 20px; width: 100%;">
                 <a href="../logout.php" class="nav-link text-danger">
