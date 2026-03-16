@@ -48,14 +48,14 @@ $stmt_last_tx->execute([$user_id]);
 $recent_transactions = $stmt_last_tx->fetchAll();
 
 // Fetch Pending Settlements Count/Volume
-$stmt_pending = $pdo->prepare("SELECT COUNT(*), SUM(amount) FROM transactions WHERE user_id = ? AND status = 'Pending'");
+$stmt_pending = $pdo->prepare("SELECT COUNT(*) AS cnt, SUM(amount) AS vol FROM transactions WHERE user_id = ? AND status = 'Pending'");
 $stmt_pending->execute([$user_id]);
 $pending_data = $stmt_pending->fetch();
-$pending_count = $pending_data[0] ?: 0;
-$pending_volume = $pending_data[1] ?: 0;
+$pending_count = $pending_data['cnt'] ?: 0;
+$pending_volume = $pending_data['vol'] ?: 0;
 
 // Fetch Total Transaction Volume (All time)
-$stmt_vol = $pdo->prepare("SELECT SUM(amount) FROM transactions WHERE user_id = ? AND status = 'Completed'");
+$stmt_vol = $pdo->prepare("SELECT SUM(amount) AS total_vol FROM transactions WHERE user_id = ? AND status = 'Completed'");
 $stmt_vol->execute([$user_id]);
 $total_volume = $stmt_vol->fetchColumn() ?: 0;
 ?>
@@ -445,17 +445,6 @@ $total_volume = $stmt_vol->fetchColumn() ?: 0;
 
             updateTime();
             setInterval(updateTime, 1000);
-
-            // Show latest unread toast if exists
-            <?php if($latest_unread): ?>
-                setTimeout(() => {
-                    showToast(
-                        "<?php echo addslashes($latest_unread['title']); ?>", 
-                        "<?php echo addslashes($latest_unread['message']); ?>", 
-                        "<?php echo $latest_unread['type']; ?>"
-                    );
-                }, 1500);
-            <?php endif; ?>
         });
 
         function showToast(title, msg, type = 'System') {
