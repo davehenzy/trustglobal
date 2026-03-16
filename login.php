@@ -133,21 +133,7 @@
 </head>
 
 <body class="font-sans bg-gray-50 text-gray-900 flex min-h-screen">
-    <!-- Page Loader -->
-    <div class="page-loading active">
-        <div class="page-loading-inner">
-            <div class="loading-container">
-                <div class="loading-animation">
-                    <div class="circle"></div>
-                    <div class="circle"></div>
-                    <div class="circle"></div>
-                    <div class="circle"></div>
-                    <div class="core"></div>
-                </div>
-                <div class="text">SwiftCapital</div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Main Content -->
     <div class="w-full">
@@ -169,7 +155,7 @@
         <div class="relative flex flex-col justify-center items-center w-full h-full text-white p-12 z-10">
             <!-- Logo -->
             <a href="index.php" class="mb-6">
-                <img src="assets/images/SWC%20Primary%20Logo%20Light.png" alt="Logo" class="h-16">
+                <img src="assets/images/SWC_Primary_Logo_Dark.png" alt="Logo" class="h-16">
             </a>
 
             <!-- Title -->
@@ -216,7 +202,7 @@
             <!-- Mobile Logo -->
             <div class="lg:hidden text-center mb-8">
                 <a href="index.php">
-                    <img src="assets/images/SWC%20Primary%20Logo%20Dark.png" alt="Logo" class="h-12 mx-auto">
+                    <img src="assets/images/SWC_Primary_Logo_Dark.png" alt="Logo" class="h-12 mx-auto">
                 </a>
             </div>
 
@@ -325,20 +311,7 @@
         lucide.createIcons();
     </script>
 
-    <!-- Enhanced Page Loading Animation -->
-    <script>
-        window.onload = function() {
-            const preloader = document.querySelector('.page-loading');
 
-            // Add a slight delay to make loading animation more noticeable
-            setTimeout(function() {
-                preloader.classList.remove('active');
-                setTimeout(function() {
-                    preloader.remove();
-                }, 500);
-            }, 800);
-        };
-    </script>
     <script>
 
     </script>

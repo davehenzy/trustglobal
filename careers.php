@@ -296,7 +296,7 @@ $site_email = getSetting('site_email', 'support@trustsglobal.com');
         <div class="container">
             <a class="navbar-brand" style="width: 170px" href="index.php">
                 <!-- Landscape Secondary Logo used in Navbar -->
-                <img src="assets/images/SWC%20Secondary%20Logo%20Dark.png" alt="SwiftCapital Logo Landscape" height="55">
+                <img src="assets/images/SWC_Primary_Logo_Light.png" alt="SwiftCapital Logo Landscape" height="55">
             </a>
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="bi bi-list fs-1" style="color: var(--norby-blue);"></span>
@@ -412,7 +412,7 @@ $site_email = getSetting('site_email', 'support@trustsglobal.com');
             <div class="row align-items-center g-5">
                 <div class="col-lg-6" data-aos="fade-right">
                     <div class="culture-img-wrapper">
-                        <img src="diverse_professional_team_1773622633861.png" alt="Executive Leadership">
+                        <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&amp;fit=crop&amp;w=1350&amp;q=80" alt="Personal Banking">
                     </div>
                 </div>
                 <div class="col-lg-6" data-aos="fade-left">
@@ -509,7 +509,7 @@ $site_email = getSetting('site_email', 'support@trustsglobal.com');
                 <div class="col-lg-4">
                     <a class="navbar-brand mb-4 d-block" style="width: 170px" href="index.php">
                         <!-- Landscape Light Secondary Logo used on Blue Background -->
-                        <img src="assets/images/SWC%20Secondary%20Logo%20Light.png" alt="SwiftCapital Logo Light" height="55">
+                        <img src="assets/images/SWC_Primary_Logo_Dark.png" alt="SwiftCapital Logo Light" height="55">
                     </a>
                     <p class="opacity-60 small">SwiftCapital is a global financial institution specialized in private banking, asset management, and corporate financial advisory. Member FDIC. Equal Housing Lender.</p>
                 </div>
@@ -530,7 +530,7 @@ $site_email = getSetting('site_email', 'support@trustsglobal.com');
                     </ul>
                 </div>
                 <div class="col-lg-3 text-center">
-                    <img src="assets/images/SWC%20Primary%20Logo%20Light.png" alt="SwiftCapital Portrait" height="100" class="mb-4">
+                    <img src="assets/images/SWC_Primary_Logo_Dark.png" alt="SwiftCapital Portrait" height="100" class="mb-4">
                     <div class="d-flex justify-content-center gap-3">
                         <a href="#" class="text-white opacity-50"><i class="bi bi-linkedin fs-5"></i></a>
                         <a href="#" class="text-white opacity-50"><i class="bi bi-twitter-x fs-5"></i></a>

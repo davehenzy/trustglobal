@@ -2,7 +2,7 @@
 <aside class="sidebar">
     <div class="brand-section">
         <a href="index.php" class="d-block py-2">
-            <img src="../assets/images/SWC%20Secondary%20Logo%20Light.png" alt="SwiftCapital" height="40">
+            <img src="../assets/images/SWC_Primary_Logo_Dark.png" alt="SwiftCapital" height="40">
         </a>
     </div>
 

@@ -222,7 +222,7 @@ $site_name = getSetting('site_name', 'SwiftCapital');
         <div class="container">
             <a class="navbar-brand" style="width: 170px" href="index.php">
                 <!-- Landscape Secondary Logo used in Navbar -->
-                <img src="assets/images/SWC%20Secondary%20Logo%20Dark.png" alt="<?php echo $site_name; ?> Logo" height="55">
+                <img src="assets/images/SWC_Primary_Logo_Light.png" alt="<?php echo $site_name; ?> Logo" height="55">
             </a>
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="bi bi-list fs-1" style="color: var(--norby-blue);"></span>
@@ -395,7 +395,7 @@ $site_name = getSetting('site_name', 'SwiftCapital');
         <div class="container">
             <div class="row align-items-center g-5">
                 <div class="col-lg-6" data-aos="fade-right">
-                    <img src="modern_office_workspace_1773622619884.png" alt="Institutional Security" class="img-fluid border-start border-danger border-4 shadow-xl">
+                    <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&amp;fit=crop&amp;w=1350&amp;q=80" alt="Institutional Security" class="img-fluid border-start border-danger border-4 shadow-xl">
                 </div>
                 <div class="col-lg-6" data-aos="fade-left">
                     <span class="text-uppercase fw-900 mb-3 d-block ls-2" style="color:var(--brand-red);">FIPS 140-2 Infrastructure</span>
@@ -470,7 +470,7 @@ $site_name = getSetting('site_name', 'SwiftCapital');
                 <div class="col-lg-4">
                     <a class="navbar-brand mb-4 d-block" style="width: 170px" href="index.php">
                         <!-- Landscape Light Secondary Logo used on Blue Background -->
-                        <img src="assets/images/SWC%20Secondary%20Logo%20Light.png" alt="<?php echo $site_name; ?> Logo" height="55">
+                        <img src="assets/images/SWC_Primary_Logo_Dark.png" alt="<?php echo $site_name; ?> Logo" height="55">
                     </a>
                     <p class="text-white-50 small mb-4"><?php echo $site_name; ?> is an international financial institution providing bespoke private banking and corporate advisory. Member FDIC. Equal Housing Lender.</p>
                     <div class="social-icons">

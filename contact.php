@@ -247,7 +247,7 @@ $contact_address = getSetting('contact_address', 'Global HQ | Zürich, Switzerla
     <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top border-bottom py-3">
         <div class="container">
             <a class="navbar-brand" style="width: 170px" href="index.php">
-                <img src="assets/images/SWC%20Secondary%20Logo%20Dark.png" alt="SwiftCapital Logo" height="55">
+                <img src="assets/images/SWC_Primary_Logo_Light.png" alt="SwiftCapital Logo" height="55">
             </a>
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="bi bi-list fs-1" style="color: var(--norby-blue);"></span>
@@ -441,7 +441,7 @@ $contact_address = getSetting('contact_address', 'Global HQ | Zürich, Switzerla
             <div class="row g-5">
                 <div class="col-lg-4">
                     <a class="navbar-brand mb-4 d-block" style="width: 170px" href="index.php">
-                        <img src="assets/images/SWC%20Secondary%20Logo%20Light.png" alt="SwiftCapital Logo" height="55">
+                        <img src="assets/images/SWC_Primary_Logo_Dark.png" alt="SwiftCapital Logo" height="55">
                     </a>
                     <p class="opacity-60 small"><?php echo $site_name; ?> is a global financial institution specialized in private banking, asset management, and corporate financial advisory. Member FDIC. Equal Housing Lender.</p>
                 </div>
@@ -462,7 +462,7 @@ $contact_address = getSetting('contact_address', 'Global HQ | Zürich, Switzerla
                     </ul>
                 </div>
                 <div class="col-lg-3 text-center">
-                    <img src="assets/images/SWC%20Primary%20Logo%20Light.png" alt="Portrait Logo" height="110" class="mb-3">
+                    <img src="assets/images/SWC_Primary_Logo_Dark.png" alt="Portrait Logo" height="110" class="mb-3">
                     <p class="opacity-40 small mb-0">Registered Global HQ | Zürich</p>
                 </div>
             </div>

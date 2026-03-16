@@ -229,8 +229,9 @@ function time_ago($timestamp) {
     <!-- Sidebar -->
     <div class="admin-sidebar">
         <div class="brand-area">
-            <div class="brand-icon"><i class="fa-solid fa-shield-halved"></i></div>
-            <div class="brand-name">SwiftAdmin</div>
+            <div class="brand-name">
+                 <img src="../assets/images/SWC_Primary_Logo_Dark.png" alt="SwiftCapital" height="40">
+            </div>
         </div>
 
         <div class="nav-links">

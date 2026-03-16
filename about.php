@@ -229,7 +229,7 @@ $site_name = getSetting('site_name', 'SwiftCapital');
     <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top border-bottom py-3">
         <div class="container">
             <a class="navbar-brand" style="width: 170px" href="index.php">
-                <img src="assets/images/SWC%20Secondary%20Logo%20Dark.png" alt="SwiftCapital Logo" height="55">
+                <img src="assets/images/SWC_Primary_Logo_Light.png" alt="SwiftCapital Logo" height="55">
             </a>
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="bi bi-list fs-1" style="color: var(--norby-blue);"></span>
@@ -272,7 +272,7 @@ $site_name = getSetting('site_name', 'SwiftCapital');
             <div class="row align-items-center g-5">
                 <div class="col-lg-6" data-aos="fade-right">
                     <div class="heritage-img-box">
-                        <img src="modern_office_workspace_1773622619884.png" alt="Institutional Heritage">
+                        <img src="https://images.unsplash.com/photo-1573164713988-8665fc963095?auto=format" alt="Institutional Heritage">
                     </div>
                 </div>
                 <div class="col-lg-6" data-aos="fade-left">
@@ -379,7 +379,7 @@ $site_name = getSetting('site_name', 'SwiftCapital');
             <div class="row g-5">
                 <div class="col-lg-4">
                     <a class="navbar-brand mb-4 d-block" style="width: 170px" href="index.php">
-                        <img src="assets/images/SWC%20Secondary%20Logo%20Light.png" alt="SwiftCapital Logo" height="55">
+                        <img src="assets/images/SWC_Primary_Logo_Dark.png" alt="SwiftCapital Logo" height="55">
                     </a>
                     <p class="opacity-60 small"><?php echo $site_name; ?> is an international financial institution Providing bespoke private banking and corporate advisory. Member FDIC. Equal Housing Lender.</p>
                     <div class="d-flex gap-3 mt-4">

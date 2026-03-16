@@ -86,7 +86,7 @@ if (!$tx) {
                 <div class="text-center mb-5">
                     <div class="d-inline-flex mb-4" style="width: 120px; height: 120px; align-items: center; justify-content: center;">
                         <?php if ($tx['status'] == 'Completed'): ?>
-                            <img src="../assets/images/SWC Primary Logo Light.png" alt="Logo" style="max-width: 100%; height: auto;">
+                            <img src="../assets/images/SWC_Primary_Logo_Light.png" alt="Logo" style="max-width: 100%; height: auto;">
                         <?php elseif ($tx['status'] == 'Pending'): ?>
                             <div class="bg-amber-light" style="width: 90px; height: 90px; border-radius: 25px; display: flex; align-items: center; justify-content: center;">
                                 <i class="fa-solid fa-hourglass-half text-warning fa-3x"></i>
