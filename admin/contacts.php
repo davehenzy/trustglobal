@@ -1,6 +1,10 @@
 <?php
 require_once '../includes/db.php';
-require_once '../includes/admin-check.php';
+require_once '../includes/admin-check.php'; 
+if ($_SESSION['role'] !== 'Super Admin') {
+    header("Location: index.php");
+    exit();
+}
 
 // Mark as read when viewing
 if (isset($_GET['id'])) {
@@ -61,8 +65,10 @@ if (isset($_GET['id'])) {
                 <span class="badge bg-danger ms-auto" style="font-size:.6rem;"><?php echo $unread; ?></span>
                 <?php endif; ?>
             </a>
+            <?php if ($_SESSION['role'] === 'Super Admin'): ?>
             <a href="cms.php" class="nav-link"><i class="fa-solid fa-pen-nib"></i> Frontend CMS</a>
             <a href="settings.php" class="nav-link"><i class="fa-solid fa-gear"></i> System Settings</a>
+            <?php endif; ?>
             <div class="mt-auto" style="position: absolute; bottom: 20px; width: 100%;">
                 <a href="../logout.php" class="nav-link text-danger"><i class="fa-solid fa-power-off"></i> Logout</a>
             </div>

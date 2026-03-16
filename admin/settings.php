@@ -1,5 +1,9 @@
 <?php 
 require_once '../includes/admin-check.php'; 
+if ($_SESSION['role'] !== 'Super Admin') {
+    header("Location: index.php");
+    exit();
+} 
 
 // Handle Updates
 $success_msg = '';

@@ -106,12 +106,14 @@ $admin_initials = strtoupper(substr($_SESSION['user_name'] ?? 'A', 0, 1) . subst
             <a href="support.php" class="nav-link active">
                 <i class="fa-solid fa-headset"></i> Support Tickets
             </a>
+            <?php if ($_SESSION['role'] === 'Super Admin'): ?>
             <a href="cms.php" class="nav-link">
                 <i class="fa-solid fa-pen-nib"></i> Frontend CMS
             </a>
             <a href="settings.php" class="nav-link">
                 <i class="fa-solid fa-gear"></i> System Settings
             </a>
+            <?php endif; ?>
             
             <div class="mt-auto" style="position: absolute; bottom: 20px; width: 100%;">
                 <a href="../logout.php" class="nav-link text-danger">

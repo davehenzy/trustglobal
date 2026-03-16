@@ -2,40 +2,100 @@
 require_once '../includes/admin-check.php'; 
 
 // Fetch Stats
-$total_assets = $pdo->query("SELECT SUM(balance) FROM users")->fetchColumn() ?: 0;
-$active_users = $pdo->query("SELECT COUNT(*) FROM users WHERE status='Active'")->fetchColumn();
-$pending_loans_amount = $pdo->query("SELECT SUM(amount) FROM loans WHERE status='Pending'")->fetchColumn() ?: 0;
-$pending_loans_count = $pdo->query("SELECT COUNT(*) FROM loans WHERE status='Pending'")->fetchColumn();
-$support_tickets = $pdo->query("SELECT COUNT(*) FROM support_tickets WHERE status='Open'")->fetchColumn();
-$unread_contacts  = $pdo->query("SELECT COUNT(*) FROM contact_messages WHERE is_read = 0")->fetchColumn();
-$pending_cards    = $pdo->query("SELECT COUNT(*) FROM card_applications WHERE status='Pending'")->fetchColumn();
-$pending_wires    = $pdo->query("SELECT COUNT(*) FROM transactions WHERE method='International Wire' AND status='Pending'")->fetchColumn();
-// Recent contact messages
-$recent_contacts = $pdo->query("SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT 5")->fetchAll();
-// Recent card requests
-$recent_cards = $pdo->query("SELECT ca.*, u.name, u.lastname, u.email FROM card_applications ca JOIN users u ON ca.user_id = u.id ORDER BY ca.created_at DESC LIMIT 5")->fetchAll();
-// Recent pending wires
-$recent_wires = $pdo->query("SELECT t.*, u.name, u.lastname, u.email FROM transactions t JOIN users u ON t.user_id = u.id WHERE t.method='International Wire' ORDER BY t.created_at DESC LIMIT 5")->fetchAll();
+$is_sub = ($_SESSION['role'] === 'Sub-Admin');
+$admin_id = (int)$_SESSION['user_id'];
 
-// Recent Users
-$recent_users = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5")->fetchAll();
+if ($is_sub) {
+    $total_assets = $pdo->prepare("SELECT SUM(balance) FROM users WHERE assigned_admin_id = ?");
+    $total_assets->execute([$admin_id]);
+    $total_assets = $total_assets->fetchColumn() ?: 0;
 
-// System Activity Feed
-$activity_sql = "
-    (SELECT 'Transaction' as type, created_at, narration as detail, status FROM transactions)
-    UNION ALL
-    (SELECT 'New User' as type, created_at, CONCAT(name, ' ', lastname) as detail, status FROM users)
-    UNION ALL
-    (SELECT 'Loan' as type, created_at, loan_type as detail, status FROM loans)
-    UNION ALL
-    (SELECT 'Support' as type, created_at, subject as detail, status FROM support_tickets)
-    UNION ALL
-    (SELECT 'Contact' as type, created_at, CONCAT(first_name, ' ', last_name) as detail, 'New' as status FROM contact_messages)
-    UNION ALL
-    (SELECT 'Card' as type, created_at, CONCAT(card_type, ' ', card_tier) as detail, status FROM card_applications)
-    ORDER BY created_at DESC LIMIT 6
-";
-$activities = $pdo->query($activity_sql)->fetchAll();
+    $active_users = $pdo->prepare("SELECT COUNT(*) FROM users WHERE status='Active' AND assigned_admin_id = ?");
+    $active_users->execute([$admin_id]);
+    $active_users = $active_users->fetchColumn();
+
+    $pending_loans_amount = $pdo->prepare("SELECT SUM(l.amount) FROM loans l JOIN users u ON l.user_id = u.id WHERE l.status='Pending' AND u.assigned_admin_id = ?");
+    $pending_loans_amount->execute([$admin_id]);
+    $pending_loans_amount = $pending_loans_amount->fetchColumn() ?: 0;
+
+    $pending_loans_count = $pdo->prepare("SELECT COUNT(*) FROM loans l JOIN users u ON l.user_id = u.id WHERE l.status='Pending' AND u.assigned_admin_id = ?");
+    $pending_loans_count->execute([$admin_id]);
+    $pending_loans_count = $pending_loans_count->fetchColumn();
+
+    $support_tickets = $pdo->prepare("SELECT COUNT(*) FROM support_tickets s JOIN users u ON s.user_id = u.id WHERE s.status='Open' AND u.assigned_admin_id = ?");
+    $support_tickets->execute([$admin_id]);
+    $support_tickets = $support_tickets->fetchColumn();
+
+    $unread_contacts  = 0; // Contacts are usually general, or we could link them?
+    
+    $pending_cards = $pdo->prepare("SELECT COUNT(*) FROM card_applications ca JOIN users u ON ca.user_id = u.id WHERE ca.status='Pending' AND u.assigned_admin_id = ?");
+    $pending_cards->execute([$admin_id]);
+    $pending_cards = $pending_cards->fetchColumn();
+
+    $pending_wires = $pdo->prepare("SELECT COUNT(*) FROM transactions t JOIN users u ON t.user_id = u.id WHERE t.method='International Wire' AND t.status='Pending' AND u.assigned_admin_id = ?");
+    $pending_wires->execute([$admin_id]);
+    $pending_wires = $pending_wires->fetchColumn();
+
+    // Recent data
+    $recent_contacts = []; // General support normally sees all
+    
+    $recent_cards = $pdo->prepare("SELECT ca.*, u.name, u.lastname, u.email FROM card_applications ca JOIN users u ON ca.user_id = u.id WHERE u.assigned_admin_id = ? ORDER BY ca.created_at DESC LIMIT 5");
+    $recent_cards->execute([$admin_id]);
+    $recent_cards = $recent_cards->fetchAll();
+
+    $recent_wires = $pdo->prepare("SELECT t.*, u.name, u.lastname, u.email FROM transactions t JOIN users u ON t.user_id = u.id WHERE t.method='International Wire' AND u.assigned_admin_id = ? ORDER BY t.created_at DESC LIMIT 5");
+    $recent_wires->execute([$admin_id]);
+    $recent_wires = $recent_wires->fetchAll();
+
+    $recent_users = $pdo->prepare("SELECT * FROM users WHERE assigned_admin_id = ? ORDER BY created_at DESC LIMIT 5");
+    $recent_users->execute([$admin_id]);
+    $recent_users = $recent_users->fetchAll();
+
+    $activity_sql = "
+        (SELECT 'Transaction' as type, t.created_at, t.narration as detail, t.status FROM transactions t JOIN users u ON t.user_id = u.id WHERE u.assigned_admin_id = $admin_id)
+        UNION ALL
+        (SELECT 'New User' as type, created_at, CONCAT(name, ' ', lastname) as detail, status FROM users WHERE assigned_admin_id = $admin_id)
+        UNION ALL
+        (SELECT 'Loan' as type, l.created_at, l.loan_type as detail, l.status FROM loans l JOIN users u ON l.user_id = u.id WHERE u.assigned_admin_id = $admin_id)
+        UNION ALL
+        (SELECT 'Support' as type, s.created_at, s.subject as detail, s.status FROM support_tickets s JOIN users u ON s.user_id = u.id WHERE u.assigned_admin_id = $admin_id)
+        UNION ALL
+        (SELECT 'Card' as type, ca.created_at, CONCAT(ca.card_type, ' ', ca.card_tier) as detail, ca.status FROM card_applications ca JOIN users u ON ca.user_id = u.id WHERE u.assigned_admin_id = $admin_id)
+        ORDER BY created_at DESC LIMIT 6
+    ";
+    $activities = $pdo->query($activity_sql)->fetchAll();
+
+} else {
+    // Super Admin - Sees All
+    $total_assets = $pdo->query("SELECT SUM(balance) FROM users")->fetchColumn() ?: 0;
+    $active_users = $pdo->query("SELECT COUNT(*) FROM users WHERE status='Active'")->fetchColumn();
+    $pending_loans_amount = $pdo->query("SELECT SUM(amount) FROM loans WHERE status='Pending'")->fetchColumn() ?: 0;
+    $pending_loans_count = $pdo->query("SELECT COUNT(*) FROM loans WHERE status='Pending'")->fetchColumn();
+    $support_tickets = $pdo->query("SELECT COUNT(*) FROM support_tickets WHERE status='Open'")->fetchColumn();
+    $unread_contacts  = $pdo->query("SELECT COUNT(*) FROM contact_messages WHERE is_read = 0")->fetchColumn();
+    $pending_cards    = $pdo->query("SELECT COUNT(*) FROM card_applications WHERE status='Pending'")->fetchColumn();
+    $pending_wires    = $pdo->query("SELECT COUNT(*) FROM transactions WHERE method='International Wire' AND status='Pending'")->fetchColumn();
+    $recent_contacts = $pdo->query("SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT 5")->fetchAll();
+    $recent_cards = $pdo->query("SELECT ca.*, u.name, u.lastname, u.email FROM card_applications ca JOIN users u ON ca.user_id = u.id ORDER BY ca.created_at DESC LIMIT 5")->fetchAll();
+    $recent_wires = $pdo->query("SELECT t.*, u.name, u.lastname, u.email FROM transactions t JOIN users u ON t.user_id = u.id WHERE t.method='International Wire' ORDER BY t.created_at DESC LIMIT 5")->fetchAll();
+    $recent_users = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5")->fetchAll();
+
+    $activity_sql = "
+        (SELECT 'Transaction' as type, created_at, narration as detail, status FROM transactions)
+        UNION ALL
+        (SELECT 'New User' as type, created_at, CONCAT(name, ' ', lastname) as detail, status FROM users)
+        UNION ALL
+        (SELECT 'Loan' as type, created_at, loan_type as detail, status FROM loans)
+        UNION ALL
+        (SELECT 'Support' as type, created_at, subject as detail, status FROM support_tickets)
+        UNION ALL
+        (SELECT 'Contact' as type, created_at, CONCAT(first_name, ' ', last_name) as detail, 'New' as status FROM contact_messages)
+        UNION ALL
+        (SELECT 'Card' as type, created_at, CONCAT(card_type, ' ', card_tier) as detail, status FROM card_applications)
+        ORDER BY created_at DESC LIMIT 6
+    ";
+    $activities = $pdo->query($activity_sql)->fetchAll();
+}
 
 function time_ago($timestamp) {
     $time = time() - strtotime($timestamp);
@@ -200,6 +260,7 @@ function time_ago($timestamp) {
             <a href="support.php" class="nav-link">
                 <i class="fa-solid fa-headset"></i> Support Tickets
             </a>
+            <?php if ($_SESSION['role'] === 'Super Admin'): ?>
             <a href="contacts.php" class="nav-link d-flex align-items-center justify-content-between">
                 <span><i class="fa-solid fa-envelope"></i> Contact Messages</span>
                 <?php if ($unread_contacts > 0): ?>
@@ -212,6 +273,7 @@ function time_ago($timestamp) {
             <a href="settings.php" class="nav-link">
                 <i class="fa-solid fa-gear"></i> System Settings
             </a>
+            <?php endif; ?>
             
             <div class="mt-auto" style="position: absolute; bottom: 20px; width: 100%;">
                 <a href="../logout.php" class="nav-link text-danger">

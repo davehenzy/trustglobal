@@ -30,16 +30,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
     $phone = $_POST['phone'];
     $account_type = $_POST['account_type'];
     $status = $_POST['status'];
+    $assigned_admin_id = (!empty($_POST['assigned_admin_id'])) ? $_POST['assigned_admin_id'] : null;
     $new_password = $_POST['password'];
 
     try {
         if (!empty($new_password)) {
             $hashed_password = password_hash($new_password, PASSWORD_BCRYPT);
-            $stmt = $pdo->prepare("UPDATE users SET name = ?, lastname = ?, email = ?, phone = ?, account_type = ?, status = ?, password = ? WHERE id = ?");
-            $stmt->execute([$name, $lastname, $email, $phone, $account_type, $status, $hashed_password, $user_id]);
+            $stmt = $pdo->prepare("UPDATE users SET name = ?, lastname = ?, email = ?, phone = ?, account_type = ?, status = ?, password = ?, assigned_admin_id = ? WHERE id = ?");
+            $stmt->execute([$name, $lastname, $email, $phone, $account_type, $status, $hashed_password, $assigned_admin_id, $user_id]);
         } else {
-            $stmt = $pdo->prepare("UPDATE users SET name = ?, lastname = ?, email = ?, phone = ?, account_type = ?, status = ? WHERE id = ?");
-            $stmt->execute([$name, $lastname, $email, $phone, $account_type, $status, $user_id]);
+            $stmt = $pdo->prepare("UPDATE users SET name = ?, lastname = ?, email = ?, phone = ?, account_type = ?, status = ?, assigned_admin_id = ? WHERE id = ?");
+            $stmt->execute([$name, $lastname, $email, $phone, $account_type, $status, $assigned_admin_id, $user_id]);
         }
         $success_msg = "Profile updated successfully.";
         
@@ -106,6 +107,13 @@ $stmt = $pdo->prepare("SELECT SUM(amount) FROM transactions WHERE user_id = ? AN
 $stmt->execute([$user_id]);
 $cumulative_outflows = $stmt->fetchColumn() ?: 0;
 
+// Fetch Sub-Admins for assignment (Super Admin only)
+$sub_admins = [];
+if ($_SESSION['role'] === 'Super Admin') {
+    $stmt = $pdo->query("SELECT id, name, lastname FROM users WHERE role = 'Sub-Admin' ORDER BY name ASC");
+    $sub_admins = $stmt->fetchAll();
+}
+
 $initials = strtoupper(substr($user['name'], 0, 1) . substr($user['lastname'], 0, 1));
 ?>
 <!DOCTYPE html>
@@ -151,12 +159,14 @@ $initials = strtoupper(substr($user['name'], 0, 1) . substr($user['lastname'], 0
             <a href="support.php" class="nav-link">
                 <i class="fa-solid fa-headset"></i> Support Tickets
             </a>
+            <?php if ($_SESSION['role'] === 'Super Admin'): ?>
             <a href="cms.php" class="nav-link">
                 <i class="fa-solid fa-pen-nib"></i> Frontend CMS
             </a>
             <a href="settings.php" class="nav-link">
                 <i class="fa-solid fa-gear"></i> System Settings
             </a>
+            <?php endif; ?>
             
             <div class="mt-auto" style="position: absolute; bottom: 20px; width: 100%;">
                 <a href="../logout.php" class="nav-link text-danger">
@@ -250,9 +260,22 @@ $initials = strtoupper(substr($user['name'], 0, 1) . substr($user['lastname'], 0
                                         <option value="Deactivated" <?php echo $user['status'] == 'Deactivated' ? 'selected' : ''; ?> class="text-muted">Deactivated</option>
                                     </select>
                                 </div>
-                                <div class="col-md-12">
+                                <?php if ($_SESSION['role'] === 'Super Admin'): ?>
+                                <div class="col-md-6">
+                                    <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Assigned Account Manager</label>
+                                    <select name="assigned_admin_id" class="form-select bg-light border-0 fw-800 p-3" style="border-radius: 12px;">
+                                        <option value="">Unassigned (General Queue)</option>
+                                        <?php foreach ($sub_admins as $sa): ?>
+                                            <option value="<?php echo $sa['id']; ?>" <?php echo ($user['assigned_admin_id'] == $sa['id']) ? 'selected' : ''; ?>>
+                                                <?php echo htmlspecialchars($sa['name'] . ' ' . $sa['lastname']); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <?php endif; ?>
+                                <div class="col-md-<?php echo ($_SESSION['role'] === 'Super Admin') ? '12' : '6'; ?>">
                                     <label class="form-label text-xs fw-800 text-muted text-uppercase mb-3">Modulate Passcode (Leave blank to keep current)</label>
-                                    <input type="password" name="password" class="form-control bg-light border-0 fw-600 p-3" style="border-radius: 12px;" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢">
+                                    <input type="password" name="password" class="form-control bg-light border-0 fw-600 p-3" style="border-radius: 12px;" placeholder="••••••••">
                                 </div>
                             </div>
 

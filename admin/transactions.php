@@ -3,9 +3,26 @@ require_once '../includes/admin-check.php';
 
 // Fetch Stats
 $today = date('Y-m-d');
-$today_inflow = $pdo->query("SELECT SUM(amount) FROM transactions WHERE DATE(created_at) = '$today' AND (type='Deposit' OR type='Credit') AND status='Completed'")->fetchColumn() ?: 0;
-$total_volume_24h = $pdo->query("SELECT SUM(amount) FROM transactions WHERE created_at >= NOW() - INTERVAL 1 DAY AND status='Completed'")->fetchColumn() ?: 0;
-$pending_requests = $pdo->query("SELECT COUNT(*) FROM transactions WHERE status='Pending'")->fetchColumn();
+$is_sub = ($_SESSION['role'] === 'Sub-Admin');
+$admin_id = (int)$_SESSION['user_id'];
+
+if ($is_sub) {
+    $today_inflow = $pdo->prepare("SELECT SUM(t.amount) FROM transactions t JOIN users u ON t.user_id = u.id WHERE DATE(t.created_at) = ? AND (t.type='Deposit' OR t.type='Credit') AND t.status='Completed' AND u.assigned_admin_id = ?");
+    $today_inflow->execute([$today, $admin_id]);
+    $today_inflow = $today_inflow->fetchColumn() ?: 0;
+
+    $total_volume_24h = $pdo->prepare("SELECT SUM(t.amount) FROM transactions t JOIN users u ON t.user_id = u.id WHERE t.created_at >= NOW() - INTERVAL 1 DAY AND t.status='Completed' AND u.assigned_admin_id = ?");
+    $total_volume_24h->execute([$admin_id]);
+    $total_volume_24h = $total_volume_24h->fetchColumn() ?: 0;
+
+    $pending_requests = $pdo->prepare("SELECT COUNT(*) FROM transactions t JOIN users u ON t.user_id = u.id WHERE t.status='Pending' AND u.assigned_admin_id = ?");
+    $pending_requests->execute([$admin_id]);
+    $pending_requests = $pending_requests->fetchColumn();
+} else {
+    $today_inflow = $pdo->query("SELECT SUM(amount) FROM transactions WHERE DATE(created_at) = '$today' AND (type='Deposit' OR type='Credit') AND status='Completed'")->fetchColumn() ?: 0;
+    $total_volume_24h = $pdo->query("SELECT SUM(amount) FROM transactions WHERE created_at >= NOW() - INTERVAL 1 DAY AND status='Completed'")->fetchColumn() ?: 0;
+    $pending_requests = $pdo->query("SELECT COUNT(*) FROM transactions WHERE status='Pending'")->fetchColumn();
+}
 
 // Search and Filter logic
 $search = $_GET['search'] ?? '';
@@ -32,6 +49,11 @@ if ($status && $status != 'Status') {
     $status_val = $status == 'Success' ? 'Completed' : ($status == 'Cancelled' ? 'Cancelled' : 'Pending');
     $where_clauses[] = "t.status = ?";
     $params[] = $status_val;
+}
+
+if ($is_sub) {
+    $where_clauses[] = "u.assigned_admin_id = ?";
+    $params[] = $admin_id;
 }
 
 $where_sql = !empty($where_clauses) ? "WHERE " . implode(" AND ", $where_clauses) : "";
@@ -104,12 +126,14 @@ $total_pages = ceil($total_count / $limit);
             <a href="support.php" class="nav-link">
                 <i class="fa-solid fa-headset"></i> Support Tickets
             </a>
+            <?php if ($_SESSION['role'] === 'Super Admin'): ?>
             <a href="cms.php" class="nav-link">
                 <i class="fa-solid fa-pen-nib"></i> Frontend CMS
             </a>
             <a href="settings.php" class="nav-link">
                 <i class="fa-solid fa-gear"></i> System Settings
             </a>
+            <?php endif; ?>
             
             <div class="mt-auto" style="position: absolute; bottom: 20px; width: 100%;">
                 <a href="../logout.php" class="nav-link text-danger">

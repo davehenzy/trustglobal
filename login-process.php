@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $_SESSION['role'] = $user['role'];
 
                 // Redirect based on role
-                if ($user['role'] == 'Admin') {
+                if (in_array($user['role'], ['Super Admin', 'Sub-Admin'])) {
                     header("Location: admin/index.php");
                 } else {
                     $_SESSION['pin_verified'] = false;

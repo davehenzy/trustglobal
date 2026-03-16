@@ -48,12 +48,14 @@
             <a href="support.php" class="nav-link">
                 <i class="fa-solid fa-headset"></i> Support Tickets
             </a>
+            <?php if ($_SESSION['role'] === 'Super Admin'): ?>
             <a href="cms.php" class="nav-link">
                 <i class="fa-solid fa-pen-nib"></i> Frontend CMS
             </a>
             <a href="settings.php" class="nav-link">
                 <i class="fa-solid fa-gear"></i> System Settings
             </a>
+            <?php endif; ?>
             
             <div class="mt-auto" style="position: absolute; bottom: 20px; width: 100%;">
                 <a href="../logout.php" class="nav-link text-danger">
@@ -127,7 +129,12 @@
                         </thead>
                         <tbody>
                             <?php
-                            $stmt = $pdo->query("SELECT * FROM users ORDER BY created_at DESC");
+                            if ($_SESSION['role'] === 'Sub-Admin') {
+                                $stmt = $pdo->prepare("SELECT * FROM users WHERE (role = 'User' OR role IS NULL OR role = '') AND assigned_admin_id = ? ORDER BY created_at DESC");
+                                $stmt->execute([$_SESSION['user_id']]);
+                            } else {
+                                $stmt = $pdo->query("SELECT * FROM users WHERE (role = 'User' OR role IS NULL OR role = '') ORDER BY created_at DESC");
+                            }
                             while ($user = $stmt->fetch()) {
                                 $status_class = '';
                                 switch($user['status']) {
