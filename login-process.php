@@ -1,8 +1,15 @@
 <?php
+if(!defined('SWIFTCAP_SECURE')) define('SWIFTCAP_SECURE', true); // Allow on entry
 // SwiftCapital Login Logic
 require_once 'includes/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // CSRF Protection
+    if (!isset($_POST['csrf_token']) || !verifyCSRF($_POST['csrf_token'])) {
+        $_SESSION['errors'] = ['Security session expired. Please refresh the page.'];
+        header("Location: login.php");
+        exit;
+    }
     $login_input = cleanInput($_POST['email']); // This is the field for username/email
     $password = $_POST['password'];
 

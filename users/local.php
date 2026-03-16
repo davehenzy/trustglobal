@@ -24,7 +24,11 @@ if (isset($_GET['lookup'])) {
 
 // ── Form submission ──────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $amount      = (float)($_POST['amount'] ?? 0);
+    // CSRF Protection
+    if (!isset($_POST['csrf_token']) || !verifyCSRF($_POST['csrf_token'])) {
+        $error = 'Security session expired. Please refresh and try again. [CSRF Failure]';
+    } else {
+        $amount      = (float)($_POST['amount'] ?? 0);
     $acct_number = trim($_POST['recipient_account'] ?? '');
     $bank_name   = trim(htmlspecialchars($_POST['bank_name'] ?? 'SwiftCapital'));
     $method      = htmlspecialchars($_POST['transfer_method'] ?? 'Online Internal Banking');
@@ -89,6 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch(Exception $e) {
             $pdo->rollBack();
             $error = 'Transaction failed. Please try again.';
+        }
         }
     }
 }
@@ -389,6 +394,7 @@ include '../includes/user-sidebar.php';
                 </div>
 
                 <form method="POST" id="localTransferForm" autocomplete="off">
+                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 
                     <!-- Amount -->
                     <div class="lt-sec-title"><i class="fa-solid fa-dollar-sign"></i> Transfer Amount</div>

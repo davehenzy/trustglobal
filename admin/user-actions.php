@@ -24,6 +24,10 @@ $error_msg = '';
 
 // Handle Actions (Credit, Debit, Status)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // CSRF Protection
+    if (!isset($_POST['csrf_token']) || !verifyCSRF($_POST['csrf_token'])) {
+        $error_msg = "Security session expired. Please refresh the page. [CSRF Failure]";
+    } else {
     if (isset($_POST['credit_user'])) {
         $amount = (float)$_POST['amount'];
         $narration = $_POST['narration'];
@@ -80,6 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
     $stmt->execute([$user_id]);
     $user = $stmt->fetch();
+    }
 }
 
 // Fetch Recent Activities
@@ -557,6 +562,7 @@ $initials = strtoupper(substr($user['name'], 0, 1) . substr($user['lastname'], 0
                 </div>
                 <div class="modal-body p-4">
                     <form method="POST">
+                        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                         <input type="hidden" name="credit_user" value="1">
                         <div class="mb-3">
                             <label class="form-label">Amount to Credit ($)</label>
@@ -591,6 +597,7 @@ $initials = strtoupper(substr($user['name'], 0, 1) . substr($user['lastname'], 0
                 </div>
                 <div class="modal-body p-4">
                     <form method="POST">
+                        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                         <input type="hidden" name="debit_user" value="1">
                         <div class="mb-3">
                             <label class="form-label">Amount to Debit ($)</label>
@@ -631,6 +638,7 @@ $initials = strtoupper(substr($user['name'], 0, 1) . substr($user['lastname'], 0
                 </div>
                 <div class="modal-body p-4">
                     <form method="POST">
+                        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                         <input type="hidden" name="update_status" value="1">
                         <div class="mb-4">
                             <label class="form-label">Current Status: <span class="badge bg-success"><?php echo $user['status']; ?></span></label>

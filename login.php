@@ -247,7 +247,7 @@
                             unset($_SESSION['success_message']);
                         }
                         ?>
-                        <input type="hidden" name="_token" value="IupufGIaZ9FIXRhnUkmDWxjN739GCNieMCFWQnFZ">
+                        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                         <!-- Email -->
                         <div class="mb-6">
                             <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Username</label>

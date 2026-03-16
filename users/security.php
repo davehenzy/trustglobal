@@ -7,7 +7,11 @@ $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? '';
+    // CSRF Protection
+    if (!isset($_POST['csrf_token']) || !verifyCSRF($_POST['csrf_token'])) {
+        $error = "Security session expired. Please refresh the page and try again.";
+    } else {
+        $action = $_POST['action'] ?? '';
 
     if ($action === 'update_password') {
         $current_password = $_POST['current_password'] ?? '';
@@ -58,6 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $error = "System error occurred. Please try again later.";
             }
+        }
         }
     }
 }
@@ -263,6 +268,7 @@ include '../includes/user-sidebar.php';
                         </div>
                         <div class="security-audit-body">
                             <form method="POST">
+                                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                                 <input type="hidden" name="action" value="update_password">
                                 <div class="mb-4">
                                     <label class="protocol-label">Existing Password</label>
@@ -301,6 +307,7 @@ include '../includes/user-sidebar.php';
                         </div>
                         <div class="security-audit-body">
                             <form method="POST">
+                                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                                 <input type="hidden" name="action" value="update_pin">
                                 <div class="mb-4">
                                     <label class="protocol-label">Current Strategic PIN</label>

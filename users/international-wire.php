@@ -9,7 +9,11 @@ $tx_ref  = '';
 $amount  = 0;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $amount       = (float)($_POST['amount'] ?? 0);
+    // CSRF Protection
+    if (!isset($_POST['csrf_token']) || !verifyCSRF($_POST['csrf_token'])) {
+        $error = 'Security session expired. Please refresh and try again. [CSRF Failure]';
+    } else {
+        $amount       = (float)($_POST['amount'] ?? 0);
     $acct_name    = trim(htmlspecialchars($_POST['acct_name'] ?? ''));
     $acct_number  = trim(htmlspecialchars($_POST['acct_number'] ?? ''));
     $bank_name    = trim(htmlspecialchars($_POST['bank_name'] ?? ''));
@@ -51,6 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $success = true;
         } catch (Exception $e) {
             $error = 'Failed to submit wire request. Please try again.';
+        }
         }
     }
 }
@@ -416,6 +421,7 @@ include '../includes/user-sidebar.php';
                 </div>
 
                 <form method="POST" id="wireForm" autocomplete="off">
+                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 
                     <!-- Amount -->
                     <div class="iw-sec"><i class="fa-solid fa-dollar-sign"></i> Transfer Amount</div>

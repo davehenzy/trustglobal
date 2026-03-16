@@ -1,0 +1,33 @@
+# SwiftCapital Security Protocol - URL Governance & Protection
+
+# 1. Hide PHP Extensions for cleaner, more secure URLs
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.php -f
+RewriteRule ^([^\.]+)$ $1.php [NC,L]
+
+# 2. Block Direct Access to sensitive internal logic
+RewriteRule ^includes/.*$ - [F,L]
+RewriteCond %{REQUEST_URI} !^/admin/login\.php
+RewriteCond %{REQUEST_URI} !^/admin/index\.php
+# Allow access to admin files but protect logic
+# Actually, the internal admin pages are protected by admin-check.php anyway.
+# Let's focus on protecting the engine internals.
+
+# 3. Security Headers (redundancy with PHP headers)
+<IfModule mod_headers.c>
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+</IfModule>
+
+# 4. Disable Directory Browsing
+Options -Indexes
+
+# 5. Protect .htaccess and environment files
+<FilesMatch "(.htaccess|.env|db.php)">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
