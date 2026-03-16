@@ -390,6 +390,20 @@ include '../includes/user-sidebar.php';
         <!-- Page Content -->
         <div class="page-container">
             
+            <?php if(isset($_SESSION['success_msg'])): ?>
+                <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 12px; font-size: 0.9rem;">
+                    <i class="fa-solid fa-circle-check me-2"></i> <?php echo $_SESSION['success_msg']; unset($_SESSION['success_msg']); ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
+
+            <?php if(isset($_SESSION['error_msg'])): ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 12px; font-size: 0.9rem;">
+                    <i class="fa-solid fa-circle-exclamation me-2"></i> <?php echo $_SESSION['error_msg']; unset($_SESSION['error_msg']); ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
+            
             <div class="page-header">
                 <h1 class="page-title">Account Settings</h1>
                 <div class="breadcrumb-text">

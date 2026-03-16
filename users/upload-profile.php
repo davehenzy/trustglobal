@@ -14,8 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_pic'])) {
         exit();
     }
     
-    if ($file['size'] > 2 * 1024 * 1024) { // 2MB limit
-        $_SESSION['error_msg'] = "File too large. Maximum 2MB allowed.";
+    if ($file['size'] > 20 * 1024 * 1024) { // 20MB limit
+        $_SESSION['error_msg'] = "File too large. Maximum 20MB allowed.";
         header("Location: settings.php");
         exit();
     }
@@ -23,25 +23,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_pic'])) {
     // Create uploads directory if not exists
     $upload_dir = '../assets/uploads/profiles/';
     if (!is_dir($upload_dir)) {
-        mkdir($upload_dir, 0755, true);
+        if (!mkdir($upload_dir, 0755, true)) {
+            $_SESSION['error_msg'] = "Critical: Could not create upload directory. Check permissions.";
+            header("Location: settings.php");
+            exit();
+        }
     }
     
     // Generate unique name
     $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
     $filename = 'profile_' . $user_id . '_' . time() . '.' . $ext;
-    $target_file = $upload_dir . $filename;
+    $target_path = $upload_dir . $filename;
     
-    if (move_uploaded_file($file['tmp_name'], $target_file)) {
-        // Update database
-        $stmt = $pdo->prepare("UPDATE users SET profile_pic = ? WHERE id = ?");
-        $stmt->execute([$filename, $user_id]);
-        
-        // Update session
-        $_SESSION['profile_pic'] = $filename;
-        
-        $_SESSION['success_msg'] = "Profile picture updated successfully.";
+    if (move_uploaded_file($file['tmp_name'], $target_path)) {
+        try {
+            // Update database
+            $stmt = $pdo->prepare("UPDATE users SET profile_pic = ? WHERE id = ?");
+            $stmt->execute([$filename, $user_id]);
+            
+            // Update session
+            $_SESSION['profile_pic'] = $filename;
+            $_SESSION['success_msg'] = "Profile picture updated successfully.";
+        } catch (PDOException $e) {
+            $_SESSION['error_msg'] = "Database error: " . $e->getMessage();
+        }
     } else {
-        $_SESSION['error_msg'] = "Failed to upload file.";
+        $error = error_get_last();
+        $_SESSION['error_msg'] = "Failed to move uploaded file. " . ($error['message'] ?? "");
     }
     
     header("Location: settings.php");

@@ -45,12 +45,12 @@ $dashboard_cards = $stmt_cards->fetchAll();
 // Fetch Recent Transactions
 $stmt_last_tx = $pdo->prepare("SELECT * FROM transactions WHERE user_id = ? ORDER BY created_at DESC LIMIT 5");
 $stmt_last_tx->execute([$user_id]);
-$recent_transactions = $stmt_last_tx->fetchAll();
+$recent_transactions = $stmt_last_tx->fetchAll() ?: [];
 
 // Fetch Pending Settlements Count/Volume
 $stmt_pending = $pdo->prepare("SELECT COUNT(*) AS cnt, SUM(amount) AS vol FROM transactions WHERE user_id = ? AND status = 'Pending'");
 $stmt_pending->execute([$user_id]);
-$pending_data = $stmt_pending->fetch();
+$pending_data = $stmt_pending->fetch() ?: ['cnt' => 0, 'vol' => 0];
 $pending_count = $pending_data['cnt'] ?: 0;
 $pending_volume = $pending_data['vol'] ?: 0;
 
