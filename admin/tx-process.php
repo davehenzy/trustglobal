@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     // Credit user balance for deposits
                     $pdo->prepare("UPDATE users SET balance = balance + ? WHERE id = ?")
                         ->execute([$tx['amount'], $tx['user_id']]);
-                } elseif (in_array($tx['type'], ['Debit', 'Withdrawal']) && in_array($tx['method'], ['International Wire', 'Crypto Withdrawal', 'PayPal Withdrawal'])) {
+                } elseif (in_array($tx['type'], ['Debit', 'Withdrawal']) && in_array($tx['method'], ['International Wire', 'Crypto Withdrawal', 'PayPal Withdrawal', 'Wise Transfer', 'Cash App', 'Skrill', 'Revolut', 'Venmo', 'Zelle', 'Alipay', 'WeChat'])) {
                     // Deduct balance for international wire (was pending — not deducted yet)
                     $user_bal = $pdo->prepare("SELECT balance FROM users WHERE id = ?");
                     $user_bal->execute([$tx['user_id']]);

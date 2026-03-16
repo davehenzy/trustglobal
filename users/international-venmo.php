@@ -1,426 +1,202 @@
-﻿<?php require_once '../includes/user-check.php'; ?>
+<?php
+require_once '../includes/db.php';
+require_once '../includes/user-check.php';
+
+$user_id = $_SESSION['user_id'];
+$error   = '';
+$success = false;
+$amount  = 0;
+$tx_ref  = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $amount    = (float)($_POST['amount'] ?? 0);
+    $username  = trim(htmlspecialchars($_POST['username'] ?? ''));
+    $phone     = trim(htmlspecialchars($_POST['phone'] ?? ''));
+    $full_name = trim(htmlspecialchars($_POST['full_name'] ?? ''));
+    $memo      = trim(htmlspecialchars($_POST['memo'] ?? ''));
+    $tx_pin    = $_POST['tx_pin'] ?? '';
+
+    // Fetch sender
+    $sender = $pdo->prepare("SELECT balance, pin FROM users WHERE id = ?");
+    $sender->execute([$user_id]);
+    $sender = $sender->fetch();
+
+    if ($amount <= 0) {
+        $error = 'Please enter a valid amount.';
+    } elseif ($amount < 5) {
+        $error = 'Minimum Venmo withdrawal is $5.00.';
+    } elseif ($amount > $sender['balance']) {
+        $error = 'Insufficient balance. Available: $' . number_format($sender['balance'], 2);
+    } elseif (empty($username) || $username[0] !== '@') {
+        $error = 'Please enter a valid Venmo username starting with @.';
+    } elseif (empty($phone)) {
+        $error = 'Please provide the phone number associated with the Venmo account.';
+    } elseif (empty($tx_pin)) {
+        $error = 'Transaction PIN is required.';
+    } elseif ($tx_pin !== $sender['pin']) {
+        $error = 'Incorrect transaction PIN.';
+    } else {
+        $narration = "Venmo Withdrawal to $username ($full_name) | Phone: $phone";
+        if ($memo) $narration .= " | Note: $memo";
+        
+        $tx_ref = 'SCV' . strtoupper(substr(md5(uniqid()), 0, 10));
+
+        try {
+            // Pending status
+            $pdo->prepare("INSERT INTO transactions (user_id, amount, type, method, status, txn_hash, narration, created_at)
+                           VALUES (?, ?, 'Debit', 'Venmo', 'Pending', ?, ?, NOW())")
+                ->execute([$user_id, $amount, $tx_ref, $narration]);
+            $success = true;
+        } catch (Exception $e) {
+            $error = 'Failed to process request.';
+        }
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Venmo Withdrawal - SwiftCapital</title>
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
     <style>
-        .payment-card-premium {
-            background: #fff;
-            border-radius: 20px;
-            border: 1px solid var(--border-color);
-            overflow: hidden;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.04);
-            margin-bottom: 30px;
+        .vn-wrap { max-width: 1100px; margin: 0 auto; }
+        .vn-hero {
+            background: linear-gradient(135deg, #3d95ce, #0074de);
+            border-radius: 24px 24px 0 0;
+            padding: 46px 54px 56px;
+            color: #fff; text-align: center; position: relative; overflow: hidden;
         }
-
-        .payment-card-header {
-            padding: 25px 30px;
-            background: #fff;
-            border-bottom: 1px solid #f1f5f9;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .vn-hero-icon {
+            width: 78px; height: 78px;
+            background: rgba(255,255,255,.2);
+            border: 1px solid rgba(255,255,255,.3);
+            border-radius: 22px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 2.2rem; color: #fff; margin-bottom: 18px;
         }
-
-        .method-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 700;
-            color: #1a202c;
-            font-size: 1.1rem;
+        .vn-body {
+            background: #fff; border: 1px solid #e5e7eb; border-top: none;
+            border-radius: 0 0 24px 24px; padding: 48px 54px 54px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.05);
         }
-
-        .method-icon-box {
-            width: 42px;
-            height: 42px;
-            background: #eff6ff;
-            color: #3b82f6;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
+        .vn-balance {
+            background: #3d95ce; border-radius: 16px; padding: 20px 26px;
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 36px; color: #fff;
         }
-
-        .amount-display-box {
-            background: #f8fafc;
-            border: 2px solid #edf2f7;
-            border-radius: 16px;
-            padding: 30px;
-            margin: 30px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        .vn-amt-box {
+            background: #f8fafc; border: 2px solid #e5e7eb;
+            border-radius: 20px; padding: 26px 30px; margin-bottom: 36px;
         }
-
-        .amount-display-box:focus-within {
-            border-color: #3b82f6;
-            background: #fff;
-            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.08);
-            transform: translateY(-2px);
+        .vn-amt-inp {
+            border: none; background: transparent; font-size: 2.8rem;
+            font-weight: 900; color: #1a202c; outline: none; width: 100%;
         }
-
-        .amount-label {
-            font-size: 0.85rem;
-            color: #718096;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 15px;
-            display: block;
+        .vn-submit {
+            width: 100%; background: #3d95ce; color: #fff; border: none;
+            padding: 18px; border-radius: 14px; font-weight: 900;
+            box-shadow: 0 12px 28px rgba(61, 149, 206, 0.3); transition: all .3s;
         }
-
-        .amount-input-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .currency-symbol {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #1a202c;
-        }
-
-        .amount-input-field {
-            border: none;
-            background: transparent;
-            font-size: 3rem;
-            font-weight: 800;
-            color: #1a202c;
-            width: 100%;
-            outline: none;
-            padding: 0;
-        }
-
-        .balance-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid #edf2f7;
-        }
-
-        .available-balance {
-            font-size: 0.9rem;
-            color: #718096;
-        }
-
-        .quick-amounts {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-quick {
-            padding: 6px 14px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            background: #fff;
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: #4a5568;
-            transition: all 0.2s;
-        }
-
-        .btn-quick:hover {
-            border-color: #3b82f6;
-            color: #3b82f6;
-            background: #eff6ff;
-        }
-
-        .form-section {
-            padding: 0 30px 30px;
-        }
-
-        .form-label-premium {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 10px;
-            display: block;
-        }
-
-        .btn-submit-premium {
-            width: 100%;
-            background: var(--primary-gradient);
-            color: #fff;
-            border: none;
-            padding: 18px;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 1.1rem;
-            transition: all 0.3s;
-            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.25);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            margin-top: 10px;
-        }
-
-        .btn-submit-premium:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 35px rgba(59, 130, 246, 0.35);
-            filter: brightness(1.05);
-        }
-
-        .secure-badge {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: #f8fafc;
-            padding: 15px 20px;
-            border-radius: 12px;
-            margin-top: 25px;
-            border: 1px solid #edf2f7;
-        }
-
-        .secure-badge i {
-            color: #10b981;
-            font-size: 1.2rem;
-        }
-
-        .secure-badge p {
-            margin: 0;
-            font-size: 0.85rem;
-            color: #64748b;
-            line-height: 1.4;
-        }
-        
-        .pin-wrapper {
-            position: relative;
-        }
-        
-        .pin-toggle {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-            cursor: pointer;
-            z-index: 10;
+        .vn-submit:hover { transform: translateY(-2px); box-shadow: 0 18px 40px rgba(61, 149, 206, 0.4); }
+        .vn-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+            border-radius: 50px; padding: 7px 16px; font-size: .78rem; font-weight: 700;
         }
     </style>
 </head>
 <body>
-
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="brand-section">
-            <div class="brand-logo">
-                <i class="fa-solid fa-chart-simple text-primary me-2"></i>
-                <span class="swift">Swift</span><span class="capital">Capital</span>
-            </div>
-            <div class="brand-tagline">Banking At Its Best</div>
-        </div>
-
-        <div class="user-profile-widget">
-            <div class="avatar-circle">KC</div>
-            <div class="user-name">Kante Calm</div>
-            <div class="user-id">ID: 0537658047</div>
-            <button class="btn btn-kyc" onclick="location.href='verification.php'"><i class="fa-solid fa-circle-exclamation"></i> Verify KYC</button>
-            <div class="user-actions">
-                <a href="settings.php" class="btn btn-outline"><i class="fa-solid fa-user"></i> Profile</a>
-                <a href="#" class="btn btn-primary-soft"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
-            </div>
-        </div>
-
-        <div class="nav-section">
-            <div class="nav-category">Main Menu</div>
-            <a href="index.php" class="nav-item-link"><i class="fa-solid fa-house"></i> Dashboard</a>
-            <a href="transactions.php" class="nav-item-link"><i class="fa-solid fa-chart-line"></i> Transactions</a>
-            <a href="cards.php" class="nav-item-link"><i class="fa-solid fa-credit-card"></i> Cards</a>
-
-            <div class="nav-category">Transfers</div>
-            <a href="local.php" class="nav-item-link"><i class="fa-solid fa-paper-plane"></i> Local Transfer</a>
-            <a href="international.php" class="nav-item-link active"><i class="fa-solid fa-globe"></i> International Wire</a>
-            <a href="deposit.php" class="nav-item-link"><i class="fa-solid fa-download"></i> Deposit</a>
-
-            <div class="nav-category">Services</div>
-            <a href="loan.php" class="nav-item-link"><i class="fa-solid fa-boxes-stacked"></i> Loan Request</a>
-            <a href="irs.php" class="nav-item-link"><i class="fa-solid fa-file-invoice-dollar"></i> IRS Tax Refund</a>
-            <a href="loan-history.php" class="nav-item-link"><i class="fa-solid fa-clock-rotate-left"></i> Loan History</a>
-
-            <div class="nav-category">Account</div>
-            <a href="security.php" class="nav-item-link"><i class="fa-solid fa-gear"></i> Settings</a>
-            <a href="support.php" class="nav-item-link"><i class="fa-solid fa-circle-question"></i> Support Ticket</a>
-        </div>
-
-        <div class="sidebar-footer">
-            <span><i class="fa-solid fa-shield-halved me-1"></i> Secure Banking</span>
-            <span class="version">v1.2.0</span>
-        </div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Top Navbar -->
-        <nav class="top-navbar">
-            <div class="nav-date">
-                <i class="fa-solid fa-calendar"></i>
-                <span id="currentDate">Thursday, March 12, 2026</span>
-            </div>
-            
-            <div class="nav-actions">
-                <div class="balance-badge">
-                    <i class="fa-solid fa-wallet"></i> $0
+<?php
+$page = 'international';
+include '../includes/user-sidebar.php';
+?>
+<main class="main-content">
+    <?php include '../includes/user-navbar.php'; ?>
+    <div class="page-container">
+        <div class="vn-wrap">
+            <div class="page-header mb-4">
+                <h1 class="page-title">Venmo Withdrawal</h1>
+                <div class="breadcrumb-text">
+                    <a href="index.php">Dashboard</a> / International / Venmo
                 </div>
-                <button class="btn-icon-only">
-                    <i class="fa-solid fa-bell"></i>
-                </button>
-                <div class="nav-avatar">KC</div>
             </div>
-        </nav>
 
-        <!-- Page Content -->
-        <div class="page-container">
-            
-            <div class="page-header">
-                <div>
-                    <h1 class="page-title">Venmo Transfer</h1>
-                    <div class="breadcrumb-text">
-                        <a href="index.php">Dashboard</a> <i class="fa-solid fa-chevron-right mx-2" style="font-size: 0.7rem;"></i> International <i class="fa-solid fa-chevron-right mx-2" style="font-size: 0.7rem;"></i> Venmo
+            <div class="vn-hero shadow-lg">
+                <div class="vn-hero-icon"><i class="fa-brands fa-vimeo-v"></i></div>
+                <h3>Venmo Withdrawal</h3>
+                <p>Fast, social, and secure payments. Transfer your balance to your Venmo wallet instantly.</p>
+                <div class="vn-hero-badges">
+                    <span class="vn-badge"><i class="fa-solid fa-bolt"></i> Low Fees</span>
+                    <span class="vn-badge"><i class="fa-solid fa-clock"></i> 24h Review</span>
+                </div>
+            </div>
+
+            <?php if ($success): ?>
+            <div class="vn-body text-center">
+                <div class="mb-4 text-primary" style="font-size: 4rem;"><i class="fa-solid fa-circle-check"></i></div>
+                <h3 class="fw-900">Request Received</h3>
+                <p class="text-muted">Your Venmo withdrawal is currently pending admin review.</p>
+                <div class="alert alert-light border border-primary-subtle d-inline-block px-5">Ref: <strong><?php echo $tx_ref; ?></strong></div>
+                <div class="mt-4"><a href="transactions.php" class="btn btn-primary px-5 py-3 rounded-pill">Track Status</a></div>
+            </div>
+            <?php else: ?>
+            <div class="vn-body">
+                <?php if ($error): ?>
+                <div class="alert alert-danger mb-4"><?php echo $error; ?></div>
+                <?php endif; ?>
+
+                <div class="vn-balance shadow-sm">
+                    <div>
+                        <small class="text-uppercase opacity-75 fw-bold">Available Balance</small>
+                        <div class="h2 fw-900 m-0">$<?php echo number_format($_SESSION['balance'], 2); ?></div>
                     </div>
                 </div>
-            </div>
 
-            <div class="row justify-content-center">
-                <div class="col-lg-10">
-                    
-                    <div class="payment-card-premium">
-                        <div class="payment-card-header">
-                            <div class="method-info">
-                                <div class="method-icon-box" style="background: #3d95ce; color: #fff;">
-                                    <i class="fa-brands fa-vimeo-v"></i>
-                                </div>
-                                Venmo Withdrawal
-                            </div>
-                            <div class="text-muted small">
-                                <i class="fa-solid fa-clock me-1"></i> Est: 24 Hours
-                            </div>
+                <form method="POST">
+                    <div class="vn-amt-box">
+                        <label class="text-muted fw-bold small text-uppercase mb-2 d-block">Amount</label>
+                        <div class="d-flex align-items-center">
+                            <span class="h1 fw-900 m-0 me-2">$</span>
+                            <input type="number" name="amount" class="vn-amt-inp" placeholder="0.00" step="0.01" required value="<?php echo $amount > 0 ? $amount : ''; ?>">
                         </div>
-
-                        <form action="transactions.php">
-                            <!-- Amount Selection -->
-                            <div class="amount-display-box">
-                                <span class="amount-label">Amount to Transfer</span>
-                                <div class="amount-input-wrapper">
-                                    <span class="currency-symbol">$</span>
-                                    <input type="number" class="amount-input-field" value="0.00" id="amountInput" step="0.01" min="0">
-                                </div>
-                                <div class="balance-info">
-                                    <div class="available-balance">
-                                        Available: <span class="fw-bold text-dark">$0.00</span>
-                                    </div>
-                                    <div class="quick-amounts">
-                                        <button type="button" class="btn-quick" onclick="setAmount(100)">$100</button>
-                                        <button type="button" class="btn-quick" onclick="setAmount(500)">$500</button>
-                                        <button type="button" class="btn-quick" onclick="setAmount(1000)">$1000</button>
-                                        <button type="button" class="btn-quick" onclick="setAmount(0)">Max</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="form-section">
-                                <div class="row g-4">
-                                    <div class="col-md-6">
-                                        <label class="form-label-premium">Venmo Username</label>
-                                        <div class="custom-input-group">
-                                            <input type="text" placeholder="e.g. @username" required>
-                                            <i class="fa-solid fa-at left-icon"></i>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label-premium">Phone Number</label>
-                                        <div class="custom-input-group">
-                                            <input type="tel" placeholder="Associated phone number" required>
-                                            <i class="fa-solid fa-phone left-icon"></i>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="col-md-12">
-                                        <label class="form-label-premium">Transaction PIN</label>
-                                        <div class="custom-input-group pin-wrapper">
-                                            <input type="password" id="pinInput" placeholder="Enter your secret PIN" required>
-                                            <i class="fa-solid fa-key left-icon"></i>
-                                            <i class="fa-solid fa-eye-slash pin-toggle" onclick="togglePin()"></i>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-12">
-                                        <label class="form-label-premium">Note (Optional)</label>
-                                        <div class="custom-input-group">
-                                            <textarea rows="2" placeholder="What is this transfer for?"></textarea>
-                                            <i class="fa-solid fa-message left-icon" style="top: 25px;"></i>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <button type="submit" class="btn-submit-premium">
-                                    <i class="fa-solid fa-paper-plane"></i> Initialize Transfer
-                                </button>
-
-                                <div class="secure-badge">
-                                    <i class="fa-solid fa-shield-check"></i>
-                                    <p>Your transaction is encrypted and protected by SwiftCapital's multi-layer security system.</p>
-                                </div>
-                            </div>
-                        </form>
                     </div>
 
-                </div>
-            </div>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="fw-bold small text-uppercase text-muted mb-2 d-block">Venmo Username</label>
+                            <input type="text" name="username" class="form-control form-control-lg bg-light border-0 py-3" placeholder="@username" required value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="fw-bold small text-uppercase text-muted mb-2 d-block">Phone Number</label>
+                            <input type="tel" name="phone" class="form-control form-control-lg bg-light border-0 py-3" placeholder="Associated phone number" required value="<?php echo htmlspecialchars($_POST['phone'] ?? ''); ?>">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="fw-bold small text-uppercase text-muted mb-2 d-block">Account Holder Name</label>
+                            <input type="text" name="full_name" class="form-control form-control-lg bg-light border-0 py-3" placeholder="Full legal name" required value="<?php echo htmlspecialchars($_POST['full_name'] ?? ''); ?>">
+                        </div>
+                    </div>
 
+                    <div class="mb-4">
+                        <label class="fw-bold small text-uppercase text-muted mb-2 d-block">Transaction PIN</label>
+                        <input type="password" name="tx_pin" class="form-control form-control-lg bg-light border-0 py-3" placeholder="Enter your secret PIN" required>
+                    </div>
+
+                    <div class="mb-5">
+                        <label class="fw-bold small text-uppercase text-muted mb-2 d-block">Memo</label>
+                        <textarea name="memo" class="form-control bg-light border-0 py-3" rows="2" placeholder="What's this for?"><?php echo htmlspecialchars($_POST['memo'] ?? ''); ?></textarea>
+                    </div>
+
+                    <button type="submit" class="vn-submit py-4 h5 m-0 mt-2 rounded-pill">Confirm Withdrawal</button>
+                </form>
+            </div>
+            <?php endif; ?>
         </div>
-
-        <!-- Footer -->
-        <footer class="main-footer mt-auto">
-            <div class="brand">
-                <span class="text-primary fw-bold" style="letter-spacing: -0.5px;">Swift</span><span class="text-dark fw-bold" style="letter-spacing: -0.5px;">Capital</span> © 2026 SwiftCapital. All rights reserved.
-            </div>
-            <div class="footer-links">
-                <a href="#">Privacy Policy</a>
-                <a href="#">Terms of Service</a>
-                <a href="#">Contact Support</a>
-            </div>
-        </footer>
-    </main>
-
-    <!-- Bootstrap JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const dateNodes = document.querySelectorAll('#currentDate');
-            const now = new Date();
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const formattedDate = now.toLocaleDateString('en-US', options);
-            dateNodes.forEach(node => node.textContent = formattedDate);
-        });
-
-        function setAmount(val) {
-            document.getElementById('amountInput').value = val.toFixed(2);
-        }
-
-        function togglePin() {
-            const pinInput = document.getElementById('pinInput');
-            const pinToggle = document.querySelector('.pin-toggle');
-            if (pinInput.type === 'password') {
-                pinInput.type = 'text';
-                pinToggle.classList.replace('fa-eye-slash', 'fa-eye');
-            } else {
-                pinInput.type = 'password';
-                pinToggle.classList.replace('fa-eye', 'fa-eye-slash');
-            }
-        }
-    </script>
+    </div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
