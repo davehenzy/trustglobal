@@ -175,7 +175,7 @@ $total_pages = ceil($total_count / $limit);
 
             <div class="data-table-card">
                 <div class="table-responsive">
-                    <table class="table align-middle">
+                    <table class="table table-striped align-middle">
                         <thead>
                             <tr>
                                 <th>Submission Date</th>

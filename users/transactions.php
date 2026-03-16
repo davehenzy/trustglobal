@@ -100,6 +100,12 @@ $balance = $pdo->query("SELECT balance FROM users WHERE id = $user_id")->fetchCo
             color: var(--text-muted);
             font-size: 0.9rem;
         }
+        .transactions-table-container .table-header-row:nth-child(even) {
+            background-color: #f8fafc !important;
+        }
+        .transactions-table-container .table-header-row:nth-child(odd) {
+            background-color: #ffffff !important;
+        }
     </style>
 </head>
 <body>
@@ -170,7 +176,7 @@ include '../includes/user-sidebar.php';
                 </div>
                 <?php else: ?>
                 <?php foreach ($transactions as $tx): ?>
-                <div class="table-header-row text-center bg-white" style="text-transform: none; font-weight: 400; color: #1e293b; padding: 20px;">
+                <div class="table-header-row text-center" style="text-transform: none; font-weight: 400; color: #1e293b; padding: 20px;">
                     <div class="fw-bold <?php echo in_array($tx['type'], ['Deposit', 'Credit']) ? 'text-success' : 'text-danger'; ?>">
                         <?php echo in_array($tx['type'], ['Deposit', 'Credit']) ? '+' : '-'; ?>$<?php echo number_format($tx['amount'], 2); ?>
                     </div>

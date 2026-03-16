@@ -239,7 +239,7 @@ function getSetting($key, $default = '') {
                                     <button class="btn btn-indigo px-4 fw-800" style="border-radius: 10px;" data-bs-toggle="modal" data-bs-target="#serviceModal" onclick="resetServiceModal()"><i class="fa-solid fa-plus me-2"></i> ADD PRODUCT</button>
                                 </div>
                                 <div class="table-responsive">
-                                    <table class="table align-middle">
+                                    <table class="table table-striped align-middle">
                                         <thead>
                                             <tr>
                                                 <th class="border-0 text-muted fw-800 text-xs uppercase">Symbol</th>

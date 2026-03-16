@@ -1,4 +1,7 @@
-<?php require_once '../includes/user-check.php'; ?>
+<?php 
+require_once '../includes/db.php';
+require_once '../includes/user-check.php'; 
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

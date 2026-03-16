@@ -432,7 +432,7 @@ function time_ago($timestamp) {
                     <a href="contacts.php" class="btn btn-primary btn-sm px-3">View All</a>
                 </div>
                 <div class="table-responsive">
-                    <table class="table align-middle">
+                    <table class="table table-striped align-middle">
                         <thead>
                             <tr>
                                 <th>Sender</th>
@@ -491,7 +491,7 @@ function time_ago($timestamp) {
                     <a href="cards.php" class="btn btn-primary btn-sm px-3">View All</a>
                 </div>
                 <div class="table-responsive">
-                    <table class="table align-middle">
+                    <table class="table table-striped align-middle">
                         <thead>
                             <tr>
                                 <th>Applicant</th>
@@ -549,7 +549,7 @@ function time_ago($timestamp) {
                     </a>
                 </div>
                 <div class="table-responsive">
-                    <table class="table align-middle">
+                    <table class="table table-striped align-middle">
                         <thead>
                             <tr>
                                 <th>User</th>
@@ -600,7 +600,7 @@ function time_ago($timestamp) {
                     <a href="users.php" class="btn btn-primary btn-sm px-3">View All Users</a>
                 </div>
                 <div class="table-responsive">
-                    <table class="table align-middle">
+                    <table class="table table-striped align-middle">
                         <thead>
                             <tr>
                                 <th>User</th>

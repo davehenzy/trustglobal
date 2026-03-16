@@ -271,7 +271,7 @@ $total_volume = $stmt_vol->fetchColumn() ?: 0;
                             </div>
                             <?php else: ?>
                             <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
+                                <table class="table table-striped table-hover align-middle mb-0">
                                     <tbody>
                                         <?php foreach ($recent_transactions as $tx): 
                                             $is_credit = in_array($tx['type'], ['Credit', 'Deposit']);

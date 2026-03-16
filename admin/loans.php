@@ -160,7 +160,7 @@
             <!-- Loans Table -->
             <div class="data-table-card mt-0">
                 <div class="table-responsive">
-                    <table class="table align-middle">
+                    <table class="table table-striped align-middle">
                         <thead>
                             <tr>
                                 <th>Client Profile</th>

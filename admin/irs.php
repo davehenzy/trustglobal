@@ -186,7 +186,7 @@ if (isset($_POST['action'])) {
                     </form>
                 </div>
                 <div class="table-responsive">
-                    <table class="table align-middle">
+                    <table class="table table-striped align-middle">
                         <thead>
                             <tr>
                                 <th>User</th>
