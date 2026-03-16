@@ -33,7 +33,7 @@ $limit = 15;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
-$sql = "SELECT t.*, u.name, u.lastname, u.email, u.account_number 
+$sql = "SELECT t.*, u.name, u.lastname, u.email, u.account_number, u.profile_pic 
         FROM transactions t 
         JOIN users u ON t.user_id = u.id 
         $where_sql
@@ -140,10 +140,16 @@ $total_pages = ceil($total_count / $limit);
 
             <div class="user-nav">
                 <div class="admin-profile">
-                    <div class="admin-avatar">A</div>
+                    <div class="admin-avatar">
+                        <?php if(!empty($_SESSION['profile_pic'])): ?>
+                            <img src="../assets/uploads/profiles/<?php echo $_SESSION['profile_pic']; ?>" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                        <?php else: ?>
+                            <?php echo strtoupper(substr($_SESSION["user_name"] ?? "A", 0, 1)); ?>
+                        <?php endif; ?>
+                    </div>
                     <div class="d-none d-md-block">
-                        <div class="fw-bold">Compliance Officer</div>
-                        <div class="text-xs text-muted">Auditor</div>
+                        <div class="fw-bold"><?php echo $_SESSION["user_name"] ?? "Admin"; ?></div>
+                        <div class="text-xs text-muted"><?php echo $_SESSION["role"] ?? "Administrator"; ?></div>
                     </div>
                 </div>
             </div>
@@ -192,9 +198,20 @@ $total_pages = ceil($total_count / $limit);
                             <tr>
                                 <td class="text-sm fw-600 text-muted"><?php echo date('M d, Y H:i', strtotime($tx['created_at'])); ?></td>
                                 <td>
-                                    <div class="fw-800"><?php echo htmlspecialchars($tx['name'] . ' ' . $tx['lastname']); ?></div>
-                                    <div class="text-xs text-muted"><?php echo htmlspecialchars($tx['email']); ?></div>
-                                    <div class="text-xs text-primary fw-bold">ACC: <?php echo $tx['account_number']; ?></div>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="admin-avatar" style="width: 32px; height: 32px; font-size: 0.7rem;">
+                                            <?php if(!empty($tx['profile_pic'])): ?>
+                                                <img src="../assets/uploads/profiles/<?php echo $tx['profile_pic']; ?>" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                                            <?php else: ?>
+                                                <?php echo strtoupper(substr($tx['name'], 0, 1) . substr($tx['lastname'], 0, 1)); ?>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div>
+                                            <div class="fw-800"><?php echo htmlspecialchars($tx['name'] . ' ' . $tx['lastname']); ?></div>
+                                            <div class="text-xs text-muted"><?php echo htmlspecialchars($tx['email']); ?></div>
+                                            <div class="text-xs text-primary fw-bold">ACC: <?php echo $tx['account_number']; ?></div>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td>
                                     <div class="fw-900 text-dark" style="font-size: 1.1rem;">$<?php echo number_format($tx['amount'], 2); ?></div>

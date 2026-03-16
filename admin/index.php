@@ -39,11 +39,11 @@ if ($is_sub) {
     // Recent data
     $recent_contacts = []; // General support normally sees all
     
-    $recent_cards = $pdo->prepare("SELECT ca.*, u.name, u.lastname, u.email FROM card_applications ca JOIN users u ON ca.user_id = u.id WHERE u.assigned_admin_id = ? ORDER BY ca.created_at DESC LIMIT 5");
+    $recent_cards = $pdo->prepare("SELECT ca.*, u.name, u.lastname, u.email, u.profile_pic FROM card_applications ca JOIN users u ON ca.user_id = u.id WHERE u.assigned_admin_id = ? ORDER BY ca.created_at DESC LIMIT 5");
     $recent_cards->execute([$admin_id]);
     $recent_cards = $recent_cards->fetchAll();
 
-    $recent_wires = $pdo->prepare("SELECT t.*, u.name, u.lastname, u.email FROM transactions t JOIN users u ON t.user_id = u.id WHERE t.method='International Wire' AND u.assigned_admin_id = ? ORDER BY t.created_at DESC LIMIT 5");
+    $recent_wires = $pdo->prepare("SELECT t.*, u.name, u.lastname, u.email, u.profile_pic FROM transactions t JOIN users u ON t.user_id = u.id WHERE t.method='International Wire' AND u.assigned_admin_id = ? ORDER BY t.created_at DESC LIMIT 5");
     $recent_wires->execute([$admin_id]);
     $recent_wires = $recent_wires->fetchAll();
 
@@ -76,8 +76,8 @@ if ($is_sub) {
     $pending_cards    = $pdo->query("SELECT COUNT(*) FROM card_applications WHERE status='Pending'")->fetchColumn();
     $pending_wires    = $pdo->query("SELECT COUNT(*) FROM transactions WHERE method='International Wire' AND status='Pending'")->fetchColumn();
     $recent_contacts = $pdo->query("SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT 5")->fetchAll();
-    $recent_cards = $pdo->query("SELECT ca.*, u.name, u.lastname, u.email FROM card_applications ca JOIN users u ON ca.user_id = u.id ORDER BY ca.created_at DESC LIMIT 5")->fetchAll();
-    $recent_wires = $pdo->query("SELECT t.*, u.name, u.lastname, u.email FROM transactions t JOIN users u ON t.user_id = u.id WHERE t.method='International Wire' ORDER BY t.created_at DESC LIMIT 5")->fetchAll();
+    $recent_cards = $pdo->query("SELECT ca.*, u.name, u.lastname, u.email, u.profile_pic FROM card_applications ca JOIN users u ON ca.user_id = u.id ORDER BY ca.created_at DESC LIMIT 5")->fetchAll();
+    $recent_wires = $pdo->query("SELECT t.*, u.name, u.lastname, u.email, u.profile_pic FROM transactions t JOIN users u ON t.user_id = u.id WHERE t.method='International Wire' ORDER BY t.created_at DESC LIMIT 5")->fetchAll();
     $recent_users = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5")->fetchAll();
 
     $activity_sql = "
@@ -96,6 +96,13 @@ if ($is_sub) {
     ";
     $activities = $pdo->query($activity_sql)->fetchAll();
 }
+
+// Notification Center Logic
+$notifs_stmt = $pdo->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 10");
+$notifs_stmt->execute([$_SESSION['user_id']]);
+$all_notifs = $notifs_stmt->fetchAll();
+$unread_count = 0;
+foreach($all_notifs as $n) if(!$n['is_read']) $unread_count++;
 
 function time_ago($timestamp) {
     $time = time() - strtotime($timestamp);
@@ -298,13 +305,57 @@ function time_ago($timestamp) {
             </div>
 
             <div class="user-nav">
-                <div class="notification-bell">
+                <div class="notification-bell" id="notifBell">
                     <i class="fa-solid fa-bell fs-5"></i>
+                    <?php if($unread_count > 0): ?>
                     <span class="notification-dot"></span>
+                    <?php endif; ?>
+
+                    <div class="notification-dropdown" id="notifDropdown">
+                        <div class="notif-header">
+                            <h6>Notifications</h6>
+                            <span class="badge bg-indigo-light text-primary text-xs unread-badge"><?php echo $unread_count; ?> New</span>
+                        </div>
+                        <div class="notif-list">
+                            <?php if(empty($all_notifs)): ?>
+                                <div class="p-4 text-center text-muted">
+                                    <i class="fa-solid fa-bell-slash d-block mb-2 opacity-25"></i>
+                                    <span class="text-xs fw-600">No notifications yet</span>
+                                </div>
+                            <?php else: ?>
+                                <?php foreach($all_notifs as $n): 
+                                    $icon = 'fa-bell';
+                                    $bg = 'bg-light';
+                                    if($n['type'] == 'Transaction') { $icon = 'fa-money-bill-transfer'; $bg = 'bg-emerald-light'; }
+                                    if($n['type'] == 'Loan') { $icon = 'fa-hand-holding-dollar'; $bg = 'bg-indigo-light'; }
+                                    if($n['type'] == 'KYC') { $icon = 'fa-id-card-shield'; $bg = 'bg-amber-light'; }
+                                    if($n['type'] == 'System') { $icon = 'fa-triangle-exclamation'; $bg = 'bg-rose-light'; }
+                                ?>
+                                <a href="#" class="notif-item <?php echo !$n['is_read'] ? 'unread' : ''; ?>">
+                                    <div class="notif-icon <?php echo $bg; ?>"><i class="fa-solid <?php echo $icon; ?>"></i></div>
+                                    <div class="notif-content">
+                                        <b class="title"><?php echo htmlspecialchars($n['title']); ?></b>
+                                        <span class="msg"><?php echo htmlspecialchars($n['message']); ?></span>
+                                        <span class="time"><?php echo time_ago($n['created_at']); ?></span>
+                                    </div>
+                                </a>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+                        <div class="notif-footer">
+                            <a href="#">Clear all notifications</a>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="admin-profile ms-2">
-                    <div class="admin-avatar"><?php echo strtoupper(substr($_SESSION["user_name"] ?? "A", 0, 1)); ?></div>
+                    <div class="admin-avatar">
+                        <?php if(!empty($_SESSION['profile_pic'])): ?>
+                            <img src="../assets/uploads/profiles/<?php echo $_SESSION['profile_pic']; ?>" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                        <?php else: ?>
+                            <?php echo strtoupper(substr($_SESSION["user_name"] ?? "A", 0, 1)); ?>
+                        <?php endif; ?>
+                    </div>
                     <div class="d-none d-md-block">
                         <div class="fw-bold text-sm lh-1"><?php echo $_SESSION["user_name"] ?? "Admin"; ?></div>
                         <div class="text-xs text-muted"><?php echo $_SESSION["role"] ?? "Administrator"; ?></div>
@@ -576,7 +627,13 @@ function time_ago($timestamp) {
                             <tr>
                                 <td>
                                     <div class="user-cell">
-                                        <div class="admin-avatar" style="width:32px;height:32px;font-size:.7rem;background:linear-gradient(135deg,#6366f1,#8b5cf6);"><?php echo $initials; ?></div>
+                                        <div class="admin-avatar" style="width:32px;height:32px;font-size:.7rem;background:linear-gradient(135deg,#6366f1,#8b5cf6);">
+                                            <?php if(!empty($ca['profile_pic'])): ?>
+                                                <img src="../assets/uploads/profiles/<?php echo $ca['profile_pic']; ?>" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                                            <?php else: ?>
+                                                <?php echo $initials; ?>
+                                            <?php endif; ?>
+                                        </div>
                                         <div>
                                             <div class="fw-bold"><?php echo htmlspecialchars($ca['name'].' '.$ca['lastname']); ?></div>
                                             <div class="text-xs text-muted"><?php echo htmlspecialchars($ca['email']); ?></div>
@@ -635,7 +692,13 @@ function time_ago($timestamp) {
                             <tr>
                                 <td>
                                     <div class="user-cell">
-                                        <div class="admin-avatar" style="width:32px;height:32px;font-size:.7rem;background:linear-gradient(135deg,#1d4ed8,#3b82f6);"><?php echo $winitials; ?></div>
+                                        <div class="admin-avatar" style="width:32px;height:32px;font-size:.7rem;background:linear-gradient(135deg,#1d4ed8,#3b82f6);">
+                                            <?php if(!empty($wr['profile_pic'])): ?>
+                                                <img src="../assets/uploads/profiles/<?php echo $wr['profile_pic']; ?>" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                                            <?php else: ?>
+                                                <?php echo $winitials; ?>
+                                            <?php endif; ?>
+                                        </div>
                                         <div>
                                             <div class="fw-bold"><?php echo htmlspecialchars($wr['name'].' '.$wr['lastname']); ?></div>
                                             <div class="text-xs text-muted"><?php echo htmlspecialchars($wr['email']); ?></div>
@@ -678,7 +741,13 @@ function time_ago($timestamp) {
                             <tr>
                                 <td>
                                     <div class="user-cell">
-                                        <div class="admin-avatar" style="width: 32px; height: 32px; font-size: 0.7rem;"><?php echo strtoupper(substr($ru['name'], 0, 1) . substr($ru['lastname'], 0, 1)); ?></div>
+                                        <div class="admin-avatar" style="width: 32px; height: 32px; font-size: 0.7rem;">
+                                            <?php if(!empty($ru['profile_pic'])): ?>
+                                                <img src="../assets/uploads/profiles/<?php echo $ru['profile_pic']; ?>" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                                            <?php else: ?>
+                                                <?php echo strtoupper(substr($ru['name'], 0, 1) . substr($ru['lastname'], 0, 1)); ?>
+                                            <?php endif; ?>
+                                        </div>
                                         <div>
                                             <div class="fw-bold"><?php echo $ru['name'] . ' ' . $ru['lastname']; ?></div>
                                             <div class="text-xs text-muted"><?php echo $ru['email']; ?></div>
@@ -788,6 +857,57 @@ function time_ago($timestamp) {
                 }
             }
         });
+    </script>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // Notification & Toast System
+        const bell = document.getElementById('notifBell');
+        const dropdown = document.getElementById('notifDropdown');
+        
+        bell.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('show');
+        });
+
+        document.addEventListener('click', () => dropdown.classList.remove('show'));
+
+        function showToast(title, message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${type}`;
+            
+            let icon = 'fa-circle-check';
+            if(type === 'error') icon = 'fa-circle-xmark';
+            if(type === 'warning') icon = 'fa-triangle-exclamation';
+
+            toast.innerHTML = `
+                <div class="toast-icon ${type === 'success' ? 'bg-emerald-light' : (type === 'error' ? 'bg-rose-light' : 'bg-amber-light')}">
+                    <i class="fa-solid ${icon}"></i>
+                </div>
+                <div class="toast-body">
+                    <b>${title}</b>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.5s forwards';
+                setTimeout(() => toast.remove(), 500);
+            }, 5000);
+        }
+
+        // Auto-show a welcome toast
+        setTimeout(() => {
+            showToast('System Online', 'Elite Control Panel is monitoring all gateways.', 'success');
+        }, 1500);
+
+        <?php if(isset($_GET['login_success'])): ?>
+            showToast('Welcome Back', 'Authorized administrative session established.', 'success');
+        <?php endif; ?>
     </script>
 </body>
 </html>

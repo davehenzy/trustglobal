@@ -62,7 +62,7 @@ $limit = 10;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
-$sql = "SELECT t.*, u.name, u.lastname, u.email 
+$sql = "SELECT t.*, u.name, u.lastname, u.email, u.profile_pic 
         FROM transactions t 
         JOIN users u ON t.user_id = u.id 
         $where_sql
@@ -264,7 +264,13 @@ $total_pages = ceil($total_count / $limit);
                                 <td><span class="text-xs fw-mono text-uppercase bg-light px-2 py-1 rounded">#<?php echo $tx['txn_hash']; ?></span></td>
                                 <td>
                                     <div class="d-flex align-items-center gap-3">
-                                        <div class="admin-avatar" style="width: 32px; height: 32px; font-size: 0.7rem;"><?php echo strtoupper(substr($tx['name'], 0, 1) . substr($tx['lastname'], 0, 1)); ?></div>
+                                        <div class="admin-avatar" style="width: 32px; height: 32px; font-size: 0.7rem;">
+                                            <?php if(!empty($tx['profile_pic'])): ?>
+                                                <img src="../assets/uploads/profiles/<?php echo $tx['profile_pic']; ?>" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                                            <?php else: ?>
+                                                <?php echo strtoupper(substr($tx['name'], 0, 1) . substr($tx['lastname'], 0, 1)); ?>
+                                            <?php endif; ?>
+                                        </div>
                                         <div>
                                             <div class="fw-bold"><?php echo $tx['name'] . ' ' . $tx['lastname']; ?></div>
                                             <div class="text-xs text-muted"><?php echo $tx['email']; ?></div>

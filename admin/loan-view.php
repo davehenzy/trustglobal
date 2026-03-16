@@ -82,7 +82,7 @@
             exit();
         }
 
-        $stmt = $pdo->prepare("SELECT l.*, u.name, u.lastname, u.email, u.account_number, u.id as user_id 
+        $stmt = $pdo->prepare("SELECT l.*, u.name, u.lastname, u.email, u.account_number, u.id as user_id, u.profile_pic 
                             FROM loans l 
                             JOIN users u ON l.user_id = u.id 
                             WHERE l.id = ?");
@@ -166,7 +166,11 @@
                         <h6 class="fw-800 mb-4 text-xs text-uppercase text-muted">Client Credit Profile</h6>
                         <div class="d-flex align-items-center mb-5">
                             <div class="admin-avatar me-4 bg-indigo text-white shadow" style="width: 60px; height: 60px; font-size: 1.5rem; font-weight: 800; border-radius: 18px;">
-                                <?php echo strtoupper(substr($loan['name'], 0, 1)); ?>
+                                <?php if(!empty($loan['profile_pic'])): ?>
+                                    <img src="../assets/uploads/profiles/<?php echo $loan['profile_pic']; ?>" style="width:100%; height:100%; object-fit:cover; border-radius:18px;">
+                                <?php else: ?>
+                                    <?php echo strtoupper(substr($loan['name'], 0, 1)); ?>
+                                <?php endif; ?>
                             </div>
                             <div>
                                 <h6 class="fw-800 mb-1"><?php echo htmlspecialchars($loan['name'] . ' ' . $loan['lastname']); ?></h6>

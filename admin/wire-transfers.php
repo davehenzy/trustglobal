@@ -60,7 +60,7 @@ elseif ($filter === 'Cancelled') $where = "WHERE t.method='International Wire' A
 else $where = "WHERE t.method='International Wire'";
 
 $wires = $pdo->query("
-    SELECT t.*, u.name, u.lastname, u.email, u.account_number
+    SELECT t.*, u.name, u.lastname, u.email, u.account_number, u.profile_pic
     FROM transactions t
     JOIN users u ON t.user_id = u.id
     $where
@@ -222,7 +222,13 @@ $wires = $pdo->query("
                             <tr>
                                 <td>
                                     <div class="user-cell">
-                                        <div class="admin-avatar" style="width:36px;height:36px;font-size:.75rem;background:linear-gradient(135deg,#1d4ed8,#3b82f6);"><?php echo $initials; ?></div>
+                                        <div class="admin-avatar" style="width:36px;height:36px;font-size:.75rem;background:linear-gradient(135deg,#1d4ed8,#3b82f6);">
+                                            <?php if(!empty($w['profile_pic'])): ?>
+                                                <img src="../assets/uploads/profiles/<?php echo $w['profile_pic']; ?>" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                                            <?php else: ?>
+                                                <?php echo $initials; ?>
+                                            <?php endif; ?>
+                                        </div>
                                         <div>
                                             <div class="fw-bold"><?php echo htmlspecialchars($w['name'].' '.$w['lastname']); ?></div>
                                             <div class="text-xs text-muted"><?php echo htmlspecialchars($w['email']); ?></div>

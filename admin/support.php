@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Fetch Inbox (Active Tickets)
-$stmt = $pdo->query("SELECT t.*, u.name, u.lastname FROM support_tickets t JOIN users u ON t.user_id = u.id ORDER BY t.created_at DESC");
+$stmt = $pdo->query("SELECT t.*, u.name, u.lastname, u.profile_pic FROM support_tickets t JOIN users u ON t.user_id = u.id ORDER BY t.created_at DESC");
 $inbox_tickets = $stmt->fetchAll();
 
 // Count active
@@ -47,7 +47,7 @@ foreach($inbox_tickets as $t) {
 
 // Fetch Active Ticket Details
 if ($active_ticket_id) {
-    $stmt = $pdo->prepare("SELECT t.*, u.name, u.lastname, u.email, u.account_number FROM support_tickets t JOIN users u ON t.user_id = u.id WHERE t.id = ?");
+    $stmt = $pdo->prepare("SELECT t.*, u.name, u.lastname, u.email, u.account_number, u.profile_pic FROM support_tickets t JOIN users u ON t.user_id = u.id WHERE t.id = ?");
     $stmt->execute([$active_ticket_id]);
     $active_ticket = $stmt->fetch();
     
@@ -138,7 +138,13 @@ $admin_initials = strtoupper(substr($_SESSION['user_name'] ?? 'A', 0, 1) . subst
                 </div>
                 
                 <div class="admin-profile">
-                    <div class="admin-avatar"><?php echo strtoupper(substr($_SESSION["user_name"] ?? "A", 0, 1)); ?></div>
+                    <div class="admin-avatar">
+                        <?php if(!empty($_SESSION['profile_pic'])): ?>
+                            <img src="../assets/uploads/profiles/<?php echo $_SESSION['profile_pic']; ?>" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                        <?php else: ?>
+                            <?php echo strtoupper(substr($_SESSION["user_name"] ?? "A", 0, 1)); ?>
+                        <?php endif; ?>
+                    </div>
                     <div class="d-none d-md-block">
                         <div class="fw-bold text-sm"><?php echo $_SESSION["user_name"] ?? "Admin"; ?></div>
                         <div class="text-xs text-muted"><?php echo $_SESSION["role"] ?? "Administrator"; ?></div>
@@ -182,7 +188,13 @@ $admin_initials = strtoupper(substr($_SESSION['user_name'] ?? 'A', 0, 1) . subst
                                     </div>
                                     <h6 class="mb-1 fw-800 text-dark"><?php echo htmlspecialchars($t['subject']); ?></h6>
                                     <div class="d-flex align-items-center gap-2 mt-3">
-                                        <div class="admin-avatar" style="width: 24px; height: 24px; font-size: 0.6rem;"><?php echo $t_initials; ?></div>
+                                        <div class="admin-avatar" style="width: 24px; height: 24px; font-size: 0.6rem;">
+                                            <?php if(!empty($t['profile_pic'])): ?>
+                                                <img src="../assets/uploads/profiles/<?php echo $t['profile_pic']; ?>" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                                            <?php else: ?>
+                                                <?php echo $t_initials; ?>
+                                            <?php endif; ?>
+                                        </div>
                                         <span class="text-xs fw-800 text-dark"><?php echo htmlspecialchars($t['name'] . ' ' . $t['lastname']); ?></span>
                                     </div>
                                 </a>
@@ -196,10 +208,16 @@ $admin_initials = strtoupper(substr($_SESSION['user_name'] ?? 'A', 0, 1) . subst
                     <div class="data-table-card mt-0 d-flex flex-column shadow-sm" style="height: 700px; border-radius: 24px;">
                         <div class="card-header border-0 border-bottom bg-white d-flex justify-content-between align-items-center py-4 px-4">
                             <div class="d-flex align-items-center gap-4">
-                                <div class="admin-avatar" style="width: 48px; height: 48px; font-size: 1rem;"><?php echo strtoupper(substr($active_ticket['name'], 0, 1) . substr($active_ticket['lastname'], 0, 1)); ?></div>
+                                <div class="admin-avatar" style="width: 48px; height: 48px; font-size: 1rem;">
+                                    <?php if(!empty($active_ticket['profile_pic'])): ?>
+                                        <img src="../assets/uploads/profiles/<?php echo $active_ticket['profile_pic']; ?>" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                                    <?php else: ?>
+                                        <?php echo strtoupper(substr($active_ticket['name'], 0, 1) . substr($active_ticket['lastname'], 0, 1)); ?>
+                                    <?php endif; ?>
+                                </div>
                                 <div>
                                     <h5 class="mb-1 fw-800 text-dark"><?php echo htmlspecialchars($active_ticket['name'] . ' ' . $active_ticket['lastname']); ?></h5>
-                                    <div class="text-xs text-muted fw-600"><span class="text-success pulse-dot me-1"></span> ONLINE â€¢ Ticket #TK-<?php echo str_pad($active_ticket['id'], 5, '0', STR_PAD_LEFT); ?></div>
+                                    <div class="text-xs text-muted fw-600"><span class="text-success pulse-dot me-1"></span> ONLINE &bull; Ticket #TK-<?php echo str_pad($active_ticket['id'], 5, '0', STR_PAD_LEFT); ?></div>
                                 </div>
                             </div>
                             <form method="POST" class="d-flex gap-2">
@@ -221,14 +239,26 @@ $admin_initials = strtoupper(substr($_SESSION['user_name'] ?? 'A', 0, 1) . subst
                                             <div class="p-4 text-white shadow-lg border-0 rounded-4" style="max-width: 75%; background: linear-gradient(135deg, var(--admin-primary), #6366f1); border-top-right-radius: 4px !important;">
                                                 <p class="text-sm mb-0 fw-500"><?php echo nl2br(htmlspecialchars($msg['message'])); ?></p>
                                             </div>
-                                            <div class="admin-avatar shadow-sm" style="width: 32px; height: 32px; background: #0f172a;"><?php echo $admin_initials; ?></div>
+                                            <div class="admin-avatar shadow-sm" style="width: 32px; height: 32px; background: #0f172a;">
+                                                <?php if(!empty($_SESSION['profile_pic'])): ?>
+                                                    <img src="../assets/uploads/profiles/<?php echo $_SESSION['profile_pic']; ?>" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
+                                                <?php else: ?>
+                                                    <?php echo $admin_initials; ?>
+                                                <?php endif; ?>
+                                            </div>
                                         </div>
                                         <span class="text-xs text-muted me-5 fw-600"><?php echo date('H:i A', strtotime($msg['created_at'])); ?></span>
                                     </div>
                                 <?php else: ?>
                                     <div class="mb-5">
                                         <div class="d-flex gap-3 mb-2">
-                                            <div class="admin-avatar shadow-sm" style="width: 32px; height: 32px;"><?php echo strtoupper(substr($active_ticket['name'], 0, 1) . substr($active_ticket['lastname'], 0, 1)); ?></div>
+                                            <div class="admin-avatar shadow-sm" style="width: 32px; height: 32px;">
+                                                <?php if(!empty($active_ticket['profile_pic'])): ?>
+                                                    <img src="../assets/uploads/profiles/<?php echo $active_ticket['profile_pic']; ?>" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
+                                                <?php else: ?>
+                                                    <?php echo strtoupper(substr($active_ticket['name'], 0, 1) . substr($active_ticket['lastname'], 0, 1)); ?>
+                                                <?php endif; ?>
+                                            </div>
                                             <div class="p-4 bg-white shadow-sm border-0 rounded-4" style="max-width: 75%; border-top-left-radius: 4px !important;">
                                                 <p class="text-sm mb-0 fw-500 text-dark"><?php echo nl2br(htmlspecialchars($msg['message'])); ?></p>
                                             </div>

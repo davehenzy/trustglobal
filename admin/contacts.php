@@ -89,7 +89,13 @@ if (isset($_GET['id'])) {
                     <span class="notification-dot"></span>
                 </div>
                 <div class="admin-profile">
-                    <div class="admin-avatar"><?php echo strtoupper(substr($_SESSION['user_name'] ?? 'A', 0, 1)); ?></div>
+                    <div class="admin-avatar">
+                        <?php if(!empty($_SESSION['profile_pic'])): ?>
+                            <img src="../assets/uploads/profiles/<?php echo $_SESSION['profile_pic']; ?>" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                        <?php else: ?>
+                            <?php echo strtoupper(substr($_SESSION['user_name'] ?? 'A', 0, 1)); ?>
+                        <?php endif; ?>
+                    </div>
                     <div class="d-none d-md-block">
                         <div class="fw-bold text-sm"><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></div>
                         <div class="text-xs text-muted"><?php echo $_SESSION['role'] ?? 'Administrator'; ?></div>

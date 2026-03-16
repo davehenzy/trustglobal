@@ -7,7 +7,7 @@ if (!isset($_GET['id'])) {
 }
 
 $tx_id = (int)$_GET['id'];
-$stmt = $pdo->prepare("SELECT t.*, u.name, u.lastname, u.email, u.account_number, u.account_type 
+$stmt = $pdo->prepare("SELECT t.*, u.name, u.lastname, u.email, u.account_number, u.account_type, u.profile_pic 
                       FROM transactions t 
                       JOIN users u ON t.user_id = u.id 
                       WHERE t.id = ?");
@@ -132,7 +132,11 @@ if (!$tx) {
                                     <p class="text-xs text-muted text-uppercase fw-800 mb-2">Settlement Party</p>
                                     <div class="d-flex align-items-center">
                                         <div class="admin-avatar me-3 bg-indigo text-white shadow-sm" style="width: 40px; height: 40px; border-radius: 12px; font-weight: 800;">
-                                            <?php echo strtoupper(substr($tx['name'], 0, 1) . substr($tx['lastname'], 0, 1)); ?>
+                                            <?php if(!empty($tx['profile_pic'])): ?>
+                                                <img src="../assets/uploads/profiles/<?php echo $tx['profile_pic']; ?>" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                                            <?php else: ?>
+                                                <?php echo strtoupper(substr($tx['name'], 0, 1) . substr($tx['lastname'], 0, 1)); ?>
+                                            <?php endif; ?>
                                         </div>
                                         <div>
                                             <h6 class="fw-800 mb-0"><?php echo $tx['name'] . ' ' . $tx['lastname']; ?></h6>

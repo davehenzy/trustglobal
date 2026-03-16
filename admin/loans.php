@@ -77,7 +77,13 @@
                 </div>
                 
                 <div class="admin-profile">
-                    <div class="admin-avatar"><?php echo strtoupper(substr($_SESSION["user_name"] ?? "A", 0, 1)); ?></div>
+                    <div class="admin-avatar">
+                        <?php if(!empty($_SESSION['profile_pic'])): ?>
+                            <img src="../assets/uploads/profiles/<?php echo $_SESSION['profile_pic']; ?>" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                        <?php else: ?>
+                            <?php echo strtoupper(substr($_SESSION["user_name"] ?? "A", 0, 1)); ?>
+                        <?php endif; ?>
+                    </div>
                     <div class="d-none d-md-block">
                         <div class="fw-bold text-sm"><?php echo $_SESSION["user_name"] ?? "Admin"; ?></div>
                         <div class="text-xs text-muted"><?php echo $_SESSION["role"] ?? "Administrator"; ?></div>
@@ -93,7 +99,7 @@
         $disbursed_today = $pdo->query("SELECT SUM(amount) FROM loans WHERE status='Disbursed' AND DATE(created_at) = CURDATE()")->fetchColumn() ?: 0;
 
         // Fetch Loans
-        $stmt = $pdo->query("SELECT l.*, u.name, u.lastname, u.account_number 
+        $stmt = $pdo->query("SELECT l.*, u.name, u.lastname, u.account_number, u.profile_pic 
                             FROM loans l 
                             JOIN users u ON l.user_id = u.id 
                             ORDER BY l.created_at DESC");
@@ -180,7 +186,11 @@
                                     <td>
                                         <div class="d-flex align-items-center gap-3">
                                             <div class="admin-avatar" style="width: 38px; height: 38px; font-size: 0.8rem; background: #f1f5f9; color: #64748b;">
-                                                <?php echo strtoupper(substr($loan['name'], 0, 1)); ?>
+                                                <?php if(!empty($loan['profile_pic'])): ?>
+                                                    <img src="../assets/uploads/profiles/<?php echo $loan['profile_pic']; ?>" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                                                <?php else: ?>
+                                                    <?php echo strtoupper(substr($loan['name'], 0, 1)); ?>
+                                                <?php endif; ?>
                                             </div>
                                             <div>
                                                 <div class="fw-bold"><?php echo htmlspecialchars($loan['name'] . ' ' . $loan['lastname']); ?></div>

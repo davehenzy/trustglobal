@@ -37,7 +37,7 @@ $where  = $filter !== 'all' ? "WHERE ca.status = '$filter'" : '';
 
 // All applications with user info
 $apps = $pdo->query("
-    SELECT ca.*, u.name, u.lastname, u.email, u.account_number
+    SELECT ca.*, u.name, u.lastname, u.email, u.account_number, u.profile_pic
     FROM card_applications ca
     JOIN users u ON ca.user_id = u.id
     $where
@@ -128,7 +128,13 @@ $apps = $pdo->query("
                     <span class="notification-dot"></span>
                 </div>
                 <div class="admin-profile">
-                    <div class="admin-avatar"><?php echo strtoupper(substr($_SESSION['user_name'] ?? 'A', 0, 1)); ?></div>
+                    <div class="admin-avatar">
+                        <?php if(!empty($_SESSION['profile_pic'])): ?>
+                            <img src="../assets/uploads/profiles/<?php echo $_SESSION['profile_pic']; ?>" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                        <?php else: ?>
+                            <?php echo strtoupper(substr($_SESSION['user_name'] ?? 'A', 0, 1)); ?>
+                        <?php endif; ?>
+                    </div>
                     <div class="d-none d-md-block">
                         <div class="fw-bold text-sm"><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></div>
                         <div class="text-xs text-muted"><?php echo $_SESSION['role'] ?? 'Administrator'; ?></div>
@@ -214,7 +220,13 @@ $apps = $pdo->query("
                             <tr>
                                 <td>
                                     <div class="user-cell">
-                                        <div class="admin-avatar" style="width:36px;height:36px;font-size:.75rem;"><?php echo $initials; ?></div>
+                                        <div class="admin-avatar" style="width:36px;height:36px;font-size:.75rem;">
+                                            <?php if(!empty($app['profile_pic'])): ?>
+                                                <img src="../assets/uploads/profiles/<?php echo $app['profile_pic']; ?>" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                                            <?php else: ?>
+                                                <?php echo $initials; ?>
+                                            <?php endif; ?>
+                                        </div>
                                         <div>
                                             <div class="fw-bold"><?php echo htmlspecialchars($app['name'].' '.$app['lastname']); ?></div>
                                             <div class="text-xs text-muted"><?php echo htmlspecialchars($app['email']); ?></div>

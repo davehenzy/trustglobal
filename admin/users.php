@@ -1,4 +1,32 @@
-<?php require_once '../includes/admin-check.php'; ?>
+<?php require_once '../includes/admin-check.php'; 
+
+// Notification Center Logic
+$notifs_stmt = $pdo->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 10");
+$notifs_stmt->execute([$_SESSION['user_id']]);
+$all_notifs = $notifs_stmt->fetchAll();
+$unread_count = 0;
+foreach($all_notifs as $n) if(!$n['is_read']) $unread_count++;
+
+function time_ago($timestamp) {
+    if(!$timestamp) return '';
+    $time = time() - strtotime($timestamp);
+    if ($time < 1) return 'Just now';
+    $tokens = array (
+        31536000 => 'year',
+        2592000 => 'month',
+        604800 => 'week',
+        86400 => 'day',
+        3600 => 'hour',
+        60 => 'minute',
+        1 => 'second'
+    );
+    foreach ($tokens as $unit => $text) {
+        if ($time < $unit) continue;
+        $numberOfUnits = floor($time / $unit);
+        return $numberOfUnits.' '.$text.(($numberOfUnits>1)?'s':'').' ago';
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -74,13 +102,58 @@
             </div>
 
             <div class="user-nav">
-                <div class="notification-bell">
+            <div class="user-nav" style="gap:20px;">
+                <div class="notification-bell" id="notifBell" style="cursor:pointer;">
                     <i class="fa-solid fa-bell fs-5"></i>
+                    <?php if($unread_count > 0): ?>
                     <span class="notification-dot"></span>
+                    <?php endif; ?>
+
+                    <div class="notification-dropdown" id="notifDropdown">
+                        <div class="notif-header">
+                            <h6>Notifications</h6>
+                            <span class="badge bg-indigo-light text-primary text-xs unread-badge"><?php echo $unread_count; ?> New</span>
+                        </div>
+                        <div class="notif-list">
+                            <?php if(empty($all_notifs)): ?>
+                                <div class="p-4 text-center text-muted">
+                                    <i class="fa-solid fa-bell-slash d-block mb-2 opacity-25"></i>
+                                    <span class="text-xs fw-600">No notifications yet</span>
+                                </div>
+                            <?php else: ?>
+                                <?php foreach($all_notifs as $n): 
+                                    $icon = 'fa-bell';
+                                    $bg = 'bg-light';
+                                    if($n['type'] == 'Transaction') { $icon = 'fa-money-bill-transfer'; $bg = 'bg-emerald-light'; }
+                                    if($n['type'] == 'Loan') { $icon = 'fa-hand-holding-dollar'; $bg = 'bg-indigo-light'; }
+                                    if($n['type'] == 'KYC') { $icon = 'fa-id-card-shield'; $bg = 'bg-amber-light'; }
+                                    if($n['type'] == 'System') { $icon = 'fa-triangle-exclamation'; $bg = 'bg-rose-light'; }
+                                ?>
+                                <a href="#" class="notif-item <?php echo !$n['is_read'] ? 'unread' : ''; ?>">
+                                    <div class="notif-icon <?php echo $bg; ?>"><i class="fa-solid <?php echo $icon; ?>"></i></div>
+                                    <div class="notif-content text-start">
+                                        <b class="title"><?php echo htmlspecialchars($n['title']); ?></b>
+                                        <span class="msg"><?php echo htmlspecialchars($n['message']); ?></span>
+                                        <span class="time"><?php echo time_ago($n['created_at']); ?></span>
+                                    </div>
+                                </a>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+                        <div class="notif-footer">
+                            <a href="#">Clear all notifications</a>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="admin-profile">
-                    <div class="admin-avatar"><?php echo strtoupper(substr($_SESSION["user_name"] ?? "A", 0, 1)); ?></div>
+                    <div class="admin-avatar">
+                        <?php if(!empty($_SESSION['profile_pic'])): ?>
+                            <img src="../assets/uploads/profiles/<?php echo $_SESSION['profile_pic']; ?>" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                        <?php else: ?>
+                            <?php echo strtoupper(substr($_SESSION["user_name"] ?? "A", 0, 1)); ?>
+                        <?php endif; ?>
+                    </div>
                     <div class="d-none d-md-block">
                         <div class="fw-bold text-sm"><?php echo $_SESSION["user_name"] ?? "Admin"; ?></div>
                         <div class="text-xs text-muted"><?php echo $_SESSION["role"] ?? "Administrator"; ?></div>
@@ -160,7 +233,13 @@
                                 <td><span class="text-muted fw-mono">#SC-<?php echo str_pad($user['id'], 4, '0', STR_PAD_LEFT); ?></span></td>
                                 <td>
                                     <div class="user-cell">
-                                        <div class="admin-avatar" style="width: 38px; height: 38px;"><?php echo $initials; ?></div>
+                                        <div class="admin-avatar" style="width: 38px; height: 38px;">
+                                            <?php if(!empty($user['profile_pic'])): ?>
+                                                <img src="../assets/uploads/profiles/<?php echo $user['profile_pic']; ?>" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                                            <?php else: ?>
+                                                <?php echo $initials; ?>
+                                            <?php endif; ?>
+                                        </div>
                                         <div>
                                             <div class="fw-bold"><?php echo htmlspecialchars($user['name'] . ' ' . $user['lastname']); ?></div>
                                             <div class="text-xs text-muted"><?php echo htmlspecialchars($user['email']); ?></div>
@@ -225,5 +304,50 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // Notification & Toast System
+        const bell = document.getElementById('notifBell');
+        const dropdown = document.getElementById('notifDropdown');
+        
+        if(bell) {
+            bell.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdown.classList.toggle('show');
+            });
+        }
+
+        document.addEventListener('click', () => dropdown.classList.remove('show'));
+
+        function showToast(title, message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            if(!container) return;
+            
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${type}`;
+            
+            let icon = 'fa-circle-check';
+            if(type === 'error') icon = 'fa-circle-xmark';
+            if(type === 'warning') icon = 'fa-triangle-exclamation';
+
+            toast.innerHTML = `
+                <div class="toast-icon ${type === 'success' ? 'bg-emerald-light' : (type === 'error' ? 'bg-rose-light' : 'bg-amber-light')}">
+                    <i class="fa-solid ${icon}"></i>
+                </div>
+                <div class="toast-body">
+                    <b>${title}</b>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.5s forwards';
+                setTimeout(() => toast.remove(), 500);
+            }, 5000);
+        }
+    </script>
 </body>
 </html>

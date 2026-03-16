@@ -19,7 +19,7 @@ if ($search) {
     $params = ["%$search%", "%$search%", "%$search%"];
 }
 
-$stmt = $pdo->prepare("SELECT k.*, u.name, u.lastname, u.email FROM kyc_verifications k JOIN users u ON k.user_id = u.id $where_sql ORDER BY k.created_at DESC");
+$stmt = $pdo->prepare("SELECT k.*, u.name, u.lastname, u.email, u.profile_pic FROM kyc_verifications k JOIN users u ON k.user_id = u.id $where_sql ORDER BY k.created_at DESC");
 $stmt->execute($params);
 $kyc_queue = $stmt->fetchAll();
 ?>
@@ -191,7 +191,13 @@ $kyc_queue = $stmt->fetchAll();
                                     <tr>
                                         <td>
                                             <div class="d-flex align-items-center gap-3">
-                                                <div class="admin-avatar" style="width: 36px; height: 36px; font-size: 0.8rem;"><?php echo strtoupper(substr($k['name'], 0, 1) . substr($k['lastname'], 0, 1)); ?></div>
+                                                <div class="admin-avatar" style="width: 36px; height: 36px; font-size: 0.8rem;">
+                                                    <?php if(!empty($k['profile_pic'])): ?>
+                                                        <img src="../assets/uploads/profiles/<?php echo $k['profile_pic']; ?>" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                                                    <?php else: ?>
+                                                        <?php echo strtoupper(substr($k['name'], 0, 1) . substr($k['lastname'], 0, 1)); ?>
+                                                    <?php endif; ?>
+                                                </div>
                                                 <div>
                                                     <div class="fw-bold"><?php echo $k['name'] . ' ' . $k['lastname']; ?></div>
                                                     <div class="text-xs text-muted"><?php echo $k['email']; ?></div>

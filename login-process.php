@@ -40,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $_SESSION['kyc_status'] = $user['kyc_status'];
                 $_SESSION['user_name'] = $user['name']; // Legacy support
                 $_SESSION['role'] = $user['role'];
+                $_SESSION['profile_pic'] = $user['profile_pic'];
 
                 // Redirect based on role
                 if (in_array($user['role'], ['Super Admin', 'Sub-Admin'])) {
