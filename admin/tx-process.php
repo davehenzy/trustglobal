@@ -20,16 +20,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 throw new Exception("Transaction not found");
             }
 
-            // If status is being changed to Completed and it wasn't already completed
+            // ── Approve: credit deposits / debit pending wires ──
             if ($status == 'Completed' && $tx['status'] != 'Completed') {
                 if ($tx['type'] == 'Deposit' || $tx['type'] == 'Credit') {
-                    // Update user balance
-                    $stmt = $pdo->prepare("UPDATE users SET balance = balance + ? WHERE id = ?");
-                    $stmt->execute([$tx['amount'], $tx['user_id']]);
+                    // Credit user balance for deposits
+                    $pdo->prepare("UPDATE users SET balance = balance + ? WHERE id = ?")
+                        ->execute([$tx['amount'], $tx['user_id']]);
+                } elseif (in_array($tx['type'], ['Debit', 'Withdrawal']) && $tx['method'] === 'International Wire') {
+                    // Deduct balance for international wire (was pending — not deducted yet)
+                    $user_bal = $pdo->prepare("SELECT balance FROM users WHERE id = ?");
+                    $user_bal->execute([$tx['user_id']]);
+                    $current_balance = $user_bal->fetchColumn();
+                    if ($current_balance < $tx['amount']) {
+                        throw new Exception("Insufficient user balance to approve this wire.");
+                    }
+                    $pdo->prepare("UPDATE users SET balance = balance - ? WHERE id = ?")
+                        ->execute([$tx['amount'], $tx['user_id']]);
                 }
-                // Note: For Withdrawals/Transfers, the balance is usually deducted at the time of request.
-                // If it wasn't, we would deduct it here. For now, let's focus on Deposits.
             }
+
+            // ── Cancel/Reject: if a pending wire is cancelled, no balance was ever deducted ──
+
 
             // Update transaction status
             $stmt = $pdo->prepare("UPDATE transactions SET status = ? WHERE id = ?");

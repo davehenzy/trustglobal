@@ -44,20 +44,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $tx_ref = 'SCI' . strtoupper(substr(md5(uniqid()), 0, 10));
 
         try {
-            $pdo->beginTransaction();
-            $pdo->prepare("UPDATE users SET balance = balance - ? WHERE id = ?")->execute([$amount, $user_id]);
+            // Save as PENDING — balance deducted only on admin approval
             $pdo->prepare("INSERT INTO transactions (user_id, amount, type, method, status, txn_hash, narration, created_at)
-                           VALUES (?, ?, 'Debit', 'International Wire', 'Completed', ?, ?, NOW())")
+                           VALUES (?, ?, 'Debit', 'International Wire', 'Pending', ?, ?, NOW())")
                 ->execute([$user_id, $amount, $tx_ref, $narration]);
-            $pdo->commit();
             $success = true;
-
-            $new_bal = $pdo->prepare("SELECT balance FROM users WHERE id = ?");
-            $new_bal->execute([$user_id]);
-            $_SESSION['balance'] = $new_bal->fetchColumn();
         } catch (Exception $e) {
-            $pdo->rollBack();
-            $error = 'Transaction failed. Please try again.';
+            $error = 'Failed to submit wire request. Please try again.';
         }
     }
 }
@@ -326,10 +319,14 @@ include '../includes/user-sidebar.php';
             <?php if ($success): ?>
             <!-- SUCCESS STATE -->
             <div class="iw-success">
-                <div class="iw-success-icon"><i class="fa-solid fa-paper-plane"></i></div>
-                <h3 class="fw-900 mb-2" style="letter-spacing:-.5px;">Wire Initiated!</h3>
-                <p class="text-muted mb-1">Your international wire transfer has been dispatched via the SWIFT network.</p>
-                <p class="text-muted mb-5" style="font-size:.85rem;">Estimated delivery: <strong>24–72 business hours</strong></p>
+                <div class="iw-success-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fa-solid fa-hourglass-half"></i></div>
+                <h3 class="fw-900 mb-2" style="letter-spacing:-.5px;">Request Submitted!</h3>
+                <p class="text-muted mb-1">Your international wire transfer is <strong>pending admin review</strong>.</p>
+                <p class="text-muted mb-5" style="font-size:.85rem;">Your balance will be deducted once approved. Estimated processing: <strong>24–72 business hours</strong>.</p>
+
+                <div class="d-inline-flex align-items-center gap-2 px-4 py-3 rounded-pill mb-5 fw-800" style="background:#fef3c7;color:#92400e;font-size:.9rem;">
+                    <i class="fa-solid fa-clock"></i> Awaiting Admin Approval
+                </div>
 
                 <div class="iw-review text-start" style="max-width:530px;margin:0 auto 34px;">
                     <div class="iw-review-row iw-review-total">

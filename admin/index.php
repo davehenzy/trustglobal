@@ -9,10 +9,13 @@ $pending_loans_count = $pdo->query("SELECT COUNT(*) FROM loans WHERE status='Pen
 $support_tickets = $pdo->query("SELECT COUNT(*) FROM support_tickets WHERE status='Open'")->fetchColumn();
 $unread_contacts  = $pdo->query("SELECT COUNT(*) FROM contact_messages WHERE is_read = 0")->fetchColumn();
 $pending_cards    = $pdo->query("SELECT COUNT(*) FROM card_applications WHERE status='Pending'")->fetchColumn();
+$pending_wires    = $pdo->query("SELECT COUNT(*) FROM transactions WHERE method='International Wire' AND status='Pending'")->fetchColumn();
 // Recent contact messages
 $recent_contacts = $pdo->query("SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT 5")->fetchAll();
 // Recent card requests
 $recent_cards = $pdo->query("SELECT ca.*, u.name, u.lastname, u.email FROM card_applications ca JOIN users u ON ca.user_id = u.id ORDER BY ca.created_at DESC LIMIT 5")->fetchAll();
+// Recent pending wires
+$recent_wires = $pdo->query("SELECT t.*, u.name, u.lastname, u.email FROM transactions t JOIN users u ON t.user_id = u.id WHERE t.method='International Wire' ORDER BY t.created_at DESC LIMIT 5")->fetchAll();
 
 // Recent Users
 $recent_users = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5")->fetchAll();
@@ -172,6 +175,12 @@ function time_ago($timestamp) {
             </a>
             <a href="transactions.php" class="nav-link">
                 <i class="fa-solid fa-money-bill-transfer"></i> Transactions
+            </a>
+            <a href="wire-transfers.php" class="nav-link d-flex align-items-center justify-content-between">
+                <span><i class="fa-solid fa-earth-americas"></i> Wire Transfers</span>
+                <?php if ($pending_wires > 0): ?>
+                <span class="badge bg-warning text-dark" style="font-size:.6rem;"><?php echo $pending_wires; ?></span>
+                <?php endif; ?>
             </a>
             <a href="loans.php" class="nav-link">
                 <i class="fa-solid fa-hand-holding-dollar"></i> Loan Requests
@@ -520,6 +529,62 @@ function time_ago($timestamp) {
                                 <td class="text-xs text-muted"><?php echo date('M d, Y', strtotime($ca['created_at'])); ?></td>
                                 <td><span class="status-badge <?php echo $badge_cls; ?>"><?php echo $ca['status']; ?></span></td>
                                 <td><a href="cards.php" class="action-btn text-primary" title="View"><i class="fa-solid fa-eye"></i></a></td>
+                            </tr>
+                            <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recent Wire Transfers -->
+            <div class="data-table-card">
+                <div class="card-header">
+                    <div>
+                        <h5 class="mb-0 fw-bold">Recent Wire Transfers</h5>
+                        <p class="text-xs text-muted mb-0">International SWIFT wire requests requiring review</p>
+                    </div>
+                    <a href="wire-transfers.php" class="btn btn-primary btn-sm px-3">
+                        View All <?php if ($pending_wires > 0): ?><span class="badge bg-warning text-dark ms-1"><?php echo $pending_wires; ?></span><?php endif; ?>
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Amount</th>
+                                <th>Reference</th>
+                                <th>Submitted</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($recent_wires)): ?>
+                            <tr><td colspan="6" class="text-center text-muted py-4"><i class="fa-solid fa-earth-americas fa-2x d-block mb-2" style="opacity:.3;"></i>No wire transfers yet</td></tr>
+                            <?php else: ?>
+                            <?php foreach ($recent_wires as $wr):
+                                $winitials = strtoupper(substr($wr['name'],0,1).substr($wr['lastname'],0,1));
+                                $wsc = ['Pending'=>'status-pending','Completed'=>'status-active','Cancelled'=>'status-blocked'];
+                                $wbadge = $wsc[$wr['status']] ?? 'status-pending';
+                                $wlbl = $wr['status'] === 'Cancelled' ? 'Rejected' : $wr['status'];
+                            ?>
+                            <tr>
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="admin-avatar" style="width:32px;height:32px;font-size:.7rem;background:linear-gradient(135deg,#1d4ed8,#3b82f6);"><?php echo $winitials; ?></div>
+                                        <div>
+                                            <div class="fw-bold"><?php echo htmlspecialchars($wr['name'].' '.$wr['lastname']); ?></div>
+                                            <div class="text-xs text-muted"><?php echo htmlspecialchars($wr['email']); ?></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="fw-900 text-danger">$<?php echo number_format($wr['amount'], 2); ?></td>
+                                <td><code style="font-size:.75rem;color:#6366f1;"><?php echo htmlspecialchars($wr['txn_hash']); ?></code></td>
+                                <td class="text-xs text-muted"><?php echo date('M d, Y', strtotime($wr['created_at'])); ?></td>
+                                <td><span class="status-badge <?php echo $wbadge; ?>"><?php echo $wlbl; ?></span></td>
+                                <td><a href="wire-transfers.php" class="action-btn text-primary" title="View"><i class="fa-solid fa-eye"></i></a></td>
                             </tr>
                             <?php endforeach; ?>
                             <?php endif; ?>
