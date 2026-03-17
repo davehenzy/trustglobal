@@ -236,8 +236,9 @@
 
         .btn-submit-deposit {
             width: 100%;
-            background: var(--primary-gradient);
-            color: #fff;
+            background: #002d62;
+            background: var(--primary-gradient, #002d62);
+            color: #ffffff !important;
             border: none;
             padding: 22px;
             border-radius: 16px;
@@ -358,7 +359,7 @@ include '../includes/user-sidebar.php';
                         </div>
 
                         <button class="btn-submit-deposit" id="submitDepositBtn" onclick="location.href='deposit-payment.php'">
-                            <i class="fa-solid fa-lock-keyhole"></i> Securely Initialize Deposit
+                            <i class="fa-solid fa-lock me-2"></i> Securely Initialize Deposit
                         </button>
 
                         <div class="security-badge-premium">

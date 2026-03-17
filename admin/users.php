@@ -347,7 +347,7 @@ $total_pages = ceil($total_count / $limit);
 
         <!-- Footer -->
         <footer class="mt-auto py-3 px-4 border-top bg-white text-center text-muted" style="font-size: 0.85rem;">
-            SwiftCapital Admin Â© 2026. Internal System Only.
+            SwiftCapital Admin © 2026. Internal System Only.
         </footer>
     </div>
 

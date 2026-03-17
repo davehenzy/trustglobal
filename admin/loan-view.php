@@ -33,9 +33,6 @@
             <a href="transactions.php" class="nav-link">
                 <i class="fa-solid fa-money-bill-transfer"></i> Transactions
             </a>
-            <a href="credits.php" class="nav-link">
-                <i class="fa-solid fa-circle-dollar-to-slot"></i> Credit Requests
-            </a>
             <a href="loans.php" class="nav-link active">
                 <i class="fa-solid fa-hand-holding-dollar"></i> Loan Requests
             </a>
@@ -67,7 +64,7 @@
         <!-- Top Bar -->
         <div class="top-bar">
             <div class="breadcrumb-area">
-                <h4 class="mb-0 fw-800">Credit Audit: #LOR-88219</h4>
+                <h4 class="mb-0 fw-800">Loan Audit: #LOR-88219</h4>
             </div>
 
             <div class="user-nav">

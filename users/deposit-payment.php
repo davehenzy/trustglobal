@@ -203,8 +203,9 @@
 
         .btn-submit-premium {
             width: 100%;
-            background: var(--primary-gradient);
-            color: #fff;
+            background: #002d62;
+            background: var(--primary-gradient, #002d62);
+            color: #ffffff !important;
             border: none;
             padding: 18px;
             border-radius: 12px;
@@ -286,7 +287,7 @@ include '../includes/user-sidebar.php';
                                     <div class="bank-info-field">
                                         <div>
                                             <div class="info-label">Bank Name</div>
-                                            <div class="info-value" id="bankName">Mining Bank</div>
+                                            <div class="info-value" id="bankName">****</div>
                                         </div>
                                         <div class="copy-trigger" onclick="copyValue('bankName')">
                                             <i class="fa-regular fa-copy"></i>
@@ -297,7 +298,7 @@ include '../includes/user-sidebar.php';
                                     <div class="bank-info-field">
                                         <div>
                                             <div class="info-label">Account Name</div>
-                                            <div class="info-value" id="accName">Miller lauren</div>
+                                            <div class="info-value" id="accName">****</div>
                                         </div>
                                         <div class="copy-trigger" onclick="copyValue('accName')">
                                             <i class="fa-regular fa-copy"></i>
@@ -308,7 +309,7 @@ include '../includes/user-sidebar.php';
                                     <div class="bank-info-field">
                                         <div>
                                             <div class="info-label">Account Number</div>
-                                            <div class="info-value" id="accNum">99388383</div>
+                                            <div class="info-value" id="accNum">****</div>
                                         </div>
                                         <div class="copy-trigger" onclick="copyValue('accNum')">
                                             <i class="fa-regular fa-copy"></i>
@@ -319,7 +320,7 @@ include '../includes/user-sidebar.php';
                                     <div class="bank-info-field">
                                         <div>
                                             <div class="info-label">Swift Code</div>
-                                            <div class="info-value" id="swiftCode">3222ASD</div>
+                                            <div class="info-value" id="swiftCode">****</div>
                                         </div>
                                         <div class="copy-trigger" onclick="copyValue('swiftCode')">
                                             <i class="fa-regular fa-copy"></i>
@@ -347,7 +348,7 @@ include '../includes/user-sidebar.php';
                                 </div>
 
                                 <button type="submit" class="btn-submit-premium">
-                                    <i class="fa-solid fa-shield-check"></i> Submit Payment
+                                    <i class="fa-solid fa-check-circle me-2"></i> Submit Payment
                                 </button>
                             </div>
                         </form>

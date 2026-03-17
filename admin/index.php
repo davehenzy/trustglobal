@@ -832,28 +832,52 @@ function time_ago($timestamp) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        left: 15,
+                        right: 15,
+                        top: 10,
+                        bottom: 0
+                    }
+                },
                 plugins: {
                     legend: {
                         position: 'top',
                         labels: {
                             usePointStyle: true,
-                            padding: 20,
-                            font: { family: 'Inter', size: 12, weight: '600' }
+                            pointStyle: 'circle',
+                            padding: 25,
+                            font: { family: 'Inter', size: 13, weight: '600' },
+                            boxWidth: 8
                         }
+                    },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        padding: 12,
+                        titleFont: { family: 'Inter', size: 14 },
+                        bodyFont: { family: 'Inter', size: 13 },
+                        cornerRadius: 8,
+                        displayColors: true
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
-                        grid: { borderDash: [5, 5], color: '#e2e8f0' },
+                        grid: { borderDash: [5, 5], color: '#f1f5f9', drawBorder: false },
                         ticks: {
-                            font: { family: 'Inter' },
-                            callback: function(value) { return '$' + value.toLocaleString(); }
+                            font: { family: 'Inter', size: 11 },
+                            color: '#94a3b8',
+                            callback: function(value) { return '$' + value.toLocaleString(); },
+                            padding: 10
                         }
                     },
                     x: {
                         grid: { display: false },
-                        ticks: { font: { family: 'Inter' } }
+                        ticks: { 
+                            font: { family: 'Inter', size: 11 },
+                            color: '#94a3b8',
+                            padding: 10
+                        }
                     }
                 }
             }

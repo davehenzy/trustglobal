@@ -272,15 +272,15 @@ include '../includes/user-sidebar.php';
                                 <input type="hidden" name="action" value="update_password">
                                 <div class="mb-4">
                                     <label class="protocol-label">Existing Password</label>
-                                    <input type="password" name="current_password" class="protocol-input" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required>
+                                    <input type="password" name="current_password" class="protocol-input" placeholder="••••••••" required>
                                 </div>
                                 <div class="mb-4">
                                     <label class="protocol-label">New Secure Password</label>
-                                    <input type="password" name="new_password" class="protocol-input" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required>
+                                    <input type="password" name="new_password" class="protocol-input" placeholder="••••••••" required>
                                 </div>
                                 <div class="mb-4">
                                     <label class="protocol-label">Verify New Password</label>
-                                    <input type="password" name="confirm_password" class="protocol-input" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required>
+                                    <input type="password" name="confirm_password" class="protocol-input" placeholder="••••••••" required>
                                 </div>
                                 <button type="submit" class="btn-authorize">Authorize Update</button>
                             </form>
@@ -311,15 +311,15 @@ include '../includes/user-sidebar.php';
                                 <input type="hidden" name="action" value="update_pin">
                                 <div class="mb-4">
                                     <label class="protocol-label">Current Strategic PIN</label>
-                                    <input type="password" name="current_pin" class="protocol-input" maxlength="10" placeholder="â€¢â€¢â€¢â€¢" required>
+                                    <input type="password" name="current_pin" class="protocol-input" maxlength="10" placeholder="••••" required>
                                 </div>
                                 <div class="mb-4">
                                     <label class="protocol-label">New Operational PIN</label>
-                                    <input type="password" name="new_pin" class="protocol-input" maxlength="10" placeholder="â€¢â€¢â€¢â€¢" required>
+                                    <input type="password" name="new_pin" class="protocol-input" maxlength="10" placeholder="••••" required>
                                 </div>
                                 <div class="mb-4">
                                     <label class="protocol-label">Verify Operational PIN</label>
-                                    <input type="password" name="confirm_pin" class="protocol-input" maxlength="10" placeholder="â€¢â€¢â€¢â€¢" required>
+                                    <input type="password" name="confirm_pin" class="protocol-input" maxlength="10" placeholder="••••" required>
                                 </div>
                                 <button type="submit" class="btn-authorize" style="border-top: 2px solid var(--security-accent);">Authorize PIN Reset</button>
                             </form>

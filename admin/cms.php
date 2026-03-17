@@ -92,9 +92,6 @@ function getSetting($key, $default = '') {
             <a href="transactions.php" class="nav-link">
                 <i class="fa-solid fa-money-bill-transfer"></i> Transactions
             </a>
-            <a href="credits.php" class="nav-link">
-                <i class="fa-solid fa-circle-dollar-to-slot"></i> Credit Requests
-            </a>
             <a href="loans.php" class="nav-link">
                 <i class="fa-solid fa-hand-holding-dollar"></i> Loan Requests
             </a>

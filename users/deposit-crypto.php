@@ -262,8 +262,9 @@
 
         .btn-submit-premium {
             width: 100%;
-            background: var(--primary-gradient);
-            color: #fff;
+            background: #002d62;
+            background: var(--primary-gradient, #002d62);
+            color: #ffffff !important;
             border: none;
             padding: 18px;
             border-radius: 12px;
@@ -342,12 +343,12 @@ include '../includes/user-sidebar.php';
                                 </div>
                                 <div class="qr-label">Scan QR Code</div>
                                 <div class="qr-code-wrapper">
-                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=abfffff...&bgcolor=fff" alt="QR Code" id="qrCodeImg">
+                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=bc1qcmglmujnhepnuy2f3u3f7l7qzujkr82shtvf4j&bgcolor=fff" alt="QR Code" id="qrCodeImg">
                                 </div>
                                 <div class="qr-subtext">Scan the QR code with your payment app</div>
                                 <div class="qr-details">
                                     Bitcoin Address:
-                                    <b id="qrAddr">bc1qlm...example...address</b>
+                                    <b id="qrAddr">bc1qcmglmujnhepnuy2f3u3f7l7qzujkr82shtvf4j</b>
                                     Amount:
                                     <b>$<?php echo number_format($_GET['amount'] ?? 0, 2); ?></b>
                                 </div>
@@ -359,7 +360,7 @@ include '../includes/user-sidebar.php';
                                     <i class="fa-brands fa-bitcoin"></i> Bitcoin Address
                                 </div>
                                 <div class="crypto-address-field">
-                                    <div class="info-value" id="btcAddr">bc1qlm...example...address</div>
+                                    <div class="info-value" id="btcAddr">bc1qcmglmujnhepnuy2f3u3f7l7qzujkr82shtvf4j</div>
                                     <div class="copy-trigger" onclick="copyValue('btcAddr')">
                                         <i class="fa-regular fa-copy"></i>
                                     </div>
@@ -388,7 +389,7 @@ include '../includes/user-sidebar.php';
                                 </div>
 
                                 <button type="submit" class="btn-submit-premium">
-                                    <i class="fa-solid fa-shield-check"></i> Submit Payment for Verification
+                                    <i class="fa-solid fa-check-circle me-2"></i> Submit Payment for Verification
                                 </button>
                             </div>
                         </form>

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -142,7 +142,7 @@
                 <label class="form-label text-xs fw-800 text-uppercase">Private Security Key</label>
                 <div class="input-group">
                     <span class="input-group-text border-end-0"><i class="fa-solid fa-key"></i></span>
-                    <input type="password" class="form-control border-start-0 ps-0" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required>
+                    <input type="password" class="form-control border-start-0 ps-0" placeholder="••••••••••••" required>
                 </div>
             </div>
 

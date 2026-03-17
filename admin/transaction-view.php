@@ -211,7 +211,7 @@ if (!$tx) {
                             </div>
                         </div>
                         <div class="bg-light-soft py-4 text-center text-xs fw-800 text-muted border-top border-light opacity-50">
-                            OFFICIAL SWIFTCAPITAL INTERNAL AUDIT DOCUMENT â€¢ SECURITY CLASS A
+                            OFFICIAL SWIFTCAPITAL INTERNAL AUDIT DOCUMENT • SECURITY CLASS A
                         </div>
                     </div>
                 </div>
