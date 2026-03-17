@@ -2,7 +2,9 @@
 // SwiftCapital Database Connection
 
 // Define Security Constant
-define('SWIFTCAP_SECURE', true);
+if (!defined('SWIFTCAP_SECURE')) {
+    define('SWIFTCAP_SECURE', true);
+}
 
 // Set Security Headers
 header("X-Frame-Options: SAMEORIGIN");
