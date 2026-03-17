@@ -26,6 +26,57 @@ function time_ago($timestamp) {
         return $numberOfUnits.' '.$text.(($numberOfUnits>1)?'s':'').' ago';
     }
 }
+
+// Search and Filter logic
+$search = $_GET['search'] ?? '';
+$status = $_GET['status'] ?? '';
+$is_sub = ($_SESSION['role'] === 'Sub-Admin');
+$admin_id = (int)$_SESSION['user_id'];
+
+$where_clauses = ["(u.role = 'User' OR u.role IS NULL OR u.role = '')"];
+$params = [];
+
+if ($search) {
+    $where_clauses[] = "(u.name LIKE ? OR u.lastname LIKE ? OR u.email LIKE ? OR u.id LIKE ?)";
+    $params[] = "%$search%";
+    $params[] = "%$search%";
+    $params[] = "%$search%";
+    $params[] = "%$search%";
+}
+
+if ($status && $status != 'Status') {
+    $where_clauses[] = "u.status = ?";
+    $params[] = $status;
+}
+
+if ($is_sub) {
+    $where_clauses[] = "u.assigned_admin_id = ?";
+    $params[] = $admin_id;
+}
+
+$where_sql = "WHERE " . implode(" AND ", $where_clauses);
+
+// Pagination
+$limit = 10;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($page - 1) * $limit;
+
+// Fetch Users
+$sql = "SELECT u.*, a.name as manager_name, a.lastname as manager_lastname 
+        FROM users u 
+        LEFT JOIN users a ON u.assigned_admin_id = a.id 
+        $where_sql 
+        ORDER BY u.created_at DESC 
+        LIMIT $limit OFFSET $offset";
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
+$users = $stmt->fetchAll();
+
+// Total Count for Pagination
+$count_stmt = $pdo->prepare("SELECT COUNT(*) FROM users u $where_sql");
+$count_stmt->execute($params);
+$total_count = $count_stmt->fetchColumn();
+$total_pages = ceil($total_count / $limit);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -42,6 +93,7 @@ function time_ago($timestamp) {
     <!-- Custom Admin CSS -->
     <link rel="stylesheet" href="admin-style.css">
 </head>
+
 <body>
 
     <!-- Sidebar -->
@@ -60,9 +112,6 @@ function time_ago($timestamp) {
             </a>
             <a href="transactions.php" class="nav-link">
                 <i class="fa-solid fa-money-bill-transfer"></i> Transactions
-            </a>
-            <a href="credits.php" class="nav-link">
-                <i class="fa-solid fa-circle-dollar-to-slot"></i> Credit Requests
             </a>
             <a href="loans.php" class="nav-link">
                 <i class="fa-solid fa-hand-holding-dollar"></i> Loan Requests
@@ -101,7 +150,6 @@ function time_ago($timestamp) {
                 <h4>Users Management</h4>
             </div>
 
-            <div class="user-nav">
             <div class="user-nav" style="gap:20px;">
                 <div class="notification-bell" id="notifBell" style="cursor:pointer;">
                     <i class="fa-solid fa-bell fs-5"></i>
@@ -166,25 +214,30 @@ function time_ago($timestamp) {
         <div class="content-padding">
             
             <!-- Filter Actions -->
-            <div class="row mb-4">
+            <form method="GET" class="row mb-4">
                 <div class="col-md-8">
                     <div class="d-flex gap-2">
                         <div class="input-group" style="max-width: 400px;">
                             <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
-                            <input type="text" class="form-control border-start-0" placeholder="Search by name, email or ID...">
+                            <input type="text" name="search" class="form-control border-start-0" placeholder="Search by name, email or ID..." value="<?php echo htmlspecialchars($search); ?>">
                         </div>
-                        <select class="form-select" style="max-width: 150px;">
+                        <select name="status" class="form-select" style="max-width: 150px;" onchange="this.form.submit()">
                             <option selected>Status</option>
-                            <option>Active</option>
-                            <option>Pending</option>
-                            <option>Blocked</option>
+                            <option <?php echo $status == 'Active' ? 'selected' : ''; ?>>Active</option>
+                            <option <?php echo $status == 'Pending' ? 'selected' : ''; ?>>Pending</option>
+                            <option <?php echo $status == 'Blocked' ? 'selected' : ''; ?>>Blocked</option>
+                            <option <?php echo $status == 'Deactivated' ? 'selected' : ''; ?>>Deactivated</option>
                         </select>
+                        <button type="submit" class="btn btn-indigo px-3">Filter</button>
+                        <?php if ($search || ($status && $status != 'Status')): ?>
+                            <a href="users.php" class="btn btn-outline-secondary px-3">Clear</a>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <div class="col-md-4 text-end">
                     <a href="user-add.php" class="btn btn-primary px-4"><i class="fa-solid fa-plus me-2"></i> Add New User</a>
                 </div>
-            </div>
+            </form>
 
             <!-- Users Table -->
             <div class="data-table-card">
@@ -205,17 +258,10 @@ function time_ago($timestamp) {
                         </thead>
                         <tbody>
                             <?php
-                            if (in_array($_SESSION['role'] ?? '', ['Sub-Admin'])) {
-                                $stmt = $pdo->prepare("SELECT * FROM users WHERE (role = 'User' OR role IS NULL OR role = '') AND assigned_admin_id = ? ORDER BY created_at DESC");
-                                $stmt->execute([$_SESSION['user_id']]);
-                            } else {
-                                $stmt = $pdo->query("SELECT u.*, a.name as manager_name, a.lastname as manager_lastname 
-                                                      FROM users u 
-                                                      LEFT JOIN users a ON u.assigned_admin_id = a.id 
-                                                      WHERE (u.role = 'User' OR u.role IS NULL OR u.role = '') 
-                                                      ORDER BY u.created_at DESC");
+                            if (empty($users)) {
+                                echo '<tr><td colspan="7" class="text-center py-5 text-muted">No users found matching your criteria.</td></tr>';
                             }
-                            while ($user = $stmt->fetch()) {
+                            foreach ($users as $user) {
                                 $status_class = '';
                                 switch($user['status']) {
                                     case 'Active': $status_class = 'status-active'; break;
@@ -223,11 +269,8 @@ function time_ago($timestamp) {
                                     case 'Blocked': $status_class = 'status-blocked'; break;
                                     case 'Deactivated': $status_class = 'status-blocked'; break;
                                 }
-
-                                // Handle KYC status overlay or separate column if needed
-                                // For now, let's just use the status
                                 
-                                $initials = strtoupper(substr($user['name'], 0, 1) . substr($user['lastname'], 0, 1));
+                                $initials = strtoupper(substr($user['name'] ?? '', 0, 1) . substr($user['lastname'] ?? '', 0, 1));
                             ?>
                             <tr>
                                 <td><span class="text-muted fw-mono">#SC-<?php echo str_pad($user['id'], 4, '0', STR_PAD_LEFT); ?></span></td>
@@ -241,18 +284,18 @@ function time_ago($timestamp) {
                                             <?php endif; ?>
                                         </div>
                                         <div>
-                                            <div class="fw-bold"><?php echo htmlspecialchars($user['name'] . ' ' . $user['lastname']); ?></div>
-                                            <div class="text-xs text-muted"><?php echo htmlspecialchars($user['email']); ?></div>
+                                            <div class="fw-bold"><?php echo htmlspecialchars(($user['name'] ?? '') . ' ' . ($user['lastname'] ?? '')); ?></div>
+                                            <div class="text-xs text-muted"><?php echo htmlspecialchars($user['email'] ?? ''); ?></div>
                                         </div>
                                     </div>
                                 </td>
-                                <td><?php echo htmlspecialchars($user['account_type']); ?></td>
-                                <td class="fw-bold text-dark">$<?php echo number_format($user['balance'], 2); ?></td>
-                                <td><span class="status-badge <?php echo $status_class; ?>"><?php echo $user['status']; ?></span></td>
-                                <?php if (!in_array($_SESSION['role'] ?? '', ['Sub-Admin'])): ?>
+                                <td><?php echo htmlspecialchars($user['account_type'] ?? 'N/A'); ?></td>
+                                <td class="fw-bold text-dark">$<?php echo number_format($user['balance'] ?? 0, 2); ?></td>
+                                <td><span class="status-badge <?php echo $status_class; ?>"><?php echo $user['status'] ?? 'Unknown'; ?></span></td>
+                                <?php if (!$is_sub): ?>
                                 <td>
                                     <?php if ($user['assigned_admin_id']): ?>
-                                        <span class="text-xs fw-bold text-primary"><i class="fa-solid fa-user-shield me-1"></i> <?php echo htmlspecialchars($user['manager_name']); ?></span>
+                                        <span class="text-xs fw-bold text-primary"><i class="fa-solid fa-user-shield me-1"></i> <?php echo htmlspecialchars($user['manager_name'] ?? 'Admin'); ?></span>
                                     <?php else: ?>
                                         <span class="text-xs text-muted">Unassigned</span>
                                     <?php endif; ?>
@@ -281,14 +324,20 @@ function time_ago($timestamp) {
                 
                 <!-- Pagination -->
                 <div class="card-footer bg-white border-top p-3 d-flex justify-content-between align-items-center">
-                    <div class="text-xs text-muted">Showing 1 to 4 of 12,482 entries</div>
+                    <div class="text-xs text-muted">Showing <?php echo ($offset + 1); ?> to <?php echo min($offset + $limit, $total_count); ?> of <?php echo number_format($total_count); ?> entries</div>
                     <nav>
                         <ul class="pagination pagination-sm mb-0">
-                            <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
-                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                            <li class="page-item"><a class="page-link" href="#">2</a></li>
-                            <li class="page-item"><a class="page-link" href="#">3</a></li>
-                            <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                            <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
+                                <a class="page-link" href="?page=<?php echo $page - 1; ?>&search=<?php echo $search; ?>&status=<?php echo $status; ?>">Previous</a>
+                            </li>
+                            <?php for($i = 1; $i <= $total_pages; $i++): ?>
+                            <li class="page-item <?php echo $page == $i ? 'active' : ''; ?>">
+                                <a class="page-link" href="?page=<?php echo $i; ?>&search=<?php echo $search; ?>&status=<?php echo $status; ?>"><?php echo $i; ?></a>
+                            </li>
+                            <?php endfor; ?>
+                            <li class="page-item <?php echo $page >= $total_pages ? 'disabled' : ''; ?>">
+                                <a class="page-link" href="?page=<?php echo $page + 1; ?>&search=<?php echo $search; ?>&status=<?php echo $status; ?>">Next</a>
+                            </li>
                         </ul>
                     </nav>
                 </div>
