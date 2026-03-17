@@ -293,7 +293,7 @@
                             unset($_SESSION['errors']);
                         }
                         ?>
-                        <input type="hidden" name="_token" value="IupufGIaZ9FIXRhnUkmDWxjN739GCNieMCFWQnFZ">                        
+                        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">                        
                         <!-- Step 1: Personal Information -->
                         <div x-show="step === 1" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
                             <div class="text-center mb-6">
@@ -732,7 +732,7 @@
                                         <div class="absolute inset-y-0 left-0 flex items-center pl-3">
                                             <i data-lucide="key" class="h-5 w-5 text-gray-400"></i>
                                         </div>
-                                        <input :type="showPin ? 'text' : 'password'" id="pin" name="pin" x-model="formData.pin" class="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="â€¢â€¢â€¢â€¢" maxlength="4" pattern="[0-9]{4}" required="">
+                                        <input :type="showPin ? 'text' : 'password'" id="pin" name="pin" x-model="formData.pin" class="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="••••" maxlength="4" pattern="[0-9]{4}" required="">
                                         <button type="button" @click="showPin = !showPin" class="absolute inset-y-0 right-0 flex items-center pr-3">
                                             <i data-lucide="eye" class="h-5 w-5 text-gray-400" x-show="!showPin"></i>
                                             <i data-lucide="eye-off" class="h-5 w-5 text-gray-400" x-show="showPin"></i>
@@ -761,7 +761,7 @@
                                         <div class="absolute inset-y-0 left-0 flex items-center pl-3">
                                             <i data-lucide="lock" class="h-5 w-5 text-gray-400"></i>
                                         </div>
-                                        <input :type="showPassword ? 'text' : 'password'" id="password" name="password" x-model="formData.password" class="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required="">
+                                        <input :type="showPassword ? 'text' : 'password'" id="password" name="password" x-model="formData.password" class="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="••••••••" required="">
                                         <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 flex items-center pr-3">
                                             <i data-lucide="eye" class="h-5 w-5 text-gray-400" x-show="!showPassword"></i>
                                             <i data-lucide="eye-off" class="h-5 w-5 text-gray-400" x-show="showPassword"></i>
@@ -842,7 +842,7 @@
                                         <div class="absolute inset-y-0 left-0 flex items-center pl-3">
                                             <i data-lucide="lock" class="h-5 w-5 text-gray-400"></i>
                                         </div>
-                                        <input :type="showPassword ? 'text' : 'password'" id="password_confirmation" name="password_confirmation" x-model="formData.password_confirmation" class="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required="">
+                                        <input :type="showPassword ? 'text' : 'password'" id="password_confirmation" name="password_confirmation" x-model="formData.password_confirmation" class="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="••••••••" required="">
                                         <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 flex items-center pr-3">
                                             <i data-lucide="eye" class="h-5 w-5 text-gray-400" x-show="!showPassword"></i>
                                             <i data-lucide="eye-off" class="h-5 w-5 text-gray-400" x-show="showPassword"></i>
@@ -889,18 +889,6 @@
                             </button>
                         </div>
                         
-                        <!-- Hidden form fields to ensure data is submitted even if user doesn't visit every step -->
-                        <input type="hidden" name="name" :value="formData.name">
-                        <input type="hidden" name="middlename" :value="formData.middlename">
-                        <input type="hidden" name="lastname" :value="formData.lastname">
-                        <input type="hidden" name="username" :value="formData.username">
-                        <input type="hidden" name="email" :value="formData.email">
-                        <input type="hidden" name="phone" :value="formData.phone">
-                        <input type="hidden" name="country" :value="formData.country">
-                        <input type="hidden" name="accounttype" :value="formData.accounttype">
-                        <input type="hidden" name="pin" :value="formData.pin">
-                        <input type="hidden" name="password" :value="formData.password">
-                        <input type="hidden" name="password_confirmation" :value="formData.password_confirmation">
                     </form>
                 </div>
                 

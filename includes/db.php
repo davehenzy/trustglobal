@@ -57,4 +57,3 @@ if (empty($_SESSION['csrf_token'])) {
 function verifyCSRF($token) {
     return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
 }
-?>

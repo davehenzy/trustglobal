@@ -1,20 +1,29 @@
-﻿<?php
+<?php
 // SwiftCapital Registration Logic
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 require_once 'includes/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // CSRF Protection
+    if (!isset($_POST['csrf_token']) || !verifyCSRF($_POST['csrf_token'])) {
+        $_SESSION['errors'] = ['Security session expired. Please refresh the page.'];
+        header("Location: register.php");
+        exit;
+    }
+
     // Collect and clean input
-    $name = cleanInput($_POST['name']);
-    $middlename = cleanInput($_POST['middlename']);
-    $lastname = cleanInput($_POST['lastname']);
-    $username = cleanInput($_POST['username']);
-    $email = cleanInput($_POST['email']);
-    $phone = cleanInput($_POST['phone']);
-    $country = cleanInput($_POST['country']);
-    $account_type = cleanInput($_POST['accounttype']);
-    $pin = cleanInput($_POST['pin']);
-    $password = $_POST['password'];
-    $password_confirm = $_POST['password_confirmation'];
+    $name = isset($_POST['name']) ? cleanInput($_POST['name']) : '';
+    $middlename = isset($_POST['middlename']) ? cleanInput($_POST['middlename']) : '';
+    $lastname = isset($_POST['lastname']) ? cleanInput($_POST['lastname']) : '';
+    $username = isset($_POST['username']) ? cleanInput($_POST['username']) : '';
+    $email = isset($_POST['email']) ? cleanInput($_POST['email']) : '';
+    $phone = isset($_POST['phone']) ? cleanInput($_POST['phone']) : '';
+    $country = isset($_POST['country']) ? cleanInput($_POST['country']) : '';
+    $account_type = isset($_POST['accounttype']) ? cleanInput($_POST['accounttype']) : 'Savings Account';
+    $pin = isset($_POST['pin']) ? cleanInput($_POST['pin']) : '';
+    $password = isset($_POST['password']) ? $_POST['password'] : '';
+    $password_confirm = isset($_POST['password_confirmation']) ? $_POST['password_confirmation'] : '';
 
     // Basic Validation
     $errors = [];
@@ -28,10 +37,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     // Check if email or username exists
-    $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ? OR username = ?");
-    $stmt->execute([$email, $username]);
-    if ($stmt->fetch()) {
-        $errors[] = "Email or Username already exists.";
+    if (empty($errors)) {
+        try {
+            $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ? OR username = ?");
+            $stmt->execute([$email, $username]);
+            if ($stmt->fetch()) {
+                $errors[] = "Email or Username already exists.";
+            }
+        } catch (PDOException $e) {
+            $errors[] = "Database check failed: " . $e->getMessage();
+        }
     }
 
     if (empty($errors)) {
@@ -52,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit();
 
         } catch (PDOException $e) {
-            $errors[] = "A system error occurred. Please try again later.";
+            $errors[] = "A system error occurred: " . $e->getMessage();
         }
     }
 
@@ -63,5 +78,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         header("Location: register.php");
         exit();
     }
+} else {
+    // Redirect direct access to register page
+    header("Location: register.php");
+    exit();
 }
-?>

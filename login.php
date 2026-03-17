@@ -259,7 +259,7 @@
                                     <div class="input-icon">
                                         <i data-lucide="lock" class="h-5 w-5"></i>
                                     </div>
-                                    <input id="password" type="password" name="password" class="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required="" autocomplete="current-password">
+                                    <input id="password" type="password" name="password" class="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="••••••••" required="" autocomplete="current-password">
                                     <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 flex items-center pr-3 input-toggle">
                                         <i data-lucide="eye" id="show-password" class="h-5 w-5 text-gray-400"></i>
                                         <i data-lucide="eye-off" id="hide-password" class="h-5 w-5 text-gray-400 hidden"></i>
